@@ -1,4 +1,4 @@
-# CBB
+# CBB - Current work from Feb 2023
 
 This project was a lot of fun for me and I'm excited to update it with more advanced predictive methods this spring 2025. I always loved march madness as a kid and creating a bracket basically feels like christmas.
 
