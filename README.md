@@ -1,64 +1,127 @@
-# March Madness (Mens for now) Analysis and Prediction
+# March Madness (Men's) Analysis and Prediction
 
-This repository follows a structured layout so the work is reproducible, testable, and ready for collaboration. The structure separates ingestion, feature engineering, modeling, evaluation, and deployment artifacts while keeping data and documentation discoverable.
+Predict NCAA Men's March Madness tournament advancement (round reached) using Bart Torvik team stats and seed-stratified linear models.
+
+## Project goals
+
+- **Ingest** regular-season, postseason, and tournament data from [Bart Torvik](https://barttorvik.com) (2008–2024).
+- **Engineer features** including conference tournament W/L, round encoding (0–6), Power 6 conference flags, and seed-stratified indicators.
+- **Model** tournament round advancement with a general linear model plus 14 seed-specific models, selected via jackknife leave-one-out cross-validation.
+- **Output** training CSVs, model artifacts, and optional 2023 holdout validation.
+
+## Modeling approach
+
+- **Target**: `round` (0 = Round of 64, 6 = Champion).
+- **Features**: AdjOE, AdjDE, Barthag, WAB, seed, conference flags (B12, B10, SEC, etc.), optional team depth (EFFHGT, TALENT, AST%, etc.) when external data is available.
+- **Models**: One general LM + 14 seed-stratified LMs for finer prediction by seed tier.
+- **Validation**: Jackknife LOO cross-validation; Metrics package for bias and RMSE.
+
+## Setup
+
+Pipelines are available in **R** and **Python**. Use either language.
+
+### R
+
+- R (4.0+ recommended)
+- Required packages: `rvest`, `httr`, `dplyr`, `sqldf`, `readxl`, `stringr`, `Metrics`, `ggplot2`, `yaml`
+- Optional: `toRvik` (for exploratory injury-impact analysis)
+
+```r
+Rscript scripts/install_deps.R
+```
+
+### Python
+
+- Python 3.9+
+- Install: `pip install -r requirements.txt`
+
+```
+pandas, numpy, requests, scikit-learn, PyYAML, lxml, html5lib
+```
+
+## How to run
+
+From the project root:
+
+**R:**
+```bash
+Rscript scripts/run_pipeline.R
+```
+
+**Python:**
+```bash
+python scripts/run_pipeline.py
+```
+
+Or `python -m src.pipelines.madness`
+
+### Outputs
+
+| Output | Location |
+|--------|----------|
+| Training data | `data/processed/cbbtrainingdata_YYYYMMDD.csv` |
+| Model artifacts | In-memory (general model, seed1–14 models); extend to save in `models/` as needed |
+| Figures | Plots rendered during run; extend to `reports/figures/` as needed |
+
+## Data sources
+
+| Source | Description |
+|--------|-------------|
+| **Bart Torvik** | [barttorvik.com](https://barttorvik.com) – regular-season (R), postseason (P), and tournament (T) tables. Primary source; scraped automatically. |
+| **Optional external files** | Placed in `data/external/` when available: `trank_team_table_data*.csv`, `cleanteam.xlsx`, `teamdata23.csv`. See [docs/data_sources.md](docs/data_sources.md). |
+
+## Known limitations
+
+- **Optional external data**: Richer features (EFFHGT, TALENT, etc.) require external CSVs. Pipeline runs without them; optional columns are filled with 0.
+- **2023 holdout**: Needs `cleanteam.xlsx` and `teamdata23.csv` in `data/external/`, or falls back to 2023 teams from the scrape.
+- **`bart_injuryimpact`**: Exploratory only; requires optional `toRvik` package. Does not affect main pipeline.
 
 ## Project structure
 
 ```
 .
-├── configs/                 # Centralized configuration files (YAML/JSON) for paths, seeds, and model params
-├── data/                    # Data storage (notebooks/scripts read from here; outputs go to processed)
-│   ├── external/            # Third-party data sources as-is (immutable)
-│   ├── raw/                 # Raw ingested data (immutable)
-│   ├── interim/             # Intermediate data with light cleaning or joins
-│   └── processed/           # Final feature tables used for modeling
-├── docs/                    # Project documentation (design notes, decisions, data dictionaries)
-├── models/                  # Serialized model artifacts and experiment outputs
-├── notebooks/               # Exploratory analysis notebooks (kept lightweight and reproducible)
-├── reports/                 # Reporting outputs (figures, write-ups)
-│   └── figures/             # Plots and images referenced by reports
-├── scripts/                 # One-off scripts, CLI helpers, and automation tasks
-├── src/                     # Core, reusable code
-│   ├── ingestion/           # Scrapers and ingestion pipelines
-│   ├── features/            # Feature engineering and transforms
-│   ├── modeling/            # Model training and selection code
-│   ├── evaluation/          # Metrics, validation, and model comparison
-│   ├── deployment/          # Packaging, scoring, and deployment hooks
-│   ├── pipelines/           # End-to-end workflows that orchestrate modules
-│   └── utils/               # Shared utilities (I/O helpers, constants, etc.)
-├── tests/                   # Unit/integration tests
-└── README.md                # Project overview and onboarding
+├── configs/                 # Configuration (paths, year range, etc.)
+├── data/
+│   ├── external/            # Optional third-party data (see docs)
+│   ├── raw/                 # Raw ingested data
+│   ├── interim/             # Intermediate cleaned/joined data
+│   └── processed/           # Final training tables
+├── docs/                    # Data dictionaries, design notes
+├── models/                  # Serialized models (to be populated)
+├── notebooks/               # Exploratory notebooks
+├── reports/figures/         # Plots and figures
+├── scripts/                 # install_deps.R, run_pipeline.R, run_pipeline.py
+├── src/
+│   ├── pipelines/           # madness.R, madness.py – end-to-end pipelines
+│   ├── ingestion/           # (Planned) Scrapers
+│   ├── features/            # (Planned) Feature engineering
+│   ├── modeling/            # (Planned) Model training
+│   └── ...
+└── tests/
 ```
 
-### Why this layout
-- **configs/**: Enables reproducibility by putting all file paths, seeds, and hyperparameters in versioned config files.
-- **data/**: Encourages a clean data lifecycle with immutable raw/external inputs and explicit processed outputs.
-- **docs/**: Keeps design docs, data dictionaries, and decisions close to code.
-- **models/**: Makes experiment artifacts and model binaries easy to track.
-- **notebooks/**: Supports exploration without mixing ad-hoc work into production code.
-- **reports/**: Centralizes figures and write-ups for sharing results.
-- **scripts/**: Captures automation and CLI tasks that don't belong in core modules.
-- **src/**: Keeps production code modular, testable, and reusable.
-- **tests/**: Ensures regressions are caught early and builds trust in results.
+## Current implementation
+
+- **`src/pipelines/madness.R`**: R end-to-end pipeline (ingestion → features → models → outputs).
+- **`src/pipelines/madness.py`**: Python equivalent; vectorized pandas, config-driven seed models, sklearn LOO.
+
+## Configuration
+
+- Default config: `configs/default.yaml` (paths, year range, Bart Torvik base URL).
+- Keep local overrides in `configs/local.yaml` (gitignored) if needed.
+
+### Reproducible dependencies
+
+**R (renv):**
+```r
+renv::init(); renv::snapshot()  # Commit renv.lock
+```
+
+**Python:** `pip freeze > requirements.txt` or use `uv` / `poetry`.
 
 ## Naming conventions
-- **Directories**: lowercase, hyphenated if multiple words (e.g., `data/raw`, `reports/figures`).
-- **R scripts**: snake_case (e.g., `build_features.R`, `train_model.R`).
-- **Configs**: `*.yaml` for configuration (e.g., `configs/default.yaml`).
-- **Data files**: include source + date when possible (e.g., `barttorvik_2024_raw.csv`).
 
-## README content recommendations
-Include at minimum:
-1. **Project goals** and a short summary of the modeling approach.
-2. **Setup** instructions (R version, package dependencies, optional `renv`).
-3. **How to run** ingestion, feature engineering, training, and evaluation pipelines.
-4. **Data sources** and any usage constraints or citations.
-5. **Experiment tracking** expectations (where to store models and metrics).
-
-## Configuration management recommendations
-- Store default configuration in `configs/default.yaml` and keep environment-specific overrides (e.g., `configs/local.yaml`) out of version control.
-- Add a single entrypoint script in `scripts/` that reads config, runs ingestion → features → train → evaluate.
-- Use `renv` for deterministic R dependencies and record the lockfile in git.
-
-## Current scripts
-- `src/pipelines/madness.R` is the original end-to-end pipeline script. It should be incrementally split into ingestion, features, and modeling modules under `src/` as the refactor proceeds.
+- **Data frames**: Descriptive snake_case (e.g., `training_data`, `holdout_2023`, `regular_season_raw`). See [docs/naming_conventions.md](docs/naming_conventions.md).
+- **Directories**: lowercase, hyphenated (e.g., `data/raw`, `reports/figures`).
+- **Scripts**: snake_case (e.g., `run_pipeline.R`).
+- **Data files**: source + date (e.g., `cbbtrainingdata_20240131.csv`).

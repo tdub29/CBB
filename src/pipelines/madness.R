@@ -1,11 +1,21 @@
-#create historic data
+# March Madness pipeline: ingestion, features, modeling
+`%||%` <- function(x, y) if (is.null(x)) y else x
+# Load config if available
+if (requireNamespace("yaml", quietly = TRUE)) {
+  cfg <- yaml::read_yaml("configs/default.yaml")
+} else {
+  cfg <- list(paths = list(output_training_csv = "data/processed/cbbtrainingdata", data_external = "data/external"))
+}
+output_csv_prefix <- cfg$paths$output_training_csv %||% "data/processed/cbbtrainingdata"
+ext_data_dir <- cfg$paths$data_external %||% "data/external"
+
 library(rvest)
 library(httr)
 library(dplyr)
 
-mastertable <- data.frame()
+regular_season_raw <- data.frame()
 
-#scrape regular season data from barttorvik
+# Scrape regular season data from Bart Torvik
 for (year in 2008:2024){
   url2<- as.character(year)
   url1 <- "https://barttorvik.com/trank.php?year="
@@ -25,10 +35,11 @@ for (year in 2008:2024){
 
   ncaa_scrape$year <- NA
   ncaa_scrape$year <- year
-  mastertable <- rbind(mastertable,ncaa_scrape)
+  regular_season_raw <- rbind(regular_season_raw, ncaa_scrape)
 }
- #create postseason and tourney data to create boolean variable for conf win
-tableforconf <- data.frame()
+
+# Scrape postseason (conference tournament) data
+postseason_raw <- data.frame()
 for (year in 2008:2024){
   url2<- as.character(year)
   url1 <- "https://barttorvik.com/trank.php?year="
@@ -47,11 +58,11 @@ for (year in 2008:2024){
   
   ncaa_scrapeconf$year <- NA
   ncaa_scrapeconf$year <- year
-  tableforconf <- rbind(tableforconf,ncaa_scrapeconf)
+  postseason_raw <- rbind(postseason_raw, ncaa_scrapeconf)
 }
 
-#create tournament df in order to isolate conf tourney stats later
-tablefortourn <- data.frame()
+# Scrape NCAA tournament data
+ncaa_tournament_raw <- data.frame()
 for (year in 2008:2024){
   url2<- as.character(year)
   url1 <- "https://barttorvik.com/trank.php?year="
@@ -76,68 +87,54 @@ for (year in 2008:2024){
   }
   ncaa_scrapetourn$year <- NA
   ncaa_scrapetourn$year <- year
-  tablefortourn <- rbind(tablefortourn,ncaa_scrapetourn)
+  ncaa_tournament_raw <- rbind(ncaa_tournament_raw, ncaa_scrapetourn)
 }
 
+# -----------------------------------------------------------------------------
+# Feature engineering
+# -----------------------------------------------------------------------------
 
-#FEATURE ENGINEERING
+# Parse NCAA tournament wins/losses
+ncaa_tournament_raw$W <- substr(ncaa_tournament_raw$Rec, 1, ifelse(substr(ncaa_tournament_raw$Rec, 2, 2) %in% c("0", "1"), 2, 1))
+ncaa_tournament_raw$L <- ifelse(substr(ncaa_tournament_raw$Rec, 2, 2) %in% c("0", "1"), substr(ncaa_tournament_raw$Rec, 4, 4), substr(ncaa_tournament_raw$Rec, 3, 3))
 
-# Create new column "W" which is wins in tournaments
-tablefortourn$W <- substr(tablefortourn$Rec, 1, ifelse(substr(tablefortourn$Rec, 2, 2) %in% c("0", "1"), 2, 1))
+# Parse conference tournament wins/losses
+postseason_raw$W <- substr(postseason_raw$Rec, 1, ifelse(substr(postseason_raw$Rec, 2, 2) %in% c("0", "1", "2", "3"), 2, 1))
+postseason_raw$L <- ifelse(substr(postseason_raw$Rec, 2, 2) %in% c("0", "1", "2", "3"), substr(postseason_raw$Rec, 4, 4), substr(postseason_raw$Rec, 3, 3))
 
-# Create new column "L" which is losses in tournaments aka 0 means they won
-tablefortourn$L <- ifelse(substr(tablefortourn$Rec, 2, 2) %in% c("0", "1"), substr(tablefortourn$Rec, 4, 4), substr(tablefortourn$Rec, 3, 3))
-
-# Create new column "W" which is wins in conference tourney
-tableforconf$W <- substr(tableforconf$Rec, 1, ifelse(substr(tableforconf$Rec, 2, 2) %in% c("0", "1","2","3"), 2, 1))
-
-
-# Create new column "L" which is losses in conf tournaments aka 0 means they won
-tableforconf$L <- ifelse(substr(tableforconf$Rec, 2, 2) %in% c("0", "1", "2","3"), substr(tableforconf$Rec, 4, 4), substr(tableforconf$Rec, 3, 3))
-
-
-#join tournament and playoffs data
+# Join postseason with NCAA tournament to get conference-only W/L
 library(sqldf)
-joinedconf <- sqldf("SELECT t.*, tf.W as tournw, tf.L as tournl
-                       FROM tableforconf t
-                       LEFT JOIN tablefortourn tf 
+conf_tourney_with_ncaa <- sqldf("SELECT t.*, tf.W as tournw, tf.L as tournl
+                       FROM postseason_raw t
+                       LEFT JOIN ncaa_tournament_raw tf
                        ON t.Team = tf.Team AND t.year = tf.year")
-as.numeric(joinedconf$tournw)->joinedconf$tournw
-as.numeric(joinedconf$tournl)->joinedconf$tournl
-as.numeric(joinedconf$L)->joinedconf$L
-as.numeric(joinedconf$W)->joinedconf$W
+conf_tourney_with_ncaa$tournw <- as.numeric(conf_tourney_with_ncaa$tournw)
+conf_tourney_with_ncaa$tournl <- as.numeric(conf_tourney_with_ncaa$tournl)
+conf_tourney_with_ncaa$L <- as.numeric(conf_tourney_with_ncaa$L)
+conf_tourney_with_ncaa$W <- as.numeric(conf_tourney_with_ncaa$W)
+conf_tourney_with_ncaa <- mutate(conf_tourney_with_ncaa, conftournw = W - tournw, conftournl = L - tournl)
 
-#create variables for conference tournemnt w's and l's 
-mutate(joinedconf, conftournw =W - tournw, conftournl = L- tournl )->joinedconf
-
-#join conference win loss data to master table
-finalmastertable <- sqldf("SELECT mt.*, jc.conftournw as W, jc.conftournl as L 
-                      FROM mastertable mt
-                      LEFT JOIN joinedconf jc 
+# Join regular season with conference tournament W/L
+teams_with_conf_tourney_wl <- sqldf("SELECT mt.*, jc.conftournw as W, jc.conftournl as L
+                      FROM regular_season_raw mt
+                      LEFT JOIN conf_tourney_with_ncaa jc
                       ON mt.Team = jc.Team AND mt.year = jc.year")
-
-
-finalmastertable23 <- sqldf("SELECT mt.*, jc.W, jc.L 
-                      FROM mastertable mt
-                      LEFT JOIN joinedconf jc 
-                      ON mt.Team = jc.Team AND mt.year = jc.year")
-
 
 library(dplyr)
-mastertable_final <- arrange(finalmastertable, desc(AdjOE))
-# mastertable_final <- slice(mastertable_sorted, 2:nrow(mastertable_sorted))
+teams_annotated <- arrange(teams_with_conf_tourney_wl, desc(AdjOE))
+# teams_annotated <- slice(mastertable_sorted, 2:nrow(mastertable_sorted))
 
 
 # create a new column called "seed"
-mastertable_final$seed <- NA
-# Loop through each row of "mastfin$Team"
-for (i in seq_along(mastertable_final$Team)) {
+teams_annotated$seed <- NA
+# Loop through each row of "training_data$Team"
+for (i in seq_along(teams_annotated$Team)) {
   # Check if "seed" is present in the value of the "Team" column
-  if (grepl("seed", mastertable_final$Team[i])) {
+  if (grepl("seed", teams_annotated$Team[i])) {
     # If "seed" is present, extract all numbers before "seed" using a regular expression
-    seed_value <- gsub("\\D", "", sub("seed.*", "", mastertable_final$Team[i]))
+    seed_value <- gsub("\\D", "", sub("seed.*", "", teams_annotated$Team[i]))
     # Store the extracted value in the "seed" column for that row
-    mastertable_final$seed[i] <- seed_value
+    teams_annotated$seed[i] <- seed_value
   }
 }
 
@@ -145,36 +142,35 @@ for (i in seq_along(mastertable_final$Team)) {
 
 
 # create a new column called "result" TO CATEGORIZE ROUNDS RESULT
-mastertable_final$result <- NA
+teams_annotated$result <- NA
 
-# loop over each row of the mastertable_final data frame
-for (i in seq_len(nrow(mastertable_final))) {
+# loop over each row of the teams_annotated data frame
+for (i in seq_len(nrow(teams_annotated))) {
   # extract the team name from the "Team" column
-  team_name <- as.character(mastertable_final$Team[i])
+  team_name <- as.character(teams_annotated$Team[i])
   
   # check if the team name contains a certain result string
   if (grepl("R32", team_name)) {
-    mastertable_final$result[i] <- 32
+    teams_annotated$result[i] <- 32
   } else if (grepl("R64", team_name)) {
-    mastertable_final$result[i] <- 64
+    teams_annotated$result[i] <- 64
   } else if (grepl("Finals", team_name)) {
-    mastertable_final$result[i] <- 2
+    teams_annotated$result[i] <- 2
   } else if (grepl("CHAMPS", team_name)) {
-    mastertable_final$result[i] <- 1
+    teams_annotated$result[i] <- 1
   } else if (grepl("Elite Eight", team_name)) {
-    mastertable_final$result[i] <- 8
+    teams_annotated$result[i] <- 8
   } else if (grepl("Sweet Sixteen", team_name)) {
-    mastertable_final$result[i] <- 16
+    teams_annotated$result[i] <- 16
   } else if (grepl("Final Four", team_name)) {
-    mastertable_final$result[i] <- 4
+    teams_annotated$result[i] <- 4
   }
 }
 
-mastertable_final -> mastfin
+training_data <- teams_annotated
 
-#clean columns, the teams rank is stuck at the end of the number skewing results marginally
-
-mastfin$WAB <- sapply(as.character(mastfin$WAB), function(value) {
+# Clean WAB column (rank suffix and sign handling)
+training_data$WAB <- sapply(as.character(training_data$WAB), function(value) {
   # Check if the value starts with "+" or "-"
   sign_prefix <- substr(value, 1, 1)
   
@@ -199,118 +195,106 @@ mastfin$WAB <- sapply(as.character(mastfin$WAB), function(value) {
 
 
 for (col in 9:23) {
-  for (i in 1:nrow(mastfin)) {
-    value <- as.character(mastfin[i, col])
+  for (i in 1:nrow(training_data)) {
+    value <- as.character(training_data[i, col])
     if (grepl("\\.", value)) {
-      mastfin[i, col] <- substr(value, 1, 4)
+      training_data[i, col] <- substr(value, 1, 4)
     } else {
-      mastfin[i, col] <- substr(value, 1, 2)
+      training_data[i, col] <- substr(value, 1, 2)
     }
   }
 }
-for(i in 1:nrow(mastfin)){
-  mastfin[i, 8] <- substr(mastfin[i, 8], 1, 5)}
+for(i in 1:nrow(training_data)){
+  training_data[i, 8] <- substr(training_data[i, 8], 1, 5)}
 
 for (col in 6:7) {
-  for (i in 1:nrow(mastfin)) {
-    value <- as.character(mastfin[i, col])
+  for (i in 1:nrow(training_data)) {
+    value <- as.character(training_data[i, col])
     if (startsWith(value, "1")) {
-      mastfin[i, col] <- substr(value, 1, 5)
+      training_data[i, col] <- substr(value, 1, 5)
     } else {
-      mastfin[i, col] <- substr(value, 1, 4)
+      training_data[i, col] <- substr(value, 1, 4)
     }
   }
 }
 
-as.numeric(mastfin$AdjOE)->mastfin$AdjOE
-as.numeric(mastfin$AdjDE)->mastfin$AdjDE
-as.numeric(mastfin$Barthag)->mastfin$Barthag
-mastfin$`EFG%` <- as.numeric(mastfin$`EFG%`)
-mastfin$`EFGD%` <- as.numeric(mastfin$`EFGD%`)
-mastfin$TOR <- as.numeric(mastfin$TOR)
-mastfin$TORD <- as.numeric(mastfin$TORD)
-mastfin$ORB <- as.numeric(mastfin$ORB)
-mastfin$DRB <- as.numeric(mastfin$DRB)
-mastfin$FTR <- as.numeric(mastfin$FTR)
-mastfin$FTRD <- as.numeric(mastfin$FTRD)
-mastfin$`2P%` <- as.numeric(mastfin$`2P%`)
-mastfin$`2P%D` <- as.numeric(mastfin$`2P%D`)
-mastfin$`3P%` <- as.numeric(mastfin$`3P%`)
-mastfin$`3P%D` <- as.numeric(mastfin$`3P%D`)
-mastfin$`Adj T.` <- as.numeric(mastfin$`Adj T.`)
-mastfin$WAB <- as.numeric(mastfin$WAB)
-mastfin$seed <- as.numeric(mastfin$seed)
+as.numeric(training_data$AdjOE)->training_data$AdjOE
+as.numeric(training_data$AdjDE)->training_data$AdjDE
+as.numeric(training_data$Barthag)->training_data$Barthag
+training_data$`EFG%` <- as.numeric(training_data$`EFG%`)
+training_data$`EFGD%` <- as.numeric(training_data$`EFGD%`)
+training_data$TOR <- as.numeric(training_data$TOR)
+training_data$TORD <- as.numeric(training_data$TORD)
+training_data$ORB <- as.numeric(training_data$ORB)
+training_data$DRB <- as.numeric(training_data$DRB)
+training_data$FTR <- as.numeric(training_data$FTR)
+training_data$FTRD <- as.numeric(training_data$FTRD)
+training_data$`2P%` <- as.numeric(training_data$`2P%`)
+training_data$`2P%D` <- as.numeric(training_data$`2P%D`)
+training_data$`3P%` <- as.numeric(training_data$`3P%`)
+training_data$`3P%D` <- as.numeric(training_data$`3P%D`)
+training_data$`Adj T.` <- as.numeric(training_data$`Adj T.`)
+training_data$WAB <- as.numeric(training_data$WAB)
+training_data$seed <- as.numeric(training_data$seed)
 
-mastfin$round <- ifelse(mastfin$result == '64', 0,
-                        ifelse(mastfin$result == '32', 1,
-                               ifelse(mastfin$result == '16', 2,
-                                      ifelse(mastfin$result == '8', 3,
-                                             ifelse(mastfin$result == '4', 4,
-                                                    ifelse(mastfin$result == '2', 5,
-                                                           ifelse(mastfin$result == '1', 6, NA)))))))
-# loop through mastfin$W and mastfin$L
-for (i in 1:length(mastfin$W)) {
-  if (is.na(mastfin$W[i])) {
-    mastfin$W[i] <- 1
+training_data$round <- ifelse(training_data$result == '64', 0,
+                        ifelse(training_data$result == '32', 1,
+                               ifelse(training_data$result == '16', 2,
+                                      ifelse(training_data$result == '8', 3,
+                                             ifelse(training_data$result == '4', 4,
+                                                    ifelse(training_data$result == '2', 5,
+                                                           ifelse(training_data$result == '1', 6, NA)))))))
+# loop through training_data$W and training_data$L
+for (i in 1:length(training_data$W)) {
+  if (is.na(training_data$W[i])) {
+    training_data$W[i] <- 1
   }
-  if (is.na(mastfin$L[i])) {
-    mastfin$L[i] <- 1
+  if (is.na(training_data$L[i])) {
+    training_data$L[i] <- 1
   }
 }
 
 library(dplyr)
 library(stringr)
 
-mastfin <- mastfin %>%
+training_data <- training_data %>%
   mutate(Team = ifelse(str_detect(Team, "\\b\\d+\\s+seed"), 
                        str_trim(str_replace(Team, "\\s+\\d+\\s+seed.*$", "")),
                        Team))
 
-#add additional data TO INCREASE # OF FEATURES TO CAPTURE THINGS 
-#LIKE TEAM SIZE, PLAYER HEIGHT, AGE AND OTHER THINGS
-
-library(httr)
-
-htmltable<-read_html(httr::GET('https://barttorvik.com/team-tables_each.php?year=2022&top=0&conlimit=All&venue=All&type=All&yax=3', user_agent("Mozilla/5.0")))
-
-
-tbl_scrape <- htmltable %>% html_node("table") %>% html_table()
-
-
-# Create an empty data frame to hold the concatenated data
-combined_data <- data.frame()
-
-# Loop through values 10:24 except 12   29 - 44
-for (i in 52:52) {
-  if (i != 12) {
-    # Read in the CSV file
-    file_name <- paste0("C:/Users/TrevorWhite/Downloads/trank_team_table_data (", i, ").csv")
-    data <- read.csv(file_name, header = FALSE)
-    
-    
-    # Add the data to the combined data frame
-    combined_data <- rbind(combined_data, data)
+# Optional: add team depth data (EFFHGT, TALENT, etc.) from external CSVs
+col_names_ext <- c("TEAM", "ADJOE", "ADJDE", "BARTHAG", "RECORD", "WINS", "GAMES", "EFG", "EFGD.", "FTRATE", "FTRATED", "TOV%", "TOV%D", "OREB%", "OPOREB%", "RAWT", "2P%", "2P%D", "3P%", "3P%D", "BLK%", "BLKED%", "AST%", "OPAST%", "3PRATE", "3PRATED", "ADJ.T", "AVGHGT", "EFFHGT", "EXP.", "YEAR", "PAKE", "PASE", "TALENT", "blank", "FT%", "OPFT%", "PPPOFF", "PPPDEF", "ELITESOS")
+external_team_depth <- setNames(data.frame(matrix(nrow = 0, ncol = length(col_names_ext))), col_names_ext)
+ext_files <- list.files(ext_data_dir, pattern = "trank_team_table_data.*\\.csv", full.names = TRUE, ignore.case = TRUE)
+if (length(ext_files) > 0) {
+  for (f in ext_files) {
+    data <- tryCatch(read.csv(f, header = FALSE), error = function(e) NULL)
+    if (!is.null(data) && nrow(data) > 0) {
+      colnames(data) <- col_names_ext[seq_len(ncol(data))]
+      if ("BARTHAG" %in% colnames(data) && "YEAR" %in% colnames(data)) {
+        data$Rk <- ave(-as.numeric(data$BARTHAG), data$YEAR, FUN = rank)
+      }
+      external_team_depth <- rbind(external_team_depth, data)
+    }
+  }
+  if (nrow(external_team_depth) > 0) {
+    external_team_depth$Rk <- ave(-as.numeric(external_team_depth$BARTHAG), external_team_depth$YEAR, FUN = rank)
   }
 }
-
-# Set the column names of combined_data
-colnames(combined_data) <- c("TEAM", "ADJOE", "ADJDE", "BARTHAG", "RECORD", "WINS", "GAMES", "EFG", "EFGD.", "FTRATE", "FTRATED", "TOV%", "TOV%D", "OREB%", "OPOREB%", "RAWT", "2P%", "2P%D", "3P%", "3P%D", "BLK%", "BLKED%", "AST%", "OPAST%", "3PRATE", "3PRATED", "ADJ.T", "AVGHGT", "EFFHGT", "EXP.", "YEAR", "PAKE", "PASE", "TALENT",'blank', "FT%", "OPFT%", "PPPOFF", "PPPDEF", "ELITESOS")
-
-combined_data$Rk <- ave(-combined_data$BARTHAG, combined_data$YEAR, FUN = rank)
-#read_excel("C:\\Users\\TrevorWhite\\Downloads\\cleanedtm.xlsx")->mastfin
-NEWMASTFIN <- sqldf("
+#read_excel("C:\\Users\\TrevorWhite\\Downloads\\cleanedtm.xlsx")->training_data
+training_data_full <- sqldf("
   SELECT 
     m.*, 
     c.TEAM, c.WINS, c.`BLK%`, c.`BLKED%`, c.`AST%`, c.`OPAST%`, 
     c.`3PRATE`, c.`3PRATED`, c.EFFHGT, c.`EXP.`, c.TALENT, c.ELITESOS
   FROM 
-    mastfin AS m
-    LEFT JOIN combined_data AS c ON m.Year = c.Year AND m.Team = c.TEAM
+    training_data AS m
+    LEFT JOIN external_team_depth AS c ON m.Year = c.Year AND m.Team = c.TEAM
 ")
 
 library(sqldf)
 
-mastfin <- NEWMASTFIN #assign new df to master df
+training_data <- training_data_full #assign new df to master df
 
 
 
@@ -318,11 +302,11 @@ mastfin <- NEWMASTFIN #assign new df to master df
 power6_confs <- c("B12", "B10", "SEC", "ACC", "P12","BE")
 
 # Create the Power5 variable
-mastfin <- mastfin %>%
+training_data <- training_data %>%
   mutate(Power6 = ifelse(Conf %in% power6_confs, 1, 0))
 
 # Create BOOLEAN FEATURES FOR P5 CONFERENCES
-mastfin <- mastfin %>%
+training_data <- training_data %>%
   mutate(B12 = ifelse(Conf == "B12", 1, 0),
          B10 = ifelse(Conf == "B10", 1, 0),
          SEC = ifelse(Conf == "SEC", 1, 0),
@@ -331,20 +315,20 @@ mastfin <- mastfin %>%
          BE = ifelse(Conf == "BE", 1, 0),
          MWC = ifelse(Conf == "MWC", 1, 0))
 
-mastfin$Rec <- substr(mastfin$Rec, 1, 2)
+training_data$Rec <- substr(training_data$Rec, 1, 2)
 
-mastfinwteam <- mastfin
+training_data_with_team <- training_data
 
-mastfinwteam <- mastfinwteam %>%
+training_data_with_team <- training_data_with_team %>%
   select(-TEAM)
 
-mastfinallcopy<-mastfin
-mastfin <- mastfin %>%
-  select(-WINS, -1:-3, -result, -TEAM)
+training_data_backup<-training_data
+training_data <- training_data %>%
+  select(-1:-3, -result, -TEAM)
 
-##select(mastfin, 1:36) ->mastfin
+##select(training_data, 1:36) ->training_data
 #CREATE BOOLEAN FEATURES FOR ROUNDS
-mastfin <- mastfin %>%
+training_data <- training_data %>%
   mutate(Round2 = ifelse(round >= 1, 1, 0),
          S16 = ifelse(round >= 2, 1, 0),
          E8 = ifelse(round >= 3, 1, 0),
@@ -352,22 +336,27 @@ mastfin <- mastfin %>%
          Ship = ifelse(round >= 5, 1, 0),
          Champ = ifelse(round == 6, 1, 0))
 
-madness24 <- mastfin %>%
+seeded_teams_subset <- training_data %>%
   filter(!is.na(seed))
 
-mastfin <- mastfin %>%
+training_data <- training_data %>%
   mutate(across(45:50, ~ifelse(is.na(.), 0, .)))
 
 # Fill NA values in 'round' column with 0
-mastfin <- mastfin %>%
+training_data <- training_data %>%
   mutate(round = ifelse(is.na(round), 0, round))
 
-mastfin ->mastfinanalysiscopy
+training_data ->training_data_analysis_backup
+# Fill optional columns (from external data) with 0 when NA so pipeline runs without external files
+optional_cols <- c("WINS", "BLK%", "BLKED%", "AST%", "OPAST%", "3PRATE", "3PRATED", "EFFHGT", "EXP.", "TALENT", "ELITESOS")
+for (oc in optional_cols) {
+  if (oc %in% colnames(training_data)) training_data[[oc]][is.na(training_data[[oc]])] <- 0
+}
 # Now remove rows with NA values in any column
-mastfin <- mastfin %>%
+training_data <- training_data %>%
   na.omit()
 
-mastfin <- mastfin %>%
+training_data <- training_data %>%
   mutate(G = as.numeric(G),
          `3PR` = as.numeric(`3PR`),
          `3PRD` = as.numeric(`3PRD`),
@@ -376,23 +365,47 @@ mastfin <- mastfin %>%
 
 
 
-#NEWMASTFIN->mastfin
+#training_data_full->training_data
 library(readxl)
-write.csv(NEWMASTFIN, "cbbtrainingdata31224.csv")
-read_excel('C:/Users/TrevorWhite/Downloads/cleanteam.xlsx')->cbb2023
-read.csv("C:/Users/TrevorWhite/Downloads/teamdata23.csv", header = FALSE)->combined23
-colnames(combined23)<-colnames(combined_data[1:40])
-View(combined23)
-NEWCBB23 <- sqldf("
-  SELECT 
-    m.*, 
-    c.TEAM, c.WINS, c.`BLK%`, c.`BLKED%`, c.`AST%`, c.`OPAST%`, 
-    c.`3PRATE`, c.`3PRATED`, c.EFFHGT, c.`EXP.`, c.TALENT, c.ELITESOS
-  FROM 
-    cbb2023 AS m
-    LEFT JOIN combined23 AS c ON m.Team = c.TEAM
-")
-NEWCBB23->cbb2023
+output_path <- paste0(output_csv_prefix, "_", format(Sys.Date(), "%Y%m%d"), ".csv")
+dir.create(dirname(output_path), recursive = TRUE, showWarnings = FALSE)
+write.csv(training_data_full, output_path, row.names = FALSE)
+message("Training data written to ", output_path)
+
+# Optional: 2023 holdout data for validation (requires cleanteam.xlsx and teamdata23.csv in data/external)
+has_holdout <- FALSE
+cleanteam_path <- file.path(ext_data_dir, "cleanteam.xlsx")
+teamdata23_path <- file.path(ext_data_dir, "teamdata23.csv")
+if (file.exists(cleanteam_path) && file.exists(teamdata23_path)) {
+  holdout_2023 <- tryCatch({
+    read_excel(cleanteam_path)
+  }, error = function(e) { message("Could not read cleanteam.xlsx: ", e$message); NULL })
+  if (!is.null(holdout_2023)) {
+    combined23 <- tryCatch(read.csv(teamdata23_path, header = FALSE), error = function(e) NULL)
+    if (!is.null(combined23)) {
+      colnames(combined23) <- col_names_ext[seq_len(ncol(combined23))]
+      holdout_2023_merged <- sqldf("
+        SELECT m.*, c.TEAM, c.WINS, c.\"BLK%\", c.\"BLKED%\", c.\"AST%\", c.\"OPAST%\",
+          c.\"3PRATE\", c.\"3PRATED\", c.EFFHGT, c.\"EXP.\", c.TALENT, c.ELITESOS
+        FROM holdout_2023 AS m
+        LEFT JOIN combined23 AS c ON m.Team = c.TEAM
+      ")
+      holdout_2023 <- holdout_2023_merged
+      has_holdout <- TRUE
+      message("2023 holdout data loaded for validation.")
+    }
+  }
+} else {
+  message("Skipping 2023 holdout: cleanteam.xlsx and teamdata23.csv not found in ", ext_data_dir)
+  # Fallback: use 2023 tournament teams from our scrape for prediction
+  if ("year" %in% colnames(teams_annotated)) {
+    holdout_2023 <- filter(teams_annotated, !is.na(seed) & year == 2023)
+    if (nrow(holdout_2023) > 0) {
+      has_holdout <- TRUE
+      message("Using 2023 tournament teams from scrape for validation.")
+    }
+  }
+}
 
 
 
@@ -405,28 +418,31 @@ NEWCBB23->cbb2023
 #JUST LINEAR REGRESSION
 
 
-cor(mastfin[6:40])->ncaacor
+cor(training_data[6:40])->ncaacor
 
 # Fit the model with intercept set to 1
-model <- lm(round ~`3P%D`+`3P%`+ `EFG%`+ FTRD+WAB+ I(WAB^3)+`EFGD%`+`2P%D`+`2P%`+ ORB + TOR+ Barthag + AdjOE +I(AdjOE^2) + AdjDE+ I(AdjDE^2) + seed + I(seed^2)+L +0, data = mastfin)
+model <- lm(round ~`3P%D`+`3P%`+ `EFG%`+ FTRD+WAB+ I(WAB^3)+`EFGD%`+`2P%D`+`2P%`+ ORB + TOR+ Barthag + AdjOE +I(AdjOE^2) + AdjDE+ I(AdjDE^2) + seed + I(seed^2)+L +0, data = training_data)
 #
 
 # Print the coefficients
 coef(model)
 summary(model)
-model$fitted.values->mastfin$fitted
+model$fitted.values->training_data$fitted
 
 
-cor(mastfin[4:40])->ncaacor
+cor(training_data[4:40])->ncaacor
+# Initialize for jackknife model selection
+best_general_mse <- Inf
+currentmodel <- NULL
 # Create an empty matrix to store the results
-jackknife_results <- matrix(NA, ncol = 15, nrow = nrow(mastfin))
-modelerror<- matrix(NA,ncol = 1,nrow = nrow(mastfin))
-predvactual<- matrix(NA,ncol = 2,nrow = nrow(mastfin))
+jackknife_results <- matrix(NA, ncol = 15, nrow = nrow(training_data))
+modelerror<- matrix(NA,ncol = 1,nrow = nrow(training_data))
+predvactual<- matrix(NA,ncol = 2,nrow = nrow(training_data))
 # Loop through each row of the data
-for (i in 1:nrow(mastfin)) {
+for (i in 1:nrow(training_data)) {
   # Subset the data, leaving out the ith observation
-  data_subset <- mastfin[-i, ]
-  dataofone<- mastfin[i,]
+  data_subset <- training_data[-i, ]
+  dataofone<- training_data[i,]
   
   # Fit the model to the subset of data
   fit <- lm(round ~WAB+TOR+
@@ -457,9 +473,9 @@ summary(fit)
 # Print the results
 cbind(bias, mse)
 
-currentbestoutofsampleerr-mse
-  if ( mse < currentbestoutofsampleerr){
-   mse -> currentbestoutofsampleerr
+best_general_mse-mse
+  if ( mse < best_general_mse){
+   mse -> best_general_mse
     fit->currentmodel
     print("keep")
   }
@@ -470,15 +486,15 @@ currentbestoutofsampleerr-mse
 ############3
 ###############
 library(ggplot2)
-ggplot(mastfin, aes(x = fitted, y = round)) +
+ggplot(training_data, aes(x = fitted, y = round)) +
   geom_point() +
   geom_smooth(method = "lm")
 
-winners <- subset(mastfin, round == 6)
+winners <- subset(training_data, round == 6)
 library(ggplot2)
 
 # Create a data frame with the actual and fitted values
-data <- data.frame(actual = mastfin$round, fitted = predict(model))
+data <- data.frame(actual = training_data$round, fitted = predict(model))
 
 # Plot the actual vs. fitted values
 ggplot(data, aes(x = fitted, y = actual)) +
@@ -495,62 +511,62 @@ ggplot(data, aes(x = fitted, y = actual)) +
 
 #graphinv
 library(ggplot2)
-ggplot(mastfin, aes(x = fitted, y = round)) +
+ggplot(training_data, aes(x = fitted, y = round)) +
   geom_point() +
   geom_smooth(method = "lm")
 
-mastfin_filtered <- subset(mastfin, round == 6)
+training_data_filtered <- subset(training_data, round == 6)
 library(ggplot2)
 
 # Create a data frame with the actual and fitted values
-data <- data.frame(actual = mastfin$round, fitted = predict(model))
+data <- data.frame(actual = training_data$round, fitted = predict(model))
 
 # Plot the actual vs. fitted values
 ggplot(data, aes(x = fitted, y = actual)) +
   geom_point() +
   geom_abline(slope = 1, intercept = 0, color = "red") 
 
+# Process 2023 holdout for prediction (only when we have holdout_2023)
+if (exists("holdout_2023") && nrow(holdout_2023) > 0) {
 
-filter(mastertable_final, !is.na(seed)) ->cbb2023
-
-for (i in 1:nrow(cbb2023)) {
-  value <- as.character(cbb2023[i, "WAB"])
+for (i in 1:nrow(holdout_2023)) {
+  value <- as.character(holdout_2023[i, "WAB"])
   if (value != '131'& value != '111'& value != '104'){
     if (abs(as.numeric(value)) < 10){
       if (startsWith(value, "-")) {
         if (grepl("\\.", value)) {
-          cbb2023[i, "WAB"] <- substr(value, 1, 4)
+          holdout_2023[i, "WAB"] <- substr(value, 1, 4)
         } else {
-          cbb2023[i, "WAB"] <- substr(value, 1, 2)
+          holdout_2023[i, "WAB"] <- substr(value, 1, 2)
         }
       } else {
         if (grepl("\\.", value)) {
-          cbb2023[i, "WAB"] <- substr(value, 1, 3)
+          holdout_2023[i, "WAB"] <- substr(value, 1, 3)
         } else {
-          cbb2023[i, "WAB"] <- substr(value, 1, 1)
+          holdout_2023[i, "WAB"] <- substr(value, 1, 1)
         }
       }
     } else {
       if (startsWith(value, "-")) {
         if (grepl("\\.", value)) {
-          cbb2023[i, "WAB"] <- substr(value, 1, 5)
+          holdout_2023[i, "WAB"] <- substr(value, 1, 5)
         } else {
-          cbb2023[i, "WAB"] <- substr(value, 1, 3)
+          holdout_2023[i, "WAB"] <- substr(value, 1, 3)
         }
       } else {
         if (grepl("\\.", value)) {
-          cbb2023[i, "WAB"] <- substr(value, 1, 4)
+          holdout_2023[i, "WAB"] <- substr(value, 1, 4)
         } else {
-          cbb2023[i, "WAB"] <- substr(value, 1, 2)
+          holdout_2023[i, "WAB"] <- substr(value, 1, 2)
           
         }}}}}
-for (i in 1:nrow(cbb2023)) {
-  value <- as.character(cbb2023[i, "WAB"])
+for (i in 1:nrow(holdout_2023)) {
+  value <- as.character(holdout_2023[i, "WAB"])
   if (!grepl("\\.", value)) {
     if (startsWith(value, "-")|value == '131'| value == '111'| value == '104') {
-      cbb2023[i, "WAB"] <- substr(value, 1, 2)
+      holdout_2023[i, "WAB"] <- substr(value, 1, 2)
     } else {
-      cbb2023[i, "WAB"] <- substr(value, 1, 1)
+      holdout_2023[i, "WAB"] <- substr(value, 1, 1)
     }
   }}
 
@@ -560,60 +576,63 @@ for (i in 1:nrow(cbb2023)) {
 
 
 for (col in 9:21) {
-  for (i in 1:nrow(cbb2023)) {
-    value <- as.character(cbb2023[i, col])
+  for (i in 1:nrow(holdout_2023)) {
+    value <- as.character(holdout_2023[i, col])
     if (grepl("\\.", value)) {
-      cbb2023[i, col] <- substr(value, 1, 4)
+      holdout_2023[i, col] <- substr(value, 1, 4)
     } else {
-      cbb2023[i, col] <- substr(value, 1, 2)
+      holdout_2023[i, col] <- substr(value, 1, 2)
     }
   }
 }
-for(i in 1:nrow(cbb2023)){
-  cbb2023[i, 8] <- substr(cbb2023[i, 8], 1, 5)}
+for(i in 1:nrow(holdout_2023)){
+  holdout_2023[i, 8] <- substr(holdout_2023[i, 8], 1, 5)}
 
 for (col in 6:7) {
-  for (i in 1:nrow(cbb2023)) {
-    value <- as.character(cbb2023[i, col])
+  for (i in 1:nrow(holdout_2023)) {
+    value <- as.character(holdout_2023[i, col])
     if (startsWith(value, "1")) {
-      cbb2023[i, col] <- substr(value, 1, 5)
+      holdout_2023[i, col] <- substr(value, 1, 5)
     } else {
-      cbb2023[i, col] <- substr(value, 1, 4)
+      holdout_2023[i, col] <- substr(value, 1, 4)
     }
   }
 }
 
-as.numeric(cbb2023$AdjOE)->cbb2023$AdjOE
-as.numeric(cbb2023$AdjDE)->cbb2023$AdjDE
-as.numeric(cbb2023$Barthag)->cbb2023$Barthag
-cbb2023$`EFG%` <- as.numeric(cbb2023$`EFG%`)
-cbb2023$`EFGD%` <- as.numeric(cbb2023$`EFGD%`)
-cbb2023$TOR <- as.numeric(cbb2023$TOR)
-cbb2023$TORD <- as.numeric(cbb2023$TORD)
-cbb2023$ORB <- as.numeric(cbb2023$ORB)
-cbb2023$DRB <- as.numeric(cbb2023$DRB)
-cbb2023$FTR <- as.numeric(cbb2023$FTR)
-cbb2023$FTRD <- as.numeric(cbb2023$FTRD)
-cbb2023$`2P%` <- as.numeric(cbb2023$`2P%`)
-cbb2023$`2P%D` <- as.numeric(cbb2023$`2P%D`)
-cbb2023$`3P%` <- as.numeric(cbb2023$`3P%`)
-cbb2023$`3P%D` <- as.numeric(cbb2023$`3P%D`)
-cbb2023$`Adj T.` <- as.numeric(cbb2023$`Adj T.`)
-cbb2023$WAB <- as.numeric(cbb2023$WAB)
-cbb2023$seed <- as.numeric(cbb2023$seed)
-cbb2023$W <- as.numeric(cbb2023$W)
-cbb2023$L <- as.numeric(cbb2023$L)
+as.numeric(holdout_2023$AdjOE)->holdout_2023$AdjOE
+as.numeric(holdout_2023$AdjDE)->holdout_2023$AdjDE
+as.numeric(holdout_2023$Barthag)->holdout_2023$Barthag
+holdout_2023$`EFG%` <- as.numeric(holdout_2023$`EFG%`)
+holdout_2023$`EFGD%` <- as.numeric(holdout_2023$`EFGD%`)
+holdout_2023$TOR <- as.numeric(holdout_2023$TOR)
+holdout_2023$TORD <- as.numeric(holdout_2023$TORD)
+holdout_2023$ORB <- as.numeric(holdout_2023$ORB)
+holdout_2023$DRB <- as.numeric(holdout_2023$DRB)
+holdout_2023$FTR <- as.numeric(holdout_2023$FTR)
+holdout_2023$FTRD <- as.numeric(holdout_2023$FTRD)
+holdout_2023$`2P%` <- as.numeric(holdout_2023$`2P%`)
+holdout_2023$`2P%D` <- as.numeric(holdout_2023$`2P%D`)
+holdout_2023$`3P%` <- as.numeric(holdout_2023$`3P%`)
+holdout_2023$`3P%D` <- as.numeric(holdout_2023$`3P%D`)
+holdout_2023$`Adj T.` <- as.numeric(holdout_2023$`Adj T.`)
+holdout_2023$WAB <- as.numeric(holdout_2023$WAB)
+holdout_2023$seed <- as.numeric(holdout_2023$seed)
+holdout_2023$W <- as.numeric(holdout_2023$W)
+holdout_2023$L <- as.numeric(holdout_2023$L)
 
-cbb2023$round<- NA
+holdout_2023$round<- NA
 summary(currentmodel)
-# Use the predict() function to generate predicted values based on the "model" and the variables in the "cbb2023" data frame
-predicted_values <- predict(currentmodel, newdata = cbb2023)
-mastfin$predround<- predict(currentmodel, newdata = mastfin)
+# Use the predict() function to generate predicted values based on the "model" and the variables in the "holdout_2023" data frame
+predicted_values <- predict(currentmodel, newdata = holdout_2023)
+training_data$predround<- predict(currentmodel, newdata = training_data)
 
-cbb2023$round <- predicted_values
+holdout_2023$round <- predicted_values
 
-
-bart_injuryimpact(year=2023, team='Tennessee', player='Zakai Zeigler')->wozakaitenn
+if (requireNamespace("toRvik", quietly = TRUE)) {
+  tryCatch({
+    toRvik::bart_injuryimpact(year=2023, team='Tennessee', player='Zakai Zeigler')->wozakaitenn
+  }, error = function(e) message("bart_injuryimpact (exploratory) skipped: ", e$message))
+}
 #> # A tibble: 2 × 5
 #>   situation            adj_oe adj_de barthag    rk
 #>   <chr>                 <dbl>  <dbl>   <dbl> <dbl>
@@ -623,20 +642,21 @@ bart_injuryimpact(year=2023, team='Tennessee', player='Zakai Zeigler')->wozakait
 #> 
 
 ###1seed model
-
-filter(mastfin, seed == 1| seed == 2) -> seed1analysis
-filter(cbb2023, seed == 1| seed == 2)->seed1analysis23
-cor(seed1analysis[6:40])->seed1cors
+best_general_mse1 <- Inf
+model_seed_1 <- NULL
+filter(training_data, seed == 1| seed == 2) -> training_seed_1
+filter(holdout_2023, seed == 1| seed == 2)->training_seed_123
+cor(training_seed_1[6:40])->seed1cors
 
 # Create an empty matrix to store the results
-jackknife_results <- matrix(NA, ncol = 8, nrow = nrow(seed1analysis))
-modelerror<- matrix(NA,ncol = 1,nrow = nrow(seed1analysis))
-predvactual<- matrix(NA,ncol = 2,nrow = nrow(seed1analysis))
+jackknife_results <- matrix(NA, ncol = 8, nrow = nrow(training_seed_1))
+modelerror<- matrix(NA,ncol = 1,nrow = nrow(training_seed_1))
+predvactual<- matrix(NA,ncol = 2,nrow = nrow(training_seed_1))
 # Loop through each row of the data
-for (i in 1:nrow(seed1analysis)) {
+for (i in 1:nrow(training_seed_1)) {
   # Subset the data, leaving out the ith observation
-  data_subset <- seed1analysis[-i, ]
-  dataofone<- seed1analysis[i,]
+  data_subset <- training_seed_1[-i, ]
+  dataofone<- training_seed_1[i,]
   
   # Fit the model to the subset of data
   fit1 <- lm(round ~WAB+
@@ -667,35 +687,36 @@ summary(fit1)
 # Print the results
 cbind(bias1, mse1)
 
-currentbestoutofsampleerr1-mse1
-if ( mse1 < currentbestoutofsampleerr1){
-  mse1 -> currentbestoutofsampleerr1
-  fit1->seed1finalmodel
+best_general_mse1-mse1
+if ( mse1 < best_general_mse1){
+  mse1 -> best_general_mse1
+  fit1->model_seed_1
   print("keep")
 }
 
-rename(seed1analysis23, 'predround' = 'round')->seed1analysis23
-seed1analysis23$seedpred <-predict(seed1finalmodel, newdata = seed1analysis23)
-seed1analysis$seedpred <-predict(seed1finalmodel, newdata = seed1analysis)
+rename(training_seed_123, 'predround' = 'round')->training_seed_123
+training_seed_123$seedpred <-predict(model_seed_1, newdata = training_seed_123)
+training_seed_1$seedpred <-predict(model_seed_1, newdata = training_seed_1)
 
 
 
 
 ###2seed model
-
-filter(mastfin, seed == 1| seed == 2|seed == 3)->seed2analysis
-filter(cbb2023, seed == 1| seed == 2|seed == 3)->seed2analysis23
-cor(seed2analysis[6:40])->seed2cors
+best_mse_seed_2 <- Inf
+model_seed_2 <- NULL
+filter(training_data, seed == 1| seed == 2| seed == 3) -> training_seed_2
+filter(holdout_2023, seed == 1| seed == 2|seed == 3)->holdout_seed_2
+cor(training_seed_2[6:40])->seed2cors
 View(seed2cors)
 # Create an empty matrix to store the results
-jackknife_results <- matrix(NA, ncol = 6, nrow = nrow(seed2analysis))
-modelerror<- matrix(NA,ncol = 1,nrow = nrow(seed2analysis))
-predvactual<- matrix(NA,ncol = 2,nrow = nrow(seed2analysis))
+jackknife_results <- matrix(NA, ncol = 6, nrow = nrow(training_seed_2))
+modelerror<- matrix(NA,ncol = 1,nrow = nrow(training_seed_2))
+predvactual<- matrix(NA,ncol = 2,nrow = nrow(training_seed_2))
 # Loop through each row of the data
-for (i in 1:nrow(seed2analysis)) {
+for (i in 1:nrow(training_seed_2)) {
   # Subset the data, leaving out the ith observation
-  data_subset <- seed2analysis[-i, ]
-  dataofone<- seed2analysis[i,]
+  data_subset <- training_seed_2[-i, ]
+  dataofone<- training_seed_2[i,]
   
   # Fit the model to the subset of data
   fit2 <- lm(formula = round ~ WAB + Barthag + AdjOE + AdjDE + seed + predround + 
@@ -724,17 +745,17 @@ summary(fit2)
 # Print the results
 cbind(bias2, mse2)
 
-currentbestoutofsampleerr2-mse2
+best_mse_seed_2-mse2
 if ( mse2 <
-     currentbestoutofsampleerr2){
-  mse2 -> currentbestoutofsampleerr2
-  fit2->seed2finalmodel
+     best_mse_seed_2){
+  mse2 -> best_mse_seed_2
+  fit2->model_seed_2
   print("keep")
 }
 
-rename(seed2analysis23, 'predround' = 'round')->seed2analysis23
-seed2analysis23$seedpred <-predict(seed2finalmodel, newdata = seed2analysis23)
-seed2analysis$seedpred <-predict(seed2finalmodel, newdata = seed2analysis)
+rename(holdout_seed_2, 'predround' = 'round')->holdout_seed_2
+holdout_seed_2$seedpred <-predict(model_seed_2, newdata = holdout_seed_2)
+training_seed_2$seedpred <-predict(model_seed_2, newdata = training_seed_2)
 
 
 library(Metrics)
@@ -747,20 +768,22 @@ library(Metrics)
 
 
 ###3seed model
-filter(mastfin, seed == 2| seed == 3|seed == 4)->seed3analysis
-filter(cbb2023, seed == 2| seed == 3|seed == 4)->seed3analysis23
-cor(seed3analysis[6:40])->seed3cors
+best_general_mse3 <- Inf
+seed3finalmodel <- NULL
+filter(training_data, seed == 2| seed == 3|seed == 4)->training_seed_3
+filter(holdout_2023, seed == 2| seed == 3|seed == 4)->holdout_seed_3
+cor(training_seed_3[6:40])->seed3cors
 View(seed3cors)
 
 # Create an empty matrix to store the results
-jackknife_results <- matrix(NA, ncol = 6, nrow = nrow(seed3analysis))
-modelerror<- matrix(NA,ncol = 1,nrow = nrow(seed3analysis))
-predvactual<- matrix(NA,ncol = 2,nrow = nrow(seed3analysis))
+jackknife_results <- matrix(NA, ncol = 6, nrow = nrow(training_seed_3))
+modelerror<- matrix(NA,ncol = 1,nrow = nrow(training_seed_3))
+predvactual<- matrix(NA,ncol = 2,nrow = nrow(training_seed_3))
 # Loop through each row of the data
-for (i in 1:nrow(seed3analysis)) {
+for (i in 1:nrow(training_seed_3)) {
   # Subset the data, leaving out the ith observation
-  data_subset <- seed3analysis[-i, ]
-  dataofone<- seed3analysis[i,]
+  data_subset <- training_seed_3[-i, ]
+  dataofone<- training_seed_3[i,]
   # Fit the model to the subset of data
   fit3 <- lm(formula = round ~ WAB + Barthag + AdjOE + AdjDE + seed + predround + 
                0, data = data_subset)
@@ -789,35 +812,36 @@ summary(fit3)
 cbind(bias3, mse3)
 
 
-currentbestoutofsampleerr3-mse3
+best_general_mse3-mse3
 if ( mse3 <
-     currentbestoutofsampleerr3){
-  mse3 -> currentbestoutofsampleerr3
+     best_general_mse3){
+  mse3 -> best_general_mse3
   fit3->seed3finalmodel
   print("keep")
 }
 
-rename(seed3analysis23, 'predround' = 'round')->seed3analysis23
-seed3analysis23$seedpred <-predict(seed3finalmodel, newdata = seed3analysis23)
-seed3analysis$seedpred <-predict(seed3finalmodel, newdata = seed3analysis)
+rename(holdout_seed_3, 'predround' = 'round')->holdout_seed_3
+holdout_seed_3$seedpred <-predict(seed3finalmodel, newdata = holdout_seed_3)
+training_seed_3$seedpred <-predict(seed3finalmodel, newdata = training_seed_3)
 
 
 
 ###4seed model
-
-filter(mastfin, seed == 3| seed == 4|seed == 5)->seed4analysis
-filter(cbb2023, seed == 3| seed == 4|seed == 5)->seed4analysis23
-cor(seed4analysis[6:40])->seed4cors
+best_mse_seed_4 <- Inf
+seed4finalmodel <- NULL
+filter(training_data, seed == 3| seed == 4|seed == 5)->training_seed_4
+filter(holdout_2023, seed == 3| seed == 4|seed == 5)->training_seed_423
+cor(training_seed_4[6:40])->seed4cors
 View(seed4cors)
 # Create an empty matrix to store the results
-jackknife_results <- matrix(NA, ncol = 10, nrow = nrow(seed4analysis))
-modelerror<- matrix(NA,ncol = 1,nrow = nrow(seed4analysis))
-predvactual<- matrix(NA,ncol = 2,nrow = nrow(seed4analysis))
+jackknife_results <- matrix(NA, ncol = 10, nrow = nrow(training_seed_4))
+modelerror<- matrix(NA,ncol = 1,nrow = nrow(training_seed_4))
+predvactual<- matrix(NA,ncol = 2,nrow = nrow(training_seed_4))
 # Loop through each row of the data
-for (i in 1:nrow(seed4analysis)) {
+for (i in 1:nrow(training_seed_4)) {
   # Subset the data, leaving out the ith observation
-  data_subset <- seed4analysis[-i, ]
-  dataofone<- seed4analysis[i,]
+  data_subset <- training_seed_4[-i, ]
+  dataofone<- training_seed_4[i,]
   # Fit the model to the subset of data
   fit4 <- lm(formula = round ~ WAB + I(WAB^3) + `AST%` + Barthag + AdjOE + 
                `2P%` + TORD + AdjDE + seed + predround + 0, data = data_subset)
@@ -838,27 +862,27 @@ mse4<- rmse(predvactual[,2],predvactual[,1])^2
 summary(fit4)
 # Print the results
 cbind(bias4, mse4)
-currentbestoutofsampleerr4-mse4
+best_mse_seed_4-mse4
 if ( mse4 <
-     currentbestoutofsampleerr4){
-  mse4 -> currentbestoutofsampleerr4
+     best_mse_seed_4){
+  mse4 -> best_mse_seed_4
   fit4->seed4finalmodel
   print("keep")
 }
 
-rename(seed4analysis23, 'predround' = 'round')->seed4analysis23
-seed4analysis23$seedpred <-predict(seed4finalmodel, newdata = seed4analysis23)
-seed4analysis$seedpred <-predict(seed4finalmodel, newdata = seed4analysis)
+rename(training_seed_423, 'predround' = 'round')->training_seed_423
+training_seed_423$seedpred <-predict(seed4finalmodel, newdata = training_seed_423)
+training_seed_4$seedpred <-predict(seed4finalmodel, newdata = training_seed_4)
 
 
 
 
 
 ###5seed model
-
-
-filter(mastfin, seed == 4| seed == 5|seed == 6)->seed5analysis
-filter(cbb2023, seed == 6| seed == 4|seed == 5)->seed5analysis23
+best_general_mse5 <- Inf
+model_seed_5 <- NULL
+filter(training_data, seed == 4| seed == 5|seed == 6)->seed5analysis
+filter(holdout_2023, seed == 6| seed == 4|seed == 5)->holdout_seed_5
 cor(seed5analysis[6:29])->seed5cors
 View(seed5cors)
 
@@ -892,18 +916,18 @@ summary(fit5)
 # Print the results
 cbind(bias5, mse5)
 
-currentbestoutofsampleerr5-mse5
+best_general_mse5-mse5
 if ( mse5 <
-     currentbestoutofsampleerr5){
-  mse5 -> currentbestoutofsampleerr5
-  fit5->seed5finalmodel
+     best_general_mse5){
+  mse5 -> best_general_mse5
+  fit5->model_seed_5
   print("keep")
 }
 
 
-rename(seed5analysis23, 'predround' = 'round')->seed5analysis23
-seed5analysis23$seedpred <-predict(seed5finalmodel, newdata = seed5analysis23)
-seed5analysis$seedpred <-predict(seed5finalmodel, newdata = seed5analysis)
+rename(holdout_seed_5, 'predround' = 'round')->holdout_seed_5
+holdout_seed_5$seedpred <-predict(model_seed_5, newdata = holdout_seed_5)
+seed5analysis$seedpred <-predict(model_seed_5, newdata = seed5analysis)
 
 
 
@@ -914,22 +938,22 @@ seed5analysis$seedpred <-predict(seed5finalmodel, newdata = seed5analysis)
 
 
 ###6seed model
-
-
-filter(mastfin, seed == 7| seed == 5|seed == 6)->seed6analysis
-filter(cbb2023, seed == 6| seed == 7|seed == 5)->seed6analysis23
-cor(seed6analysis[6:29])->seed6cors
+best_mse_seed_6 <- Inf
+model_seed_6 <- NULL
+filter(training_data, seed == 7| seed == 5| seed == 6) -> training_seed_6
+filter(holdout_2023, seed == 6| seed == 7|seed == 5)->holdout_seed_6
+cor(training_seed_6[6:29])->seed6cors
 View(seed6cors)
   # Create an empty matrix to store the results
-  jackknife_results <- matrix(NA, ncol = 6, nrow = nrow(seed6analysis))
-  modelerror <- matrix(NA, ncol = 1, nrow = nrow(seed6analysis))
-  predvactual <- matrix(NA, ncol = 2, nrow = nrow(seed6analysis))
+  jackknife_results <- matrix(NA, ncol = 6, nrow = nrow(training_seed_6))
+  modelerror <- matrix(NA, ncol = 1, nrow = nrow(training_seed_6))
+  predvactual <- matrix(NA, ncol = 2, nrow = nrow(training_seed_6))
   
   # Loop through each row of the data
-  for (j in 1:nrow(seed6analysis)) {
+  for (j in 1:nrow(training_seed_6)) {
     # Subset the data, leaving out the jth observation
-    data_subset <- seed6analysis[-j, ]
-    dataofone <- seed6analysis[j, ]
+    data_subset <- training_seed_6[-j, ]
+    dataofone <- training_seed_6[j, ]
     
     # Fit the model to the subset of data
     fit6 <- lm(formula = round ~ WAB + FTRD + AdjOE + AdjDE + seed + 
@@ -955,17 +979,17 @@ View(seed6cors)
   print(paste0("Mean Squared Error: ", mse6))
   
   # Check if the current model has the lowest out-of-sample error so far
-  if (mse6 < currentbestoutofsampleerr6) {
-    mse6 -> currentbestoutofsampleerr6
-    fit6 -> seed6finalmodel
+  if (mse6 < best_mse_seed_6) {
+    mse6 -> best_mse_seed_6
+    fit6 -> model_seed_6
     print("keep")
   } 
 
 
 
-rename(seed6analysis23, 'predround' = 'round')->seed6analysis23
-seed6analysis23$seedpred <-predict(seed6finalmodel, newdata = seed6analysis23)
-seed6analysis$seedpred <-predict(seed6finalmodel, newdata = seed6analysis)
+rename(holdout_seed_6, 'predround' = 'round')->holdout_seed_6
+holdout_seed_6$seedpred <-predict(model_seed_6, newdata = holdout_seed_6)
+training_seed_6$seedpred <-predict(model_seed_6, newdata = training_seed_6)
 
 
 
@@ -973,20 +997,21 @@ seed6analysis$seedpred <-predict(seed6finalmodel, newdata = seed6analysis)
 
 
 ###7seed model
-
-filter(mastfin, seed == 7| seed == 8|seed == 6)->seed7analysis
-filter(cbb2023, seed == 6| seed == 7|seed == 8)->seed7analysis23
-cor(seed7analysis[6:29])->seed7cors
+best_general_mse7 <- Inf
+model_seed_7 <- NULL
+filter(training_data, seed == 7| seed == 8|seed == 6)->training_seed_7
+filter(holdout_2023, seed == 6| seed == 7|seed == 8)->holdout_seed_7
+cor(training_seed_7[6:29])->seed7cors
 View(seed7cors)
 # Create an empty matrix to store the results
-jackknife_results <- matrix(NA, ncol = 8, nrow = nrow(seed7analysis))
-modelerror<- matrix(NA,ncol = 1,nrow = nrow(seed7analysis))
-predvactual<- matrix(NA,ncol = 2,nrow = nrow(seed7analysis))
+jackknife_results <- matrix(NA, ncol = 8, nrow = nrow(training_seed_7))
+modelerror<- matrix(NA,ncol = 1,nrow = nrow(training_seed_7))
+predvactual<- matrix(NA,ncol = 2,nrow = nrow(training_seed_7))
 # Loop through each row of the data
-for (i in 1:nrow(seed7analysis)) {
+for (i in 1:nrow(training_seed_7)) {
   # Subset the data, leaving out the ith observation
-  data_subset <- seed7analysis[-i, ]
-  dataofone<- seed7analysis[i,]
+  data_subset <- training_seed_7[-i, ]
+  dataofone<- training_seed_7[i,]
   # Fit the model to the subset of data
   fit7 <- lm(formula = round ~ WAB + Barthag + AdjOE + TOR + `Adj T.` + 
                `2P%` + seed + predround + 0, data = data_subset)
@@ -1008,35 +1033,36 @@ summary(fit7)
 # Print the results
 cbind(bias7, mse7)
 
-currentbestoutofsampleerr7-mse7
+best_general_mse7-mse7
 if ( mse7 <
-     currentbestoutofsampleerr7){
-  mse7 -> currentbestoutofsampleerr7
-  fit7->seed7finalmodel
+     best_general_mse7){
+  mse7 -> best_general_mse7
+  fit7->model_seed_7
   print("keep")
 }
 
-rename(seed7analysis23, 'predround' = 'round')->seed7analysis23
-seed7analysis23$seedpred <-predict(seed7finalmodel, newdata = seed7analysis23)
-seed7analysis$seedpred <-predict(seed7finalmodel, newdata = seed7analysis)
+rename(holdout_seed_7, 'predround' = 'round')->holdout_seed_7
+holdout_seed_7$seedpred <-predict(model_seed_7, newdata = holdout_seed_7)
+training_seed_7$seedpred <-predict(model_seed_7, newdata = training_seed_7)
 
 
 
 ###8seed model
-
-filter(mastfin, seed == 7| seed == 8|seed == 9)->seed8analysis
-filter(cbb2023, seed == 9| seed == 7|seed == 8)->seed8analysis23
-cor(seed8analysis[6:40])->seed8cors
+best_mse_seed_8 <- Inf
+seed8finalmodel <- NULL
+filter(training_data, seed == 7| seed == 8|seed == 9)->training_seed_8
+filter(holdout_2023, seed == 9| seed == 7|seed == 8)->training_seed_823
+cor(training_seed_8[6:40])->seed8cors
 View(seed8cors)
 # Create an empty matrix to store the results
-jackknife_results <- matrix(NA, ncol = 10, nrow = nrow(seed8analysis))
-modelerror<- matrix(NA,ncol = 1,nrow = nrow(seed8analysis))
-predvactual<- matrix(NA,ncol = 2,nrow = nrow(seed8analysis))
+jackknife_results <- matrix(NA, ncol = 10, nrow = nrow(training_seed_8))
+modelerror<- matrix(NA,ncol = 1,nrow = nrow(training_seed_8))
+predvactual<- matrix(NA,ncol = 2,nrow = nrow(training_seed_8))
 # Loop through each row of the data
-for (i in 1:nrow(seed8analysis)) {
+for (i in 1:nrow(training_seed_8)) {
   # Subset the data, leaving out the ith observation
-  data_subset <- seed8analysis[-i, ]
-  dataofone<- seed8analysis[i,]
+  data_subset <- training_seed_8[-i, ]
+  dataofone<- training_seed_8[i,]
   # Fit the model to the subset of data
   fit8 <- lm(round ~WAB +
                Barthag +AdjOE+AdjDE+TOR+`BLKED%`+`AST%`+`OPAST%`
@@ -1060,17 +1086,17 @@ summary(fit8)
 # Print the results
 cbind(bias8, mse8)
 
-currentbestoutofsampleerr8-mse8
+best_mse_seed_8-mse8
 if ( mse8 <
-     currentbestoutofsampleerr8){
-  mse8 -> currentbestoutofsampleerr8
+     best_mse_seed_8){
+  mse8 -> best_mse_seed_8
   fit8->seed8finalmodel
   print("keep")
 }
 
-rename(seed8analysis23, 'predround' = 'round')->seed8analysis23
-seed8analysis23$seedpred <-predict(seed8finalmodel, newdata = seed8analysis23)
-seed8analysis$seedpred <-predict(seed8finalmodel, newdata = seed8analysis)
+rename(training_seed_823, 'predround' = 'round')->training_seed_823
+training_seed_823$seedpred <-predict(seed8finalmodel, newdata = training_seed_823)
+training_seed_8$seedpred <-predict(seed8finalmodel, newdata = training_seed_8)
 
 
 
@@ -1084,21 +1110,21 @@ seed8analysis$seedpred <-predict(seed8finalmodel, newdata = seed8analysis)
 
 
 ###9seed model
-
-
-filter(mastfin, seed == 8| seed == 9|seed == 10)->seed9analysis
-filter(cbb2023, seed == 9| seed == 8|seed == 10)->seed9analysis23
-cor(seed9analysis[6:40])->seed9cors
+best_general_mse9 <- Inf
+model_seed_9 <- NULL
+filter(training_data, seed == 8| seed == 9|seed == 10)->training_seed_9
+filter(holdout_2023, seed == 9| seed == 8|seed == 10)->holdout_seed_9
+cor(training_seed_9[6:40])->seed9cors
 View(seed9cors)
 # Create an empty matrix to store the results
-jackknife_results <- matrix(NA, ncol = 12, nrow = nrow(seed9analysis))
-modelerror<- matrix(NA,ncol = 1,nrow = nrow(seed9analysis))
-predvactual<- matrix(NA,ncol = 2,nrow = nrow(seed9analysis))
+jackknife_results <- matrix(NA, ncol = 12, nrow = nrow(training_seed_9))
+modelerror<- matrix(NA,ncol = 1,nrow = nrow(training_seed_9))
+predvactual<- matrix(NA,ncol = 2,nrow = nrow(training_seed_9))
 # Loop through each row of the data
-for (i in 1:nrow(seed9analysis)) {
+for (i in 1:nrow(training_seed_9)) {
   # Subset the data, leaving out the ith observation
-  data_subset <- seed9analysis[-i, ]
-  dataofone<- seed9analysis[i,]
+  data_subset <- training_seed_9[-i, ]
+  dataofone<- training_seed_9[i,]
   # Fit the model to the subset of data
   fit9 <- lm(round ~WAB +
                Barthag +AdjOE+AdjDE+ seed+predround+TOR +W+`BLKED%`+`AST%`+`3PRATE`+`ELITESOS` +0, 
@@ -1121,17 +1147,17 @@ summary(fit9)
 # Print the results
 cbind(bias9, mse9)
 
-currentbestoutofsampleerr9-mse9
+best_general_mse9-mse9
 if ( mse9 <
-     currentbestoutofsampleerr9){
-  mse9 -> currentbestoutofsampleerr9
-  fit9->seed9finalmodel
+     best_general_mse9){
+  mse9 -> best_general_mse9
+  fit9->model_seed_9
   print("keep")
 }
 
-rename(seed9analysis23, 'predround' = 'round')->seed9analysis23
-seed9analysis23$seedpred <-predict(seed9finalmodel, newdata = seed9analysis23)
-seed9analysis$seedpred <-predict(seed9finalmodel, newdata = seed9analysis)
+rename(holdout_seed_9, 'predround' = 'round')->holdout_seed_9
+holdout_seed_9$seedpred <-predict(model_seed_9, newdata = holdout_seed_9)
+training_seed_9$seedpred <-predict(model_seed_9, newdata = training_seed_9)
 
 
 
@@ -1142,20 +1168,21 @@ seed9analysis$seedpred <-predict(seed9finalmodel, newdata = seed9analysis)
 
 
 ###10seed model
-
-filter(mastfin, seed == 11| seed == 9|seed == 10)->seed10analysis
-filter(cbb2023, seed == 9| seed == 11|seed == 10)->seed10analysis23
-cor(seed10analysis[6:40])->seed10cors
+best_general_mse10 <- Inf
+model_seed_10 <- NULL
+filter(training_data, seed == 11| seed == 9|seed == 10)->training_seed_10
+filter(holdout_2023, seed == 9| seed == 11|seed == 10)->holdout_seed_10
+cor(training_seed_10[6:40])->seed10cors
 View(seed10cors)
 # Create an empty matrix to store the results
-jackknife_results <- matrix(NA, ncol = 11, nrow = nrow(seed10analysis))
-modelerror<- matrix(NA,ncol = 1,nrow = nrow(seed10analysis))
-predvactual<- matrix(NA,ncol = 2,nrow = nrow(seed10analysis))
+jackknife_results <- matrix(NA, ncol = 11, nrow = nrow(training_seed_10))
+modelerror<- matrix(NA,ncol = 1,nrow = nrow(training_seed_10))
+predvactual<- matrix(NA,ncol = 2,nrow = nrow(training_seed_10))
 # Loop through each row of the data
-for (i in 1:nrow(seed10analysis)) {
+for (i in 1:nrow(training_seed_10)) {
   # Subset the data, leaving out the ith observation
-  data_subset <- seed10analysis[-i, ]
-  dataofone<- seed10analysis[i,]
+  data_subset <- training_seed_10[-i, ]
+  dataofone<- training_seed_10[i,]
   # Fit the model to the subset of data
   fit10 <- lm(round ~WAB +
                Barthag +AdjOE+AdjDE+ seed+predround+`2P%D`+ `WINS`+ `3PRATED`+ `TALENT`+ELITESOS+0, 
@@ -1178,36 +1205,37 @@ summary(fit10)
 # Print the results
 cbind(bias10, mse10)
 
-currentbestoutofsampleerr10-mse10
+best_general_mse10-mse10
 if ( mse10 <
-     currentbestoutofsampleerr10){
-  mse10 -> currentbestoutofsampleerr10
-  fit10->seed10finalmodel
+     best_general_mse10){
+  mse10 -> best_general_mse10
+  fit10->model_seed_10
   print("keep")
 }
 
-rename(seed10analysis23, 'predround' = 'round')->seed10analysis23
-seed10analysis23$seedpred <-predict(seed10finalmodel, newdata = seed10analysis23)
-seed10analysis$seedpred <-predict(seed10finalmodel, newdata = seed10analysis)
+rename(holdout_seed_10, 'predround' = 'round')->holdout_seed_10
+holdout_seed_10$seedpred <-predict(model_seed_10, newdata = holdout_seed_10)
+training_seed_10$seedpred <-predict(model_seed_10, newdata = training_seed_10)
 
 
 
 
 ###11seed model
-
-filter(mastfin, seed == 11| seed == 10|seed == 12)->seed11analysis
-filter(cbb2023, seed == 12| seed == 11|seed == 10)->seed11analysis23
-cor(seed11analysis[6:40])->seed11cors
+best_mse_seed_11 <- Inf
+model_seed_11 <- NULL
+filter(training_data, seed == 11| seed == 10|seed == 12)->training_seed_11
+filter(holdout_2023, seed == 12| seed == 11|seed == 10)->holdout_seed_11
+cor(training_seed_11[6:40])->seed11cors
 View(seed11cors)
 # Create an empty matrix to store the results
-jackknife_results <- matrix(NA, ncol = 9, nrow = nrow(seed11analysis))
-modelerror<- matrix(NA,ncol = 1,nrow = nrow(seed11analysis))
-predvactual<- matrix(NA,ncol = 2,nrow = nrow(seed11analysis))
+jackknife_results <- matrix(NA, ncol = 9, nrow = nrow(training_seed_11))
+modelerror<- matrix(NA,ncol = 1,nrow = nrow(training_seed_11))
+predvactual<- matrix(NA,ncol = 2,nrow = nrow(training_seed_11))
 # Loop through each row of the data
-for (i in 1:nrow(seed11analysis)) {
+for (i in 1:nrow(training_seed_11)) {
   # Subset the data, leaving out the ith observation
-  data_subset <- seed11analysis[-i, ]
-  dataofone<- seed11analysis[i,]
+  data_subset <- training_seed_11[-i, ]
+  dataofone<- training_seed_11[i,]
   # Fit the model to the subset of data
   fit11 <- lm(round ~`FTR`  +`AST%`+`OPAST%` + `ELITESOS` +
                 Barthag +AdjDE+AdjOE+ seed+predround+0, 
@@ -1230,37 +1258,36 @@ summary(fit11)
 # Print the results
 cbind(bias11, mse11)
 
-currentbestoutofsampleerr11-mse11
+best_mse_seed_11-mse11
 if ( mse11 <
-     currentbestoutofsampleerr11){
-  mse11 -> currentbestoutofsampleerr11
-  fit11->seed11finalmodel
+     best_mse_seed_11){
+  mse11 -> best_mse_seed_11
+  fit11->model_seed_11
   print("keep")
 }
 
-rename(seed11analysis23, 'predround' = 'round')->seed11analysis23
-seed11analysis23$seedpred <-predict(seed11finalmodel, newdata = seed11analysis23)
-seed11analysis$seedpred <-predict(seed11finalmodel, newdata = seed11analysis)
+rename(holdout_seed_11, 'predround' = 'round')->holdout_seed_11
+holdout_seed_11$seedpred <-predict(model_seed_11, newdata = holdout_seed_11)
+training_seed_11$seedpred <-predict(model_seed_11, newdata = training_seed_11)
 
 
 
-###11seed model
-
-
-
-filter(mastfin, seed == 11| seed == 12|seed == 13)->seed12analysis
-filter(cbb2023, seed == 12| seed == 11|seed == 13)->seed12analysis23
-cor(seed12analysis[6:40])->seed12cors
+###12seed model
+best_mse_seed_12 <- Inf
+seed12finalmodel <- NULL
+filter(training_data, seed == 11| seed == 12|seed == 13)->training_seed_12
+filter(holdout_2023, seed == 12| seed == 11|seed == 13)->holdout_seed_12
+cor(training_seed_12[6:40])->seed12cors
 View(seed12cors)
 # Create an empty matrix to store the results
-jackknife_results <- matrix(NA, ncol = 11, nrow = nrow(seed12analysis))
-modelerror<- matrix(NA,ncol = 1,nrow = nrow(seed12analysis))
-predvactual<- matrix(NA,ncol = 2,nrow = nrow(seed12analysis))
+jackknife_results <- matrix(NA, ncol = 11, nrow = nrow(training_seed_12))
+modelerror<- matrix(NA,ncol = 1,nrow = nrow(training_seed_12))
+predvactual<- matrix(NA,ncol = 2,nrow = nrow(training_seed_12))
 # Loop through each row of the data
-for (i in 1:nrow(seed12analysis)) {
+for (i in 1:nrow(training_seed_12)) {
   # Subset the data, leaving out the ith observation
-  data_subset <- seed12analysis[-i, ]
-  dataofone<- seed12analysis[i,]
+  data_subset <- training_seed_12[-i, ]
+  dataofone<- training_seed_12[i,]
   # Fit the model to the subset of data
   fit12 <- lm(round ~`BLK%`+`AST%` +`OPAST%` +`EFFHGT`+`TALENT` +
                 Barthag +AdjOE+AdjDE+ seed+predround+0, 
@@ -1283,34 +1310,35 @@ summary(fit12)
 # Print the results
 cbind(bias12, mse12)
 
-currentbestoutofsampleerr12-mse12
+best_mse_seed_12-mse12
 if ( mse12 <
-     currentbestoutofsampleerr12){
-  mse12 -> currentbestoutofsampleerr12
+     best_mse_seed_12){
+  mse12 -> best_mse_seed_12
   fit12->seed12finalmodel
   print("keep")
 }
 
-rename(seed12analysis23, 'predround' = 'round')->seed12analysis23
-seed12analysis23$seedpred <-predict(seed12finalmodel, newdata = seed12analysis23)
-seed12analysis$seedpred <-predict(seed12finalmodel, newdata = seed12analysis)
+rename(holdout_seed_12, 'predround' = 'round')->holdout_seed_12
+holdout_seed_12$seedpred <-predict(seed12finalmodel, newdata = holdout_seed_12)
+training_seed_12$seedpred <-predict(seed12finalmodel, newdata = training_seed_12)
 
 
 ##########13SEED MODEL
-
-filter(mastfin, seed == 14| seed == 12|seed == 13)->seed13analysis
-filter(cbb2023, seed == 12| seed == 14|seed == 13)->seed13analysis23
-cor(seed13analysis[6:40])->seed13cors
+best_general_mse13 <- Inf
+model_seed_13 <- NULL
+filter(training_data, seed == 14| seed == 12|seed == 13)->training_seed_13
+filter(holdout_2023, seed == 12| seed == 14|seed == 13)->training_seed_1323
+cor(training_seed_13[6:40])->seed13cors
 View(seed13cors)
 # Create an empty matrix to store the results
-jackknife_results <- matrix(NA, ncol = 13, nrow = nrow(seed13analysis))
-modelerror<- matrix(NA,ncol = 1,nrow = nrow(seed13analysis))
-predvactual<- matrix(NA,ncol = 2,nrow = nrow(seed13analysis))
+jackknife_results <- matrix(NA, ncol = 13, nrow = nrow(training_seed_13))
+modelerror<- matrix(NA,ncol = 1,nrow = nrow(training_seed_13))
+predvactual<- matrix(NA,ncol = 2,nrow = nrow(training_seed_13))
 # Loop through each row of the data
-for (i in 1:nrow(seed13analysis)) {
+for (i in 1:nrow(training_seed_13)) {
   # Subset the data, leaving out the ith observation
-  data_subset <- seed13analysis[-i, ]
-  dataofone<- seed13analysis[i,]
+  data_subset <- training_seed_13[-i, ]
+  dataofone<- training_seed_13[i,]
   # Fit the model to the subset of data
   fit13 <- lm(round ~W+ FTR+  FTRD+ `TOR`  + `TORD`+  DRB+ `TALENT`+ELITESOS +
                 Barthag +AdjOE+AdjDE+ seed+predround+0, 
@@ -1333,36 +1361,37 @@ summary(fit13)
 # Print the results
 cbind(bias13, mse13)
 
-currentbestoutofsampleerr13-mse13
+best_general_mse13-mse13
 if ( mse13 <
-     currentbestoutofsampleerr13){
-  mse13 -> currentbestoutofsampleerr13
-  fit13->seed13finalmodel
+     best_general_mse13){
+  mse13 -> best_general_mse13
+  fit13->model_seed_13
   print("keep")
 }
 
-rename(seed13analysis23, 'predround' = 'round')->seed13analysis23
-seed13analysis23$seedpred <-predict(seed13finalmodel, newdata = seed13analysis23)
-seed13analysis$seedpred <-predict(seed13finalmodel, newdata = seed13analysis)
+rename(training_seed_1323, 'predround' = 'round')->training_seed_1323
+training_seed_1323$seedpred <-predict(model_seed_13, newdata = training_seed_1323)
+training_seed_13$seedpred <-predict(model_seed_13, newdata = training_seed_13)
 
 
 
 
 ##########14SEED MODEL
-
-filter(mastfin, seed == 14| seed == 15|seed == 13)->seed14analysis
-filter(cbb2023, seed == 15| seed == 14|seed == 13)->seed14analysis23
-cor(seed14analysis[6:40])->seed14cors
+best_mse_seed_14 <- Inf
+model_seed_14 <- NULL
+filter(training_data, seed == 14| seed == 15|seed == 13)->training_seed_14
+filter(holdout_2023, seed == 15| seed == 14|seed == 13)->holdout_seed_14
+cor(training_seed_14[6:40])->seed14cors
 View(seed14cors)
 # Create an empty matrix to store the results
-jackknife_results <- matrix(NA, ncol = 10, nrow = nrow(seed14analysis))
-modelerror<- matrix(NA,ncol = 1,nrow = nrow(seed14analysis))
-predvactual<- matrix(NA,ncol = 2,nrow = nrow(seed14analysis))
+jackknife_results <- matrix(NA, ncol = 10, nrow = nrow(training_seed_14))
+modelerror<- matrix(NA,ncol = 1,nrow = nrow(training_seed_14))
+predvactual<- matrix(NA,ncol = 2,nrow = nrow(training_seed_14))
 # Loop through each row of the data
-for (i in 1:nrow(seed14analysis)) {
+for (i in 1:nrow(training_seed_14)) {
   # Subset the data, leaving out the ith observation
-  data_subset <- seed14analysis[-i, ]
-  dataofone<- seed14analysis[i,]
+  data_subset <- training_seed_14[-i, ]
+  dataofone<- training_seed_14[i,]
   # Fit the model to the subset of data
   fit14 <- lm(round ~`FTR` +TORD+ `DRB`+ `EXP.` + ELITESOS +
                 Barthag +AdjOE+AdjDE+ seed+predround+0, 
@@ -1385,17 +1414,17 @@ summary(fit14)
 # Print the results
 cbind(bias14, mse14)
 
-currentbestoutofsampleerr14-mse14
+best_mse_seed_14-mse14
 if ( mse14 <
-     currentbestoutofsampleerr14){
-  mse14 -> currentbestoutofsampleerr14
-  fit14->seed14finalmodel
+     best_mse_seed_14){
+  mse14 -> best_mse_seed_14
+  fit14->model_seed_14
   print("keep")
 }
 
-rename(seed14analysis23, 'predround' = 'round')->seed14analysis23
-seed14analysis23$seedpred <-predict(seed14finalmodel, newdata = seed14analysis23)
-seed14analysis$seedpred <-predict(seed14finalmodel, newdata = seed14analysis)
+rename(holdout_seed_14, 'predround' = 'round')->holdout_seed_14
+holdout_seed_14$seedpred <-predict(model_seed_14, newdata = holdout_seed_14)
+training_seed_14$seedpred <-predict(model_seed_14, newdata = training_seed_14)
 
 
 
@@ -1422,48 +1451,56 @@ seed14analysis$seedpred <-predict(seed14finalmodel, newdata = seed14analysis)
 ###1seed model
 
 
-bart_injuryimpact(year=2023, team='UCLA', player='Jaylen Clark')->wojaylen
+if (requireNamespace("toRvik", quietly = TRUE)) {
+  tryCatch(toRvik::bart_injuryimpact(year=2023, team='UCLA', player='Jaylen Clark')->wojaylen, error = function(e) NULL)
+}
 
 
 # Load the required library
 library(dplyr)
 
-# Initialize an empty data frame for the final result
-combcbb <- data.frame()
+# Normalize holdout/training seed frame names for downstream combining
+if (exists("training_seed_123") && !exists("holdout_seed_1")) holdout_seed_1 <- training_seed_123
+if (exists("training_seed_423") && !exists("holdout_seed_4")) holdout_seed_4 <- training_seed_423
+if (exists("training_seed_823") && !exists("holdout_seed_8")) holdout_seed_8 <- training_seed_823
+if (exists("training_seed_1323") && !exists("holdout_seed_13")) holdout_seed_13 <- training_seed_1323
+if (exists("seed5analysis") && !exists("training_seed_5")) training_seed_5 <- seed5analysis
 
-# Loop through the numbers 1 to 14
+# Combine holdout predictions by seed
+holdout_predictions_combined <- data.frame()
 for (i in 1:14) {
-  # Get the name of the current data frame
-  df_name <- paste0("seed", i, "analysis23")
+  df_name <- paste0("holdout_seed_", i)
   
   # Access the current data frame using the get() function
+  if (!exists(df_name)) next
   current_df <- get(df_name)
+  if (is.null(current_df) || nrow(current_df) == 0) next
   
   # Filter the current data frame to include only rows where the desired column equals i
   filtered_df <- current_df %>%
     filter(seed == i) # Replace 'desired_column' with the actual name of the column you want to filter on
+  if (nrow(filtered_df) == 0) next
   
-  # Combine the filtered data frame with the previous ones using rbind
-  combcbb <- rbind(combcbb, filtered_df)
+  holdout_predictions_combined <- rbind(holdout_predictions_combined, filtered_df)
 }
 
-
-combcbbhist <- data.frame()
-
-# Loop through the numbers 1 to 14
+# Combine historical predictions by seed
+historical_predictions_combined <- data.frame()
 for (i in 1:14) {
-  # Get the name of the current data frame
-  df_name <- paste0("seed", i, "analysis")
+  df_name <- paste0("training_seed_", i)
   
   # Access the current data frame using the get() function
+  if (!exists(df_name)) next
   current_df <- get(df_name)
+  if (is.null(current_df) || nrow(current_df) == 0) next
   
   # Filter the current data frame to include only rows where the desired column equals i
   filtered_df <- current_df %>%
     filter(seed == i) # Replace 'desired_column' with the actual name of the column you want to filter on
+  if (nrow(filtered_df) == 0) next
   
   # Combine the filtered data frame with the previous ones using rbind
-  combcbbhist <- rbind(combcbbhist, filtered_df)
+  historical_predictions_combined <- rbind(historical_predictions_combined, filtered_df)
 }
 
 # The combined_df variable now contains the combined and filtered data frames
@@ -1472,46 +1509,43 @@ for (i in 1:14) {
 library(dplyr)
 
 # Calculate the average seedpred value for each seed value and store it in a temporary data frame
-average_seedpred <- combcbbhist %>%
+average_seedpred <- historical_predictions_combined %>%
   group_by(seed) %>%
   summarise(avg_seedpred = mean(seedpred))
 
 # Join the average_seedpred data frame to the original data frame, combcbb
-combcbbhist_with_avg <- combcbbhist %>%
+historical_predictions_combined_with_avg <- historical_predictions_combined %>%
   left_join(average_seedpred, by = "seed")
 
 # Calculate the percentage difference and add a new column 'perc_diff'
-combcbbhist_with_perc_diff <- combcbbhist_with_avg %>%
+historical_predictions_combined_with_perc_diff <- historical_predictions_combined_with_avg %>%
   mutate(perc_diff = ((seedpred - avg_seedpred)))
 
 # The combcbb_with_perc_diff variable now contains the original data frame with an additional column named 'perc_diff'
 
-filter(combcbbhist, round == 6)->winsss
+filter(historical_predictions_combined, round == 6)->winsss
 library(sqldf)
 
-sqldf("SELECT cbb.*, m.Team as team2, m.round
-      FROM combcbb as cbb
-      LEFT JOIN mastfinthisyearresult as m
-      ON cbb.Team = m.Team")->outofsampcbb23
-
-# Initialize a vector to store the squared differences
-squared_diff <- matrix(data = NA, ncol =1, nrow = nrow(outofsampcbb23))
-matrix
-# Loop through the rows of the data frame
-for (i in 1:nrow(outofsampcbb23)) {
-  # Calculate the squared difference between seedpred and round for each row
-  squared_diff[i] <- sqrt((outofsampcbb23[i, "seedpred"] - round(outofsampcbb23[i, "round"]))^2)
+if (exists("holdout_actual_results")) {
+  holdout_eval <- sqldf("SELECT pred.*, m.Team as team2, m.round
+        FROM holdout_predictions_combined pred
+        LEFT JOIN holdout_actual_results m ON pred.Team = m.Team")
+  squared_diff <- matrix(data = NA, ncol = 1, nrow = nrow(holdout_eval))
+  for (i in 1:nrow(holdout_eval)) {
+    squared_diff[i] <- sqrt((holdout_eval[i, "seedpred"] - round(holdout_eval[i, "round"]))^2)
+  }
+  root_mean_squared_diff <- mean(squared_diff, na.rm = TRUE)
+  message("2023 holdout RMSE: ", round(root_mean_squared_diff, 4))
+} else {
+  message("holdout_actual_results not found; skipping 2023 holdout RMSE calculation.")
 }
 
-# Take the mean of all the squared differences
-root_mean_squared_diff <- mean(squared_diff, na.rm = T
-                          )
+}  # end if (exists("holdout_2023") && nrow(holdout_2023) > 0)
 
-df$L <- ifelse(df$L == 0, 1, 0)
+if (exists("collegebasketballprojectdata")) {
+  df <- collegebasketballprojectdata
+  df$L <- ifelse(df$L == 0, 1, 0)
+  write.csv(df, file.path(dirname(output_path), "collegebasketballprojectdata.csv"), row.names = FALSE)
+}
 
-collegebasketballprojectdata->df
-
-mastfin$sweetsixteen <- ifelse(mastfin$round >= 2, 1, 0)
-
-
-write.csv(df, "collegebasketballprojectdata.csv")
+training_data$sweetsixteen <- ifelse(training_data$round >= 2, 1, 0)

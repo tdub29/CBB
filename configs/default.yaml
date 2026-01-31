@@ -1,10 +1,16 @@
 project:
   name: cbb
   seed: 123
+ingestion:
+  year_range: [2008, 2024]
+  bart_torvik_base_url: "https://barttorvik.com/trank.php"
+  user_agent: "Mozilla/5.0"
 paths:
   data_raw: data/raw
   data_interim: data/interim
   data_processed: data/processed
+  data_external: data/external
   models: models
   reports: reports
   figures: reports/figures
+  output_training_csv: "data/processed/cbbtrainingdata"

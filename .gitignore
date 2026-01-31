@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+venv/
+.env/
+.venv/
+
+# R
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata/
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Project-specific
+*.log
