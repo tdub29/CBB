@@ -1,8 +1,8 @@
 # CBB
 
-This repository is being reorganized into a production-quality data science layout so the work is reproducible, testable, and ready for collaboration. The new structure separates ingestion, feature engineering, modeling, evaluation, and deployment artifacts while keeping data and documentation discoverable.
+This repository follows a structured layout so the work is reproducible, testable, and ready for collaboration. The structure separates ingestion, feature engineering, modeling, evaluation, and deployment artifacts while keeping data and documentation discoverable.
 
-## Proposed project structure
+## Project structure
 
 ```
 .
