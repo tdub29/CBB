@@ -1,0 +1,10 @@
+project:
+  name: cbb
+  seed: 123
+paths:
+  data_raw: data/raw
+  data_interim: data/interim
+  data_processed: data/processed
+  models: models
+  reports: reports
+  figures: reports/figures
