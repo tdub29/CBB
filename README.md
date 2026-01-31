@@ -1,4 +1,4 @@
-# CBB
+# March Madness (Mens for now) Analysis and Prediction
 
 This repository follows a structured layout so the work is reproducible, testable, and ready for collaboration. The structure separates ingestion, feature engineering, modeling, evaluation, and deployment artifacts while keeping data and documentation discoverable.
 
