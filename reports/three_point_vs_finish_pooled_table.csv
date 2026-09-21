@@ -1,0 +1,4 @@
+metric,label,raw_spearman,seed_adjusted_spearman,champ_mean,r64_mean,champ_minus_r64,field_mean
+3PRATE,Three-point attempt rate,-0.025525,0.001501,35.5,35.456618,0.043382,35.294945
+3P%,Three-point percentage,0.070502,-0.004223,37.241176,35.673529,1.567647,35.800551
+3P%D,Opponent three-point percentage,0.135683,0.022795,31.894118,33.117279,-1.223162,32.843015

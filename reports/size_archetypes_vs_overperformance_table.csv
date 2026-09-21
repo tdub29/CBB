@@ -1,0 +1,3 @@
+archetype,team_count,mean_overperformance,median_overperformance,primary_vs_seed_mean
+above seed baseline,528,0.005821,-0.117647,0.782643
+below seed baseline,560,-0.005488,-0.117647,-0.73792

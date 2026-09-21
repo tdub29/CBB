@@ -1,0 +1,18 @@
+year,elite_sos_rho,conf_avg_barthag_rho,primary_metric,primary_metric_rho,signal_bucket
+2008,0.438995,0.444747,Elite SOS,0.438995,Clear positive
+2009,0.499225,0.412326,Elite SOS,0.499225,Clear positive
+2010,0.329487,0.325708,Elite SOS,0.329487,Positive but weaker
+2011,0.358341,0.33771,Elite SOS,0.358341,Positive but weaker
+2012,0.464635,0.450328,Elite SOS,0.464635,Clear positive
+2013,0.410289,0.390469,Elite SOS,0.410289,Clear positive
+2014,0.427052,0.342032,Elite SOS,0.427052,Clear positive
+2015,0.47047,0.404616,Elite SOS,0.47047,Clear positive
+2016,0.426261,0.358247,Elite SOS,0.426261,Clear positive
+2017,0.480088,0.446286,Elite SOS,0.480088,Clear positive
+2018,0.438649,0.405022,Elite SOS,0.438649,Clear positive
+2019,0.535274,0.484662,Elite SOS,0.535274,Clear positive
+2021,0.347512,0.449471,Elite SOS,0.347512,Positive but weaker
+2022,0.494156,0.467151,Elite SOS,0.494156,Clear positive
+2023,0.380619,0.363149,Elite SOS,0.380619,Positive but weaker
+2024,0.566502,0.386387,Elite SOS,0.566502,Clear positive
+2025,0.621244,0.574782,Elite SOS,0.621244,Clear positive

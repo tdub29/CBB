@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Day 6 Rebounding Thread Viewer</title>
+  <style>
+    :root {
+      --bg: #071a2d;
+      --panel: #0d2a46;
+      --panel-2: #113657;
+      --text: #e8edf2;
+      --muted: #93a4b5;
+      --accent: #7bb7ff;
+      --border: rgba(255,255,255,0.14);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(45, 102, 165, 0.28), transparent 34%),
+        linear-gradient(180deg, #06111f, var(--bg));
+    }
+    .shell {
+      width: min(1400px, calc(100% - 32px));
+      margin: 20px auto 40px;
+    }
+    .hero, .viewer, .thumbs {
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(17,54,87,0.96), rgba(9,28,47,0.96));
+      box-shadow: 0 18px 48px rgba(0,0,0,0.34);
+    }
+    .hero {
+      padding: 28px 30px 22px;
+      margin-bottom: 18px;
+    }
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 0.96;
+    }
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 900px;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+    .viewer {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 18px;
+      padding: 18px;
+    }
+    .meta, .stage {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(8,22,38,0.68);
+    }
+    .meta {
+      padding: 18px;
+    }
+    .meta h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      line-height: 1.1;
+    }
+    .meta p, .meta li {
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .meta strong { color: var(--text); }
+    .meta ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+    .draft {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      padding: 12px;
+      font: inherit;
+      resize: vertical;
+    }
+    .stage {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .stage-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    button {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 9px 14px;
+      cursor: pointer;
+    }
+    button:hover { background: rgba(255,255,255,0.10); }
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+    .file-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .file-link {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.2;
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .file-link:hover {
+      background: rgba(255,255,255,0.10);
+    }
+    .copy-status {
+      font-size: 12px;
+      color: var(--muted);
+      min-width: 52px;
+    }
+    .figure-wrap {
+      min-height: 620px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(4,14,24,0.6);
+      overflow: hidden;
+    }
+    .figure-wrap img {
+      max-width: 100%;
+      max-height: 78vh;
+      display: block;
+    }
+    .missing {
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .thumbs {
+      margin-top: 18px;
+      padding: 14px;
+    }
+    .thumb-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+    .thumb {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      padding: 12px;
+      text-align: left;
+      min-height: 88px;
+    }
+    .thumb.active {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px rgba(123,183,255,0.35);
+    }
+    .thumb-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .thumb-copy {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    @media (max-width: 1100px) {
+      .viewer { grid-template-columns: 1fr; }
+      .figure-wrap { min-height: 420px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow">12 Days Of Madness · Day 6</div>
+      <h1>Rebounding Review Viewer</h1>
+      <p>Day 6 keeps the glass simple: offensive rebounding, defensive rebounding, and whether owning possessions actually helps teams beat seed expectation in March.</p>
+    </section>
+
+    <section class="viewer">
+      <aside class="meta">
+        <div class="eyebrow" id="meta-eyebrow">Tweet 1</div>
+        <h2 id="meta-title"></h2>
+        <p><strong>Intent:</strong> <span id="meta-intent"></span></p>
+        <p><strong>Visual Spec:</strong></p>
+        <ul id="meta-spec"></ul>
+        <p><strong>Review Notes:</strong></p>
+        <ul id="meta-notes"></ul>
+        <div class="draft">
+          <div class="eyebrow">Draft Copy</div>
+          <textarea id="draft-box"></textarea>
+        </div>
+      </aside>
+
+      <section class="stage">
+        <div class="stage-head">
+          <div class="eyebrow" id="stage-count">1 / 9</div>
+          <div class="nav">
+            <div class="file-tools">
+              <a class="file-link" id="file-link" href="#" target="_blank" rel="noopener noreferrer">Open figure</a>
+              <button id="copy-edit-btn" type="button">Copy Edit Request</button>
+              <span class="copy-status" id="copy-status"></span>
+            </div>
+            <button id="prev-btn" type="button">Previous</button>
+            <button id="next-btn" type="button">Next</button>
+          </div>
+        </div>
+        <div class="figure-wrap">
+          <img id="stage-image" alt="" />
+          <div class="missing" id="stage-missing">No figure on this slide.</div>
+        </div>
+      </section>
+    </section>
+
+    <section class="thumbs">
+      <div class="eyebrow">Jump To Any Tweet</div>
+      <div class="thumb-grid" id="thumb-grid"></div>
+    </section>
+  </main>
+
+  <script>
+    const slides = [
+      {
+        title: "Tweet 1 - Hook",
+        path: "figures/rebounding_thread/1_rebounding_hook.png",
+        intent: "Open with the combined Day 6 answer: rebounding really matters when teams win both ends of the glass.",
+        spec: [
+          "Title: Glass-control archetypes versus overperformance",
+          "X-axis: Mean overperformance vs exact seed",
+          "Y-axis: Rebounding archetype",
+          "Must show: owning both ends beats one-sided rebounding"
+        ],
+        notes: [
+          "This should feel immediate, not technical.",
+          "The hook is that balanced glass control is the real March edge."
+        ],
+        draft: "Day 6 of the 12 Days of Madness CBB Analysis series.\n\nToday's topic: Rebounding.\n\nIs March won on the boards, or is it just another piece of the puzzle?\n\nStick around till the end to see how the 2026 field stacks up."
+      },
+      {
+        title: "Tweet 2 - Metrics",
+        path: "",
+        intent: "Define the Day 6 metric stack in plain language.",
+        spec: [
+          "Title: Text-only framing tweet",
+          "Must show: one role for ORB and one role for DRB"
+        ],
+        notes: [
+          "Keep the wording plain.",
+          "Do not lapse into raw stat-code jargon."
+        ],
+        draft: "Metrics used:\n\nORB: Rate of Offensive Rebounds\nDRB: Rate at which a team gives up ORB\n\nAll data sourced from barttorvik.com"
+      },
+      {
+        title: "Tweet 3 - Context",
+        path: "figures/rebounding_thread/3_rebounding_context_over_time.png",
+        intent: "Show how the tournament rebounding environment changed over time before making a bracket claim.",
+        spec: [
+          "Title: Rebounding context over time",
+          "X-axis: Season",
+          "Y-axis: Tournament field average",
+          "Must show: ORB and DRB as separate context lines"
+        ],
+        notes: [
+          "This should explain the environment, not the result."
+        ],
+        draft: "For context, we look at how rebounding trends have taken shape in recent years.\n\nOffensive rebounding has dropped significantly since 2008, but has climbed the last two years. I'm not sure what caused the sharp decline. I would've guessed ORB would increase as 3PR has. Defensive rebounding follows the inverse of this trend."
+      },
+      {
+        title: "Tweet 4 - Pooled Relationship",
+        path: "figures/rebounding_thread/4_rebounding_vs_finish_pooled.png",
+        intent: "Show the pooled relationship to overperformance after controlling for seed baseline.",
+        spec: [
+          "Title: Rebounding versus March overperformance",
+          "X-axis: Better or worse than seed baseline",
+          "Y-axis: Mean overperformance vs exact seed",
+          "Must show: clear split for ORB and DRB"
+        ],
+        notes: [
+          "This is the first direct answer slide."
+        ],
+        draft: "Offensive and defensive rebounding are both relatively neutral when assessing overperformance.\n\nNeither indicates a substantially meaningful trend, so it is hard to say flat out that teams must rebound well to go far."
+      },
+      {
+        title: "Tweet 5 - By Year",
+        path: "figures/rebounding_thread/5_rebounding_by_year.png",
+        intent: "Check whether the Day 6 signal was stable or streaky by tournament year.",
+        spec: [
+          "Title: Rebounding signal by tournament year",
+          "X-axis: Season",
+          "Y-axis: Seed-adjusted Spearman rho",
+          "Must show: one panel per side of the glass"
+        ],
+        notes: [
+          "Useful for showing noise versus stability."
+        ],
+        draft: "When we look at the relationship of rebounding and success over time, the picture doesn't get much clearer.\n\nWe see frequent year-to-year changes and no stable trend. The significance of DRB appears to have increased the past few years, but it is hard to trust this given past volatility."
+      },
+      {
+        title: "Tweet 6 - Seed Bands",
+        path: "figures/rebounding_thread/6_rebounding_vs_finish_by_seed_group.png",
+        intent: "Localize where the rebounding edge actually matters in the bracket.",
+        spec: [
+          "Title: Where rebounding matters by seed band",
+          "X-axis: Seed band",
+          "Y-axis: Seed-band Spearman rho",
+          "Must show: ORB and DRB side by side"
+        ],
+        notes: [
+          "This should answer where to care the most."
+        ],
+        draft: "Looking at rebounding vs. success by seed gives us some helpful takeaways.\n\nWe see that nearly all seeds get a boost from rebounding well offensively, especially among top seeds.\nWhereas for DRB, we see it benefiting the middle seeds most, likely allowing them to stay in the game with top seeds in later rounds by not allowing excessive second chances."
+      },
+      {
+        title: "Tweet 7 - Archetypes",
+        path: "figures/rebounding_thread/7_rebounding_archetypes_vs_overperformance.png",
+        intent: "Combine the two rebounding sides into one archetype view.",
+        spec: [
+          "Title: Glass-control archetypes versus overperformance",
+          "X-axis: Mean overperformance vs exact seed",
+          "Y-axis: Rebounding archetype",
+          "Must show: the balanced profile wins"
+        ],
+        notes: [
+          "This is still one of the strongest Day 6 slides."
+        ],
+        draft: "Next we look at overperformance based on the interaction of both rebounding stats.\n\nMost notably, we see teams below both rebounding baselines tend to struggle. The same is true, to a lesser extent, for teams that are only above DRB baselines.\n\nWhile teams with above-average ORB, and especially with both O and DRB, tend to get further."
+      },
+      {
+        title: "Tweet 8 - 2026 Field",
+        path: "figures/rebounding_thread/8_rebounding_2026_profile_map.png",
+        intent: "Apply the Day 6 framework directly to the 2026 field with logos and former champs.",
+        spec: [
+          "Title: Projected 2026 rebounding profiles",
+          "X-axis: Offensive rebounding rate (ORB)",
+          "Y-axis: Defensive rebounding rate (DRB)",
+          "Must show: both sides of the glass in one raw-metric map"
+        ],
+        notes: [
+          "This is the practical bracket-use slide."
+        ],
+        draft: "We don't get much of an indication from former champs' rebounding stats. They are largely all over the map, with ORB appearing slightly more impactful.\n\nTennessee, MSU, and Florida will look to rely on the boards to take them deep. It will be interesting to see how their matchups look in relation to this.\n\nLiberty seems to abandon the offensive glass, so they'll need to shoot efficiently to come away with an upset."
+      },
+      {
+        title: "Tweet 9 - Close",
+        path: "",
+        intent: "Wrap the Day 6 read in one usable bracket takeaway.",
+        spec: [
+          "Title: Text-only close",
+          "Must show: offensive rebounding matters, but balanced glass control matters most"
+        ],
+        notes: [
+          "Close with the usable bracket rule."
+        ],
+        draft: "That is all for rebounding, thanks for reading.\n\nTomorrow's topic: Coaching Experience."
+      }
+    ];
+
+    let index = 0;
+    const titleEl = document.getElementById("meta-title");
+    const eyebrowEl = document.getElementById("meta-eyebrow");
+    const intentEl = document.getElementById("meta-intent");
+    const specEl = document.getElementById("meta-spec");
+    const notesEl = document.getElementById("meta-notes");
+    const draftBox = document.getElementById("draft-box");
+    const stageCount = document.getElementById("stage-count");
+    const stageImage = document.getElementById("stage-image");
+    const stageMissing = document.getElementById("stage-missing");
+    const thumbGrid = document.getElementById("thumb-grid");
+    const fileLink = document.getElementById("file-link");
+    const copyEditBtn = document.getElementById("copy-edit-btn");
+    const copyStatus = document.getElementById("copy-status");
+
+    function buildEditRequest(slide) {
+      if (!slide.path) return "";
+      const parts = slide.path.split("/");
+      const fileName = parts[parts.length - 1];
+      return `edit this file: [${fileName}](${slide.path})`;
+    }
+
+    async function copyEditRequest() {
+      const slide = slides[index];
+      const text = buildEditRequest(slide);
+      if (!text) return;
+      window.__lastCopiedEditRequest = text;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyStatus.textContent = "Copied";
+      } catch (error) {
+        copyStatus.textContent = "Copy failed";
+      }
+      window.clearTimeout(window.__copyStatusTimer);
+      window.__copyStatusTimer = window.setTimeout(() => {
+        copyStatus.textContent = "";
+      }, 1800);
+    }
+
+    function renderList(node, items) {
+      node.innerHTML = "";
+      items.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        node.appendChild(li);
+      });
+    }
+
+    function renderThumbs() {
+      thumbGrid.innerHTML = "";
+      slides.forEach((slide, slideIndex) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "thumb" + (slideIndex === index ? " active" : "");
+        button.innerHTML = `<div class="thumb-title">${slide.title}</div><div class="thumb-copy">${slide.intent}</div>`;
+        button.addEventListener("click", () => {
+          index = slideIndex;
+          render();
+        });
+        thumbGrid.appendChild(button);
+      });
+    }
+
+    function render() {
+      const slide = slides[index];
+      eyebrowEl.textContent = slide.title;
+      titleEl.textContent = slide.title;
+      intentEl.textContent = slide.intent;
+      renderList(specEl, slide.spec);
+      renderList(notesEl, slide.notes);
+      draftBox.value = slide.draft;
+      stageCount.textContent = `${index + 1} / ${slides.length}`;
+      copyStatus.textContent = "";
+
+      if (slide.path) {
+        stageImage.src = slide.path + `?v=${Date.now()}`;
+        stageImage.style.display = "block";
+        stageMissing.style.display = "none";
+        fileLink.href = slide.path;
+        fileLink.textContent = slide.path;
+        fileLink.style.display = "inline-flex";
+        copyEditBtn.disabled = false;
+      } else {
+        stageImage.removeAttribute("src");
+        stageImage.style.display = "none";
+        stageMissing.style.display = "block";
+        fileLink.removeAttribute("href");
+        fileLink.textContent = "No figure on this slide";
+        fileLink.style.display = "none";
+        copyEditBtn.disabled = true;
+      }
+      renderThumbs();
+    }
+
+    document.getElementById("prev-btn").addEventListener("click", () => {
+      index = (index - 1 + slides.length) % slides.length;
+      render();
+    });
+    document.getElementById("next-btn").addEventListener("click", () => {
+      index = (index + 1) % slides.length;
+      render();
+    });
+    copyEditBtn.addEventListener("click", () => {
+      copyEditRequest();
+    });
+
+    render();
+  </script>
+</body>
+</html>

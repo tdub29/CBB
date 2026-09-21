@@ -1,0 +1,5 @@
+archetype,team_count,mean_overperformance,median_overperformance,avg_ftr_edge,avg_ft_pct_edge,avg_ftrd_edge
+high rate + high make%,238,-0.12086,-0.176471,4.149617,2.435739,-0.921441
+low rate + high make%,311,0.137885,-0.102941,-4.550137,3.197607,2.17823
+high rate + low make%,308,-0.062882,-0.117647,4.499174,-3.056536,-2.165427
+low rate + low make%,231,0.022727,-0.117647,-4.148319,-2.739171,0.904004

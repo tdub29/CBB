@@ -4,10 +4,13 @@
 
 | Script / step | Scope | Estimated runtime | Notes |
 |---------------|-------|-------------------|-------|
-| `scripts/fetch_team_tables.py` | Year range (default 2008–2025, ~18 years) | **~2–5 min** (HTTP) or **~5–15 min** (Playwright fallback) | One request per year. Run automatically by `run_pipeline.py` unless `--skip-fetch`. |
-| `scripts/fetch_coach_experience.py --fetch --playwright` | ~367 teams × all years in training | **~1.5–2 hours** | One Playwright page load per team. Torvik blocks plain HTTP; Playwright required. |
-| Main pipeline (`run_pipeline.py` / `madness.py`) | 3 table types × ~18 years | **~3–10 min** | Scrapes R, P, T tables per year. Depends on HTTP vs Playwright. |
-| **Full data refresh** (team tables + coach fetch + pipeline) | All optional + primary data | **~2–2.5 hours** | Run team tables, then coach fetch, then pipeline. Coach fetch dominates. |
+| `scripts/fetch_team_tables.py` | Year range (default 2008–2025, ~18 years) | **~2–5 min** (HTTP) or **~5–15 min** (Playwright fallback) | Optional: fetches per-year CSVs from Bart Torvik. Not required if raw CSVs already exist. |
+| `scripts/populate_team_history_cache.py` | ~367 teams × all years | **~1.5–2 hours** | Scrapes team-history.php per team. Playwright required. |
+| `scripts/enrich_team_history_cache.py` | Local computation on cache | **~20 seconds** | Adds 4 coach-experience columns from existing cache data. |
+| `scripts/recompile_all_trank_team_tables.py` | Concat + 2 joins + filter | **~20 seconds** | Assembles all_trank_team_tables.csv from raw CSVs + enriched cache. |
+| Main pipeline (`run_pipeline.py` / `madness.py`) | Training data + models | **~10–25 min** with warm cache | Reads `all_trank_team_tables.csv` + `team_history_cache.csv`. |
+| **Full data refresh** (history cache rebuild + pipeline) | All teams × all years in cache | **~1.5–2.5 hours** | Run `python scripts/run_pipeline.py --refresh-team-history`. |
+| **Raw data prep only** (enrich + recompile) | Local | **~40 seconds** | Run `python scripts/run_pipeline.py --prep-raw`. |
 
 ---
 
@@ -32,17 +35,22 @@ Avoid mass scraping; use these bulk endpoints and reasonable request rates. If b
 
 **URL**: [https://barttorvik.com](https://barttorvik.com)
 
-The pipeline scrapes three table types from Bart Torvik's T-Rank pages:
+The pipeline uses two Bart Torvik sources:
 
-| Type | URL pattern | Description |
+| Source | Path / URL pattern | Description |
 |------|-------------|-------------|
-| Regular season (R) | `...?year=YYYY&...&type=R#` | Full regular-season team stats |
-| Postseason (P) | `...?year=YYYY&...&type=P#` | Postseason (incl. conference tournaments) |
-| Tournament (T) | `...?year=YYYY&...&type=T#` | NCAA Tournament games only |
+| Precompiled team tables | `data/raw/all_trank_team_tables.csv` | Base regular-season stats for all teams and years |
+| Team history | `https://barttorvik.com/team-history.php?team=Team+Name` | Year, coach, seed, finish, conf, records, and efficiency/four-factor history |
 
-**Year range**: 2008–2024 (configurable in `configs/default.yaml`).
+**Year range**: 2008–2025 with 2020 excluded (configurable in `configs/default.yaml`).
 
-**Key columns (examples)**: Rk, Team, Conf, AdjOE, AdjDE, Barthag, EFG%, EFGD%, TOR, TORD, ORB, DRB, FTR, FTRD, 2P%, 2P%D, 3P%, 3P%D, Adj T., WAB, Rec, G.
+**Key columns (examples)**: Rk, Team, Conf, AdjOE, AdjDE, Barthag, EFG%, EFGD%, TOR, TORD, ORB, DRB, FTR, FTRD, 2P%, 2P%D, 3P%, 3P%D, Adj T., Rec, G, plus team-history columns like coach, seed, finish, ov_rec, conf_rec.
+
+**Team-history cache**: The pipeline writes/reads `data/raw/team_history_cache.csv`. To force rebuild, run:
+
+```bash
+python scripts/run_pipeline.py --refresh-team-history
+```
 
 **Usage constraints**: Scraping for personal/research use. Respect Bart Torvik's terms of use and rate limits.
 
@@ -61,7 +69,7 @@ Place these in `data/external/`. The pipeline runs without them; they add featur
 
 #### Automated ingestion
 
-Run before the pipeline (or use `run_pipeline.py`, which calls it automatically):
+Optional maintenance workflow (not required for normal pipeline runs):
 
 ```bash
 python scripts/fetch_team_tables.py
@@ -71,7 +79,7 @@ The script tries HTTP first, then falls back to Playwright if the site blocks re
 
 - `--year-start YYYY` / `--year-end YYYY` – limit year range
 - `--no-playwright` – skip Playwright fallback
-- `--out-dir PATH` – output directory (default: `data/external/`)
+- `--out-dir PATH` – output directory (default: `data/external/sources/`)
 
 **Estimated runtime**: ~2–5 min (HTTP) or ~5–15 min (Playwright fallback) for full year range.
 
@@ -84,7 +92,7 @@ If automation fails:
 1. Open [https://barttorvik.com/team-tables_each.php](https://barttorvik.com/team-tables_each.php)
 2. Select the year(s) if the page supports it
 3. Copy the table or use the site’s export, and save as CSV
-4. Save to `data/external/` as `trank_team_table_data.csv` or `trank_team_table_data_YYYY.csv`
+4. Save to `data/external/sources/` as `trank_team_table_data.csv` or `trank_team_table_data_YYYY.csv`
 5. Ensure columns align with: TEAM, ADJOE, ADJDE, BARTHAG, RECORD, WINS, GAMES, EFG, EFGD., FTRATE, FTRATED, TOV%, TOV%D, OREB%, OPOREB%, RAWT, 2P%, 2P%D, 3P%, 3P%D, BLK%, BLKED%, AST%, OPAST%, 3PRATE, 3PRATED, ADJ.T, AVGHGT, EFFHGT, EXP., YEAR, PAKE, PASE, TALENT, blank, FT%, OPFT%, PPPOFF, PPPDEF, ELITESOS
 
 ### 2. `cleanteam.xlsx`
@@ -99,9 +107,29 @@ If automation fails:
 - **Provides**: Same structure as `trank_team_table_data` for the holdout year.
 - **Usage**: Joined to `cbb2023` for full feature set.
 
-### 4. `coach_tournament_experience*.csv`
+### 4. Coach tournament experience
 
-- **Pattern**: `coach_tournament_experience.csv` or `coach_tournament_experience_YYYY.csv`
+Coach experience is now computed locally from `data/raw/team_history_cache.csv` (no external fetch needed):
+
+```bash
+python scripts/enrich_team_history_cache.py
+```
+
+This reads the team-history cache and writes `data/raw/team_history_cache_enriched.csv` with four columns:
+
+- **`coach_tourn_appearances_5y`**: NCAA tournaments the head coach appeared in over the prior 5 tournament years (2020 excluded).
+- **`coach_tourn_wins_5y`** / **`coach_tourn_losses_5y`**: Tournament W-L for that coach over those same seasons.
+- **`coach_years_with_program`**: Consecutive years (including current) the head coach has been at this program.
+
+The enriched cache is joined into `all_trank_team_tables.csv` by `recompile_all_trank_team_tables.py`. **Estimated runtime**: ~20 seconds (local computation, no network).
+
+**Derived (in pipeline)**: `coach_tourn_win_pct_5y`, `coach_tourn_games_5y`, and `coach_avg_wins_per_appearance`.
+
+**Legacy**: Any `coach_tournament_experience*.csv` under `data/external/` (e.g. `data/external/legacy/coach_tournament_experience.csv`) is still used as a fallback merge in `madness.py` if the columns are missing from the base table; the enriched-cache approach is preferred.
+
+#### Legacy fetch (deprecated)
+
+- **Pattern (legacy)**: `coach_tournament_experience.csv` or `coach_tournament_experience_YYYY.csv`
 - **Source**: Optional. Head coach NCAA tournament experience over the **last 5 years** (including the current season). **Easiest:** use the fetch script with `--fetch` (defaults to Bart Torvik [team-history.php](https://www.torvik.dev/reference/bart_team_history.php), same data as toRvik’s `bart_team_history`). Alternatively: [Sports Reference](https://www.sports-reference.com/cbb/coaches/) coach pages, or fill manually.
 - **Columns**: `Team`, `Year`, `coach_tourn_appearances_5y`, `coach_tourn_wins_5y`, `coach_tourn_losses_5y`, `coach_years_with_program`
   - **Team**: Must match pipeline team names (same as in training data).
@@ -131,13 +159,36 @@ Torvik uses [team-history.php](https://barttorvik.com/team-history.php?team=Team
 
 ---
 
+## Player advanced stats
+
+**Path**: `data/raw/player_stats/player_advanced_YYYY.csv` (per-year) and `player_advanced_all.csv` (combined)
+
+Individual player-level advanced season statistics from Bart Torvik, matching the `bart_player_season(stat='advanced')` output from the [toRvik R package](https://torvik.dev/reference/bart_player_season.php).
+
+- **Source (2008–2023)**: Pre-built parquet files from the [toRvik-data GitHub repo](https://github.com/andreweatherman/toRvik-data)
+- **Source (2024+)**: Bart Torvik CSV endpoint (`getadvstats.php?year=YYYY&csv=1`)
+- **Columns** (29): `player`, `pos`, `exp`, `team`, `conf`, `g`, `min`, `porpag`, `dporpag`, `ortg`, `adj_oe`, `drtg`, `adj_de`, `stops`, `obpm`, `dbpm`, `bpm`, `oreb`, `dreb`, `ast`, `to`, `blk`, `stl`, `ftr`, `pfr`, `rec`, `pick`, `year`, `id`
+- **Year range**: 2008–2025 (2020 excluded per project convention)
+- **Total records**: ~81,000 players across all years
+
+#### Fetching
+
+```bash
+python scripts/fetch_player_stats.py
+python scripts/fetch_player_stats.py --year-start 2024 --year-end 2025  # specific years only
+```
+
+**Estimated runtime**: ~3–4 minutes for all years (parquet downloads for 2008–2023, CSV for 2024+).
+
+---
+
 ## Clean training dataset (pipeline output)
 
 **Path**: `data/processed/cbb_training_clean.csv`
 
 Single prepped dataset for training and testing: one row per (Team, year), no duplicate column names, no redundant variables. Built automatically by the pipeline from the full training export.
 
-- **Variables**: All Bart Torvik stats (AdjOE, AdjDE, WAB, Barthag, TOR, ORB, DRB, FTR, 2P%, 3P%, etc.), optional external (WINS, BLK%, EFFHGT, TALENT, …), optional coach experience (coach_tourn_appearances_5y, coach_tourn_wins_5y, coach_tourn_losses_5y, coach_tourn_win_pct_5y, coach_tourn_games_5y, coach_avg_wins_per_appearance, coach_years_with_program), conference flags (Power6, B12, B10, …), seed.
+- **Variables**: All Bart Torvik base stats (AdjOE, AdjDE, Barthag, TOR, ORB, DRB, FTR, 2P%, 3P%, etc.), optional external (WINS, BLK%, EFFHGT, TALENT, …), coach experience derived from team history (coach_tourn_appearances_5y, coach_tourn_wins_5y, coach_tourn_losses_5y, coach_tourn_win_pct_5y, coach_tourn_games_5y, coach_avg_wins_per_appearance, coach_years_with_program), conference flags (Power6, B12, B10, …), seed.
 - **Outcomes**: `result`, `round`, and binary `Round2`, `S16`, `E8`, `F4`, `Ship`, `Champ`.
 - **Redundant columns removed**: Duplicate column names (first kept); year-specific "3P Rate *_3PR" / "3P Rate *_3PRD" columns are dropped (canonical `3P%`, `3PRATE`, `3PRATED` kept).
 

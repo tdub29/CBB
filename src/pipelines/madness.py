@@ -12,6 +12,7 @@ import time
 from io import StringIO
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote_plus
 
 import numpy as np
 import pandas as pd
@@ -39,10 +40,17 @@ DEFAULT_CONFIG = {
         "output_training_csv": "data/processed/cbbtrainingdata",
         "output_training_clean": "data/processed/cbb_training_clean",
         "data_external": "data/external",
+        "data_raw": "data/raw",
         "data_processed": "data/processed",
+        "all_trank_team_tables": "data/raw/assembled/all_trank_team_tables.csv",
+        "team_history_cache": "data/raw/team_history_cache.csv",
         "bracket_csv": "",
         "models": "models",
         "reports": "reports",
+    },
+    "ingestion": {
+        "team_history_delay_sec": 0.8,
+        "team_history_force_playwright": False,
     },
     "model": {
         "k_bradley_terry": 1.0,
@@ -143,6 +151,7 @@ def _validate_runtime_config(cfg: dict) -> dict[str, Any]:
 
 BASE_URL = "https://barttorvik.com/trank.php"
 USER_AGENT = "Mozilla/5.0"
+TEAM_HISTORY_URL = "https://barttorvik.com/team-history.php"
 
 
 def _get_trank_html(url: str, playwright_page=None) -> str | None:
@@ -166,10 +175,17 @@ def _get_trank_html(url: str, playwright_page=None) -> str | None:
 
     if playwright_page is not None:
         try:
-            playwright_page.goto(url, wait_until="domcontentloaded", timeout=30000)
-            playwright_page.wait_for_timeout(3500)
+            playwright_page.goto(url, wait_until="load", timeout=30000)
+            playwright_page.wait_for_selector("body", timeout=10000)
+            # Give verification + JS table render time (inspect_trank_page.py: ~8s gets full table)
+            playwright_page.wait_for_timeout(8000)
+            try:
+                playwright_page.wait_for_selector("table", timeout=5000)
+                playwright_page.wait_for_timeout(2000)
+            except Exception:
+                pass
             html = playwright_page.content()
-            if "Verifying Browser" in html:
+            if "Verifying Browser" in html or "Verifying your browser" in html:
                 return None
             return html
         except Exception:
@@ -177,14 +193,17 @@ def _get_trank_html(url: str, playwright_page=None) -> str | None:
     return None
 
 
-# Map multi-level/flattened column names to canonical trank names
+# Map multi-level/flattened column names to canonical trank names (incl. Bart page variants like "Adj O", "Adj D")
 _TRANK_COL_MAP = {
     "rk": "Rk", "team": "Team", "conf": "Conf", "rec": "Rec", "g": "G",
-    "adjoe": "AdjOE", "adjde": "AdjDE", "barthag": "Barthag",
-    "efg%": "EFG%", "efgd%": "EFGD%", "tor": "TOR", "tord": "TORD",
-    "orb": "ORB", "drb": "DRB", "ftr": "FTR", "ftrd": "FTRD",
+    "adjoe": "AdjOE", "adjde": "AdjDE", "adj o": "AdjOE", "adj d": "AdjDE",
+    "adj o.": "AdjOE", "adj d.": "AdjDE", "barthag": "Barthag",
+    "efg%": "EFG%", "efgd%": "EFGD%", "efg": "EFG%", "efgd": "EFGD%",
+    "tor": "TOR", "tord": "TORD", "orb": "ORB", "drb": "DRB",
+    "ftr": "FTR", "ftrd": "FTRD", "ftr.": "FTR", "ftrd.": "FTRD",
     "2p%": "2P%", "2p%d": "2P%D", "3p%": "3P%", "3p%d": "3P%D",
-    "adj t.": "Adj T.", "wab": "WAB",
+    "adj t.": "Adj T.", "adj t": "Adj T.", "wab": "WAB",
+    "3prd": "3PRATED", "3pr": "3PRATE",  # 3prd before 3pr so "3prd" matches first
 }
 
 
@@ -200,19 +219,47 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     new_names = {}
     for c in df.columns:
-        s = str(c).strip().lower()
+        s = str(c).strip().lower().replace(" ", "")
+        s_raw = str(c).strip().lower()
         for canon_key, canon_val in _TRANK_COL_MAP.items():
-            if canon_key in s or s.endswith("_" + canon_key):
+            key_nospace = canon_key.replace(" ", "")
+            if key_nospace in s or canon_key in s_raw or s_raw.endswith("_" + canon_key):
                 new_names[c] = canon_val
                 break
-        if c not in new_names and "_rec" in s:
+        if c not in new_names and ("_rec" in s_raw or "rec" == s_raw):
             new_names[c] = "Rec"
-        elif c not in new_names and "_team" in s:
+        elif c not in new_names and "_team" in s_raw:
             new_names[c] = "Team"
-        elif c not in new_names and "_rk" in s or (s == "rk"):
+        elif c not in new_names and ("_rk" in s_raw or s_raw == "rk"):
             new_names[c] = "Rk"
     df = df.rename(columns={k: v for k, v in new_names.items() if k in df.columns})
     return df
+
+
+def _strip_rank_suffix(ser: pd.Series) -> pd.Series:
+    """Parse cells like '124.3 8' or '+11.5 2' to numeric (take first token, strip +)."""
+    out = []
+    for v in ser:
+        v = str(v).strip()
+        if not v or v in ("nan", ""):
+            out.append(np.nan)
+            continue
+        parts = v.replace("+", "").strip().split()
+        if not parts:
+            out.append(np.nan)
+            continue
+        try:
+            out.append(float(parts[0]))
+        except (ValueError, TypeError):
+            out.append(np.nan)
+    return pd.Series(out, index=ser.index)
+
+
+# Canonical columns for T-Rank tables so concat across years aligns (no duplicate/variant cols)
+_TRANK_CANONICAL_COLS = [
+    "Rk", "Team", "Conf", "G", "Rec", "AdjOE", "AdjDE", "Barthag", "EFG%", "EFGD%",
+    "TOR", "TORD", "ORB", "DRB", "FTR", "FTRD", "2P%", "2P%D", "3P%", "3P%D", "Adj T.", "WAB", "year",
+]
 
 
 def _fetch_table(
@@ -227,8 +274,41 @@ def _fetch_table(
         tables = pd.read_html(StringIO(html))
         if not tables:
             return None
-        df = tables[0].copy()
-        df = _normalize_columns(df)
+        # Pick the table with the most stat columns (Team + core stat) to capture full trank.php data
+        best_df = None
+        best_n = 0
+        for tbl in tables:
+            try:
+                t = tbl.copy()
+                t = _normalize_columns(t)
+                t = t.loc[:, ~t.columns.duplicated()]
+                has_core = any(
+                    c in t.columns for c in ("AdjOE", "AdjDE", "Barthag", "WAB", "EFG%")
+                )
+                if has_core and "Team" in t.columns and len(t) > 1:
+                    n_canon = sum(1 for c in _TRANK_CANONICAL_COLS if c in t.columns)
+                    if n_canon > best_n:
+                        best_n = n_canon
+                        best_df = t
+            except Exception:
+                continue
+        if best_df is None:
+            # Fallback: try largest table with Team (after normalization) in case core stats use different labels
+            for tbl in sorted(tables, key=lambda x: -len(x.columns)):
+                try:
+                    t = tbl.copy()
+                    t = _normalize_columns(t)
+                    t = t.loc[:, ~t.columns.duplicated()]
+                    if "Team" in t.columns and len(t) > 1:
+                        best_df = t
+                        break
+                except Exception:
+                    continue
+        if best_df is None:
+            best_df = tables[0].copy()
+            best_df = _normalize_columns(best_df)
+            best_df = best_df.loc[:, ~best_df.columns.duplicated()]
+        df = best_df
         rk_col = next((c for c in df.columns if str(c).strip().upper() == "RK"), None)
         if rk_col and (df[rk_col].astype(str) == "Rk").any():
             df = df[df[rk_col].astype(str) != "Rk"].copy()
@@ -237,6 +317,17 @@ def _fetch_table(
             df = df.rename(columns={rec_col: "Rec"})
         df["year"] = year
         df = df.loc[:, ~df.columns.duplicated()]
+        # Keep all normalized columns; ensure canonical cols exist (add as NaN if missing)
+        keep_cols = [c for c in _TRANK_CANONICAL_COLS if c in df.columns]
+        extra = [c for c in df.columns if c not in _TRANK_CANONICAL_COLS]
+        df = df.reindex(columns=keep_cols + extra)
+        # Strip rank suffixes from numeric cells (e.g. "124.3 8" -> 124.3)
+        numeric_like = [c for c in df.columns if c not in ("Team", "Conf", "Rec", "year") and c in df.columns]
+        for c in numeric_like:
+            try:
+                df[c] = _strip_rank_suffix(df[c])
+            except Exception:
+                pass
         return df
     except Exception:
         return None
@@ -329,6 +420,998 @@ def scrape_bart_torvik(
     tourn_df = pd.concat(tourn, ignore_index=True) if tourn else pd.DataFrame()
 
     return master_df, conf_df, tourn_df
+
+
+def save_raw_trank_tables(
+    master: pd.DataFrame,
+    conf: pd.DataFrame,
+    tourn: pd.DataFrame,
+    data_raw_dir: Path,
+    run_tag: str,
+) -> None:
+    """Persist raw scraped R, P, T tables to data/raw/pipeline_runs/ for debugging and reuse."""
+    data_raw_dir = Path(data_raw_dir)
+    run_dir = data_raw_dir / "pipeline_runs"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    if not master.empty:
+        master.to_csv(run_dir / f"trank_regular_{run_tag}.csv", index=False)
+    if not conf.empty:
+        conf.to_csv(run_dir / f"trank_postseason_{run_tag}.csv", index=False)
+    if not tourn.empty:
+        tourn.to_csv(run_dir / f"trank_tournament_{run_tag}.csv", index=False)
+
+
+# Team tables as primary source (data/external/trank_team_table_data_YYYY.csv)
+# Headless (positional) columns from fetch script:
+TEAM_TABLE_COL_NAMES = [
+    "TEAM", "ADJOE", "ADJDE", "BARTHAG", "RECORD", "WINS", "GAMES",
+    "EFG", "EFGD.", "FTRATE", "FTRATED", "TOV%", "TOV%D", "OREB%", "OPOREB%",
+    "RAWT", "2P%", "2P%D", "3P%", "3P%D", "BLK%", "BLKED%", "AST%", "OPAST%",
+    "3PRATE", "3PRATED", "ADJ.T", "AVGHGT", "EFFHGT", "EXP.", "YEAR",
+    "PAKE", "PASE", "TALENT", "blank", "FT%", "OPFT%", "PPPOFF", "PPPDEF", "ELITESOS",
+]
+# Map team-table CSV columns (headless/positional names) to pipeline canonical
+TEAM_TABLE_TO_CANONICAL = {
+    "TEAM": "Team", "YEAR": "year", "ADJOE": "AdjOE", "ADJDE": "AdjDE", "BARTHAG": "Barthag",
+    "RECORD": "Rec", "WINS": "WINS", "GAMES": "GAMES",
+    "EFG": "EFG%", "EFGD.": "EFGD%", "FTRATE": "FTR", "FTRATED": "FTRD",
+    "TOV%": "TOR", "TOV%D": "TORD", "OREB%": "ORB", "OPOREB%": "DRB",
+    "RAWT": "Adj T.", "2P%": "2P%", "2P%D": "2P%D", "3P%": "3P%", "3P%D": "3P%D",
+    "BLK%": "BLK%", "BLKED%": "BLKED%", "AST%": "AST%", "OPAST%": "OPAST%",
+    "3PRATE": "3PRATE", "3PRATED": "3PRATED", "ADJ.T": "Adj T.",
+    "EFFHGT": "EFFHGT", "EXP.": "EXP.", "TALENT": "TALENT", "ELITESOS": "ELITESOS",
+}
+# Manually compiled team tables with header row (normalized key = strip + lower + collapse spaces)
+TEAM_TABLE_HEADER_TO_CANONICAL = {
+    "team": "Team", "year": "year", "adj oe": "AdjOE", "adj de": "AdjDE", "barthag": "Barthag",
+    "record": "Rec", "wins": "WINS", "games": "GAMES",
+    "efg": "EFG%", "efg d.": "EFGD%", "ft rate": "FTR", "ft rate d": "FTRD",
+    "tov%": "TOR", "tov% d": "TORD", "o reb%": "ORB", "op oreb%": "DRB",
+    "raw t": "Adj T.", "2p %": "2P%", "2p % d.": "2P%D", "3p %": "3P%", "3p % d.": "3P%D",
+    "blk %": "BLK%", "blked %": "BLKED%", "ast %": "AST%", "op ast %": "OPAST%",
+    "3p rate": "3PRATE", "3p rate d": "3PRATED", "adj. t": "Adj T.",
+    "avg hgt.": "AVGHGT", "eff. hgt.": "EFFHGT", "exp.": "EXP.",
+    "pake": "PAKE", "pase": "PASE", "talent": "TALENT",
+    "ft%": "FT%", "op. ft%": "OPFT%", "ppp off.": "PPPOFF", "ppp def.": "PPPDEF", "elite sos": "ELITESOS",
+}
+
+
+def _normalize_header(s: str) -> str:
+    """Normalize header for lookup: strip, lower, collapse spaces."""
+    return " ".join(str(s).strip().lower().split())
+
+
+TEAM_HISTORY_CANONICAL_COLS = [
+    "team",
+    "year",
+    "t_rk",
+    "coach",
+    "seed",
+    "finish",
+    "conf",
+    "ov_rec",
+    "conf_rec",
+    "adj_o",
+    "adj_d",
+    "efg_o",
+    "efg_d",
+    "to_percent",
+    "tod_percent",
+    "or_percent",
+    "dr_percent",
+    "ftr",
+    "ftrd",
+    "ft_percent",
+    "two_pct",
+    "two_pct_d",
+    "three_pct",
+    "adj_t",
+]
+
+TEAM_HISTORY_NUMERIC_COLS = [
+    "year",
+    "t_rk",
+    "seed",
+    "adj_o",
+    "adj_d",
+    "efg_o",
+    "efg_d",
+    "to_percent",
+    "tod_percent",
+    "or_percent",
+    "dr_percent",
+    "ftr",
+    "ftrd",
+    "ft_percent",
+    "two_pct",
+    "two_pct_d",
+    "three_pct",
+    "adj_t",
+]
+
+TEAM_HISTORY_HEADER_MAP = {
+    "year": "year",
+    "t-rk": "t_rk",
+    "coach": "coach_raw",
+    "conf": "conf",
+    "rec.": "rec",
+    "rec": "rec",
+    "adjo": "adj_o",
+    "adjd": "adj_d",
+    "efgo": "efg_o",
+    "efgd": "efg_d",
+    "to%": "to_percent",
+    "tod%": "tod_percent",
+    "or%": "or_percent",
+    "dr%": "dr_percent",
+    "ftr": "ftr",
+    "ftrd": "ftrd",
+    "ft%": "ft_percent",
+    "2p%": "two_pct",
+    "2p%d": "two_pct_d",
+    "3p%": "three_pct",
+    "adj t": "adj_t",
+    "adjt": "adj_t",
+}
+
+
+def _team_history_empty() -> pd.DataFrame:
+    return pd.DataFrame(columns=TEAM_HISTORY_CANONICAL_COLS)
+
+
+def _split_record_cell(rec: Any) -> tuple[str, str]:
+    """Split Torvik record cell into overall and conference records."""
+    s = str(rec).strip()
+    if not s or s.lower() == "nan":
+        return "", ""
+    m = re.match(r"^\s*([0-9]+-[0-9]+)\s*(?:\(([^)]*)\))?\s*$", s)
+    if m:
+        ov = (m.group(1) or "").strip()
+        conf = (m.group(2) or "").strip()
+        return ov, conf
+    return s, ""
+
+
+def _split_coach_seed_finish(coach_cell: Any) -> tuple[str, float, str]:
+    """Parse coach cell from team history into (coach, seed, finish)."""
+    s = str(coach_cell).strip()
+    if not s or s.lower() == "nan":
+        return "", np.nan, ""
+
+    # Examples:
+    # "Jon Scheyer 1 seed, Final Four"
+    # "Mike Krzyzewski 3 seed (Proj.)"
+    # "Dan Hurley8 seed, R32"
+    m = re.match(r"^(.+?)\s*(\d+)\s*seed(?:\s*\(([^)]*)\))?(?:\s*,\s*(.*))?$", s, re.I)
+    if m:
+        coach = (m.group(1) or "").strip()
+        seed = float(m.group(2)) if m.group(2) else np.nan
+        proj = (m.group(3) or "").strip()
+        finish = (m.group(4) or "").strip()
+        if not finish and proj:
+            finish = proj
+        return coach, seed, finish
+
+    m2 = re.match(r"^(.+?)\s+(\d+)[,\s]+(.+)$", s)
+    if m2:
+        return (m2.group(1) or "").strip(), float(m2.group(2)), (m2.group(3) or "").strip()
+
+    return s, np.nan, ""
+
+
+def _parse_team_history_numeric(col: pd.Series) -> pd.Series:
+    """Parse numeric history cells that may contain rank suffixes (e.g. '128.6 5')."""
+    parsed = _strip_rank_suffix(col)
+    return pd.to_numeric(parsed, errors="coerce")
+
+
+def parse_team_history_to_schema(html: str, team: str) -> pd.DataFrame:
+    """
+    Parse Torvik team-history HTML into the bart_team_history-like canonical schema.
+
+    Returns one row per season with TEAM_HISTORY_CANONICAL_COLS.
+    """
+    if not html:
+        return _team_history_empty()
+    try:
+        tables = pd.read_html(StringIO(html))
+    except Exception:
+        return _team_history_empty()
+    if not tables:
+        return _team_history_empty()
+
+    # Prefer table that has year + something coach-like.
+    def _norm(s: str) -> str:
+        return _normalize_header(s).replace(" ", "").replace("–", "-")
+
+    chosen = None
+    for tbl in tables:
+        cols = {_norm(c): c for c in tbl.columns}
+        has_year = "year" in cols
+        has_coach = "coach" in cols or any("coach" in k for k in cols)
+        if has_year and has_coach:
+            chosen = tbl.copy()
+            break
+    if chosen is None:
+        chosen = tables[0].copy()
+
+    rename: dict[Any, str] = {}
+    coach_col = None
+    for c in chosen.columns:
+        raw = _norm(c)
+        if raw in TEAM_HISTORY_HEADER_MAP:
+            rename[c] = TEAM_HISTORY_HEADER_MAP[raw]
+        elif "coach" in raw and coach_col is None:
+            rename[c] = "coach_raw"
+            coach_col = c
+    df = chosen.rename(columns=rename)
+    if "year" not in df.columns or "coach_raw" not in df.columns:
+        return _team_history_empty()
+
+    if "rec" not in df.columns:
+        df["rec"] = ""
+    if "conf" not in df.columns:
+        df["conf"] = ""
+
+    coach_split = df["coach_raw"].apply(_split_coach_seed_finish)
+    df["coach"] = coach_split.apply(lambda x: x[0])
+    df["seed"] = coach_split.apply(lambda x: x[1])
+    df["finish"] = coach_split.apply(lambda x: x[2])
+
+    rec_split = df["rec"].apply(_split_record_cell)
+    df["ov_rec"] = rec_split.apply(lambda x: x[0])
+    df["conf_rec"] = rec_split.apply(lambda x: x[1])
+
+    for col in TEAM_HISTORY_NUMERIC_COLS:
+        if col in df.columns:
+            df[col] = _parse_team_history_numeric(df[col])
+
+    out = _team_history_empty()
+    for c in TEAM_HISTORY_CANONICAL_COLS:
+        if c in df.columns:
+            out[c] = df[c]
+    out["team"] = str(team).strip()
+
+    out = out.dropna(subset=["year"]).copy()
+    out["year"] = pd.to_numeric(out["year"], errors="coerce")
+    out = out.dropna(subset=["year"])
+    out["year"] = out["year"].astype(int)
+    out = out.loc[:, TEAM_HISTORY_CANONICAL_COLS]
+    out = out.sort_values("year").reset_index(drop=True)
+    return out
+
+
+def fetch_team_history(
+    team: str,
+    session: requests.Session | None = None,
+    playwright_page=None,
+    force_playwright: bool = False,
+    user_agent: str = USER_AGENT,
+) -> pd.DataFrame:
+    """Fetch and parse one team from Torvik team-history.php."""
+    team_str = str(team).strip()
+    if not team_str:
+        return _team_history_empty()
+    # URL-encode so "Texas A&M" -> Texas+A%26M (ampersand must be %26)
+    team_query = quote_plus(team_str)
+    url = f"{TEAM_HISTORY_URL}?team={team_query}"
+    html = None
+
+    if not force_playwright:
+        sess = session or requests.Session()
+        headers = {
+            "User-Agent": user_agent,
+            "Accept": "text/html,application/xhtml+xml",
+            "Referer": "https://barttorvik.com/",
+        }
+        try:
+            resp = sess.get(url, headers=headers, timeout=20)
+            resp.raise_for_status()
+            if "Verifying Browser" not in resp.text and "Verifying your browser" not in resp.text:
+                html = resp.text
+        except Exception:
+            html = None
+
+    if html is None and playwright_page is not None:
+        try:
+            playwright_page.goto(url, wait_until="load", timeout=45000)
+            try:
+                playwright_page.wait_for_selector("table", timeout=10000)
+            except Exception:
+                pass
+            playwright_page.wait_for_timeout(8000)
+            maybe_html = playwright_page.content()
+            if "Verifying Browser" not in maybe_html and "Verifying your browser" not in maybe_html:
+                html = maybe_html
+        except Exception:
+            html = None
+
+    return parse_team_history_to_schema(html or "", team=team_str)
+
+
+def build_team_history_all(
+    teams: list[str],
+    cache_path: Path,
+    refresh: bool = False,
+    delay_sec: float = 0.8,
+    force_playwright: bool = False,
+    user_agent: str = USER_AGENT,
+) -> tuple[pd.DataFrame, list[str]]:
+    """
+    Build/refresh team history cache and return history rows for requested teams.
+
+    Returns (history_df, failed_teams).
+    """
+    cache_path = Path(cache_path)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    team_list = sorted({str(t).strip() for t in teams if str(t).strip()})
+    if not team_list:
+        return _team_history_empty(), []
+
+    cached = _team_history_empty()
+    if cache_path.exists() and not refresh:
+        try:
+            cached = pd.read_csv(cache_path)
+            for c in TEAM_HISTORY_CANONICAL_COLS:
+                if c not in cached.columns:
+                    cached[c] = np.nan
+            cached = cached[TEAM_HISTORY_CANONICAL_COLS]
+            cached["team"] = cached["team"].astype(str).str.strip()
+            cached["year"] = pd.to_numeric(cached["year"], errors="coerce")
+            cached = cached.dropna(subset=["year"])
+            cached["year"] = cached["year"].astype(int)
+        except Exception:
+            cached = _team_history_empty()
+
+    cached_teams = set(cached["team"].unique()) if not cached.empty else set()
+    missing_teams = team_list if refresh else [t for t in team_list if t not in cached_teams]
+    if not missing_teams:
+        out = cached[cached["team"].isin(team_list)].copy()
+        out = out.drop_duplicates(subset=["team", "year"], keep="last")
+        return out, []
+
+    session = requests.Session()
+    session.headers.update({"User-Agent": user_agent})
+    failed: list[str] = []
+    fetched_rows: list[pd.DataFrame] = []
+    use_playwright = force_playwright
+    playwright_mgr = None
+    browser = None
+    page = None
+    try:
+        for i, team in enumerate(missing_teams, start=1):
+            if i == 1 or i % 25 == 0:
+                LOGGER.info(
+                    {
+                        "event": "team_history_progress",
+                        "fetched": i,
+                        "total": len(missing_teams),
+                        "team": team,
+                    }
+                )
+            if use_playwright and page is None:
+                try:
+                    from playwright.sync_api import sync_playwright
+
+                    playwright_mgr = sync_playwright().start()
+                    browser = playwright_mgr.chromium.launch(headless=True)
+                    page = browser.new_page()
+                except Exception:
+                    page = None
+
+            hist = fetch_team_history(
+                team,
+                session=session,
+                playwright_page=page,
+                force_playwright=use_playwright,
+                user_agent=user_agent,
+            )
+            if hist.empty and not use_playwright:
+                # Retry this team with Playwright fallback and keep it for remaining teams.
+                use_playwright = True
+                if page is None:
+                    try:
+                        from playwright.sync_api import sync_playwright
+
+                        playwright_mgr = sync_playwright().start()
+                        browser = playwright_mgr.chromium.launch(headless=True)
+                        page = browser.new_page()
+                    except Exception:
+                        page = None
+                hist = fetch_team_history(
+                    team,
+                    session=session,
+                    playwright_page=page,
+                    force_playwright=use_playwright,
+                    user_agent=user_agent,
+                )
+            if hist.empty:
+                failed.append(team)
+            else:
+                fetched_rows.append(hist)
+            if delay_sec > 0:
+                time.sleep(delay_sec)
+    finally:
+        try:
+            session.close()
+        except Exception:
+            pass
+        if browser is not None:
+            try:
+                browser.close()
+            except Exception:
+                pass
+        if playwright_mgr is not None:
+            try:
+                playwright_mgr.stop()
+            except Exception:
+                pass
+
+    fetched = pd.concat(fetched_rows, ignore_index=True) if fetched_rows else _team_history_empty()
+    combined = pd.concat([cached, fetched], ignore_index=True)
+    if combined.empty:
+        return combined, failed
+    combined = combined.drop_duplicates(subset=["team", "year"], keep="last")
+    combined = combined.sort_values(["team", "year"]).reset_index(drop=True)
+    combined.to_csv(cache_path, index=False)
+    out = combined[combined["team"].isin(team_list)].copy()
+    return out, failed
+
+
+def load_all_trank_base(
+    all_tables_path: Path,
+    year_start: int,
+    year_end: int,
+    exclude_years: tuple[int, ...],
+) -> pd.DataFrame:
+    """Load all_trank_team_tables.csv as the primary training base."""
+    all_tables_path = Path(all_tables_path)
+    if not all_tables_path.exists():
+        raise FileNotFoundError(f"Missing all-tables base file: {all_tables_path}")
+
+    df = pd.read_csv(all_tables_path, header=None)
+    if df.empty or len(df.columns) < 4:
+        return pd.DataFrame()
+    n = min(len(TEAM_TABLE_COL_NAMES), len(df.columns))
+    extra_cols = [f"_extra_{i}" for i in range(n, len(df.columns))]
+    df.columns = list(TEAM_TABLE_COL_NAMES[:n]) + extra_cols
+    df["YEAR"] = pd.to_numeric(df["YEAR"], errors="coerce")
+    skip = set(exclude_years)
+    df = df.dropna(subset=["YEAR"]).copy()
+    df["YEAR"] = df["YEAR"].astype(int)
+    df = df[(df["YEAR"] >= year_start) & (df["YEAR"] <= year_end) & (~df["YEAR"].isin(skip))]
+    if df.empty:
+        return pd.DataFrame()
+
+    rename = {
+        k: v for k, v in TEAM_TABLE_TO_CANONICAL.items() if k in df.columns and k not in ("WINS", "GAMES")
+    }
+    df = df.rename(columns=rename)
+    df = df.loc[:, ~df.columns.duplicated()]
+    if "year" not in df.columns and "YEAR" in df.columns:
+        df["year"] = df["YEAR"]
+    if "Team" not in df.columns and "TEAM" in df.columns:
+        df["Team"] = df["TEAM"]
+
+    if "WINS" in df.columns and "GAMES" in df.columns:
+        df["W"] = pd.to_numeric(df["WINS"], errors="coerce")
+        df["L"] = pd.to_numeric(df["GAMES"], errors="coerce") - df["W"]
+    else:
+        df["W"] = np.nan
+        df["L"] = np.nan
+    df["G"] = df["GAMES"] if "GAMES" in df.columns else (df["W"] + df["L"])
+
+    rank_col = df.get("Barthag") if "Barthag" in df.columns else df.get("BARTHAG")
+    if rank_col is not None:
+        df["Rk"] = pd.to_numeric(rank_col, errors="coerce")
+        df["Rk"] = df.groupby("year")["Rk"].rank(ascending=False)
+
+    if "Conf" not in df.columns:
+        df["Conf"] = ""
+
+    df["Team"] = df["Team"].astype(str).str.strip()
+    before = len(df)
+    df = df.drop_duplicates(subset=["Team", "year"], keep="first").reset_index(drop=True)
+    dropped = before - len(df)
+    if dropped > 0:
+        LOGGER.warning(
+            {"event": "dedupe_all_tables_base", "dropped_rows": dropped, "remaining_rows": len(df)}
+        )
+
+    for c in ["TEAM", "YEAR"]:
+        if c in df.columns and c not in ("Team", "year"):
+            df = df.drop(columns=[c], errors="ignore")
+    return df
+
+
+def _finish_to_result(finish: Any) -> float:
+    """Map Torvik finish labels to result code used by pipeline."""
+    s = str(finish).strip().lower()
+    if not s or s in ("nan", "na", "proj.", "(proj.)"):
+        return np.nan
+    if "champ" in s:
+        return 1.0
+    if "finals" in s or "runner" in s or "2nd" in s:
+        return 2.0
+    if "final four" in s or s == "f4":
+        return 4.0
+    if "elite eight" in s or s == "e8":
+        return 8.0
+    if "sweet sixteen" in s or "sweet 16" in s or s == "s16":
+        return 16.0
+    if "r32" in s or s == "32":
+        return 32.0
+    if "r64" in s or "first four" in s or s == "64":
+        return 64.0
+    return np.nan
+
+
+def _finish_to_wl(finish: Any) -> tuple[int, int]:
+    """Map finish string to NCAA tournament wins/losses."""
+    r = _finish_to_result(finish)
+    if pd.isna(r):
+        return (0, 0)
+    rv = int(r)
+    if rv == 1:
+        return (6, 0)
+    if rv == 2:
+        return (5, 1)
+    if rv == 4:
+        return (4, 1)
+    if rv == 8:
+        return (3, 1)
+    if rv == 16:
+        return (2, 1)
+    if rv == 32:
+        return (1, 1)
+    return (0, 1)
+
+
+def _years_last_5_tournaments(season_year: int, exclude_years: tuple[int, ...]) -> list[int]:
+    """Five tournament years prior to season_year, excluding the current year (e.g., for 2024: 2019,2021,2022,2023)."""
+    skip = set(exclude_years)
+    return [y for y in range(season_year - 5, season_year) if y not in skip]
+
+
+def compute_coach_stats_from_history(
+    team_year: pd.DataFrame,
+    history: pd.DataFrame,
+    exclude_years: tuple[int, ...] = (2020,),
+) -> pd.DataFrame:
+    """Compute coach tournament experience features from team history."""
+    if team_year.empty:
+        return pd.DataFrame(
+            columns=[
+                "Team",
+                "year",
+                "coach",
+                "coach_tourn_appearances_5y",
+                "coach_tourn_wins_5y",
+                "coach_tourn_losses_5y",
+                "coach_years_with_program",
+            ]
+        )
+
+    hist = history.copy()
+    if hist.empty:
+        out = team_year.copy()
+        out["coach"] = ""
+        out["coach_tourn_appearances_5y"] = 0
+        out["coach_tourn_wins_5y"] = 0
+        out["coach_tourn_losses_5y"] = 0
+        out["coach_years_with_program"] = 0
+        return out
+
+    hist["team"] = hist["team"].astype(str).str.strip()
+    hist["coach"] = hist["coach"].fillna("").astype(str).str.strip()
+    hist["year"] = pd.to_numeric(hist["year"], errors="coerce")
+    hist = hist.dropna(subset=["year"]).copy()
+    hist["year"] = hist["year"].astype(int)
+    wl = hist["finish"].apply(_finish_to_wl)
+    hist["tourn_w"] = wl.apply(lambda x: x[0])
+    hist["tourn_l"] = wl.apply(lambda x: x[1])
+    hist["is_tournament"] = (hist["tourn_w"] + hist["tourn_l"]) > 0
+
+    rows = []
+    min_year = int(hist["year"].min()) if not hist.empty else 2008
+    for _, r in team_year.iterrows():
+        team = str(r["Team"]).strip()
+        year = int(r["year"])
+        current = hist[(hist["team"] == team) & (hist["year"] == year)]
+        if current.empty:
+            rows.append(
+                {
+                    "Team": team,
+                    "year": year,
+                    "coach": "",
+                    "coach_tourn_appearances_5y": 0,
+                    "coach_tourn_wins_5y": 0,
+                    "coach_tourn_losses_5y": 0,
+                    "coach_years_with_program": 0,
+                }
+            )
+            continue
+        coach = str(current.iloc[0]["coach"]).strip()
+        prior = _years_last_5_tournaments(year, exclude_years=exclude_years)
+        coach_prior = hist[
+            (hist["coach"] == coach) & (hist["year"].isin(prior)) & (hist["is_tournament"])
+        ]
+        appearances = int(len(coach_prior))
+        wins = int(coach_prior["tourn_w"].sum())
+        losses = int(coach_prior["tourn_l"].sum())
+
+        years_with = 0
+        for y in range(year, min_year - 1, -1):
+            one = hist[(hist["team"] == team) & (hist["year"] == y)]
+            if one.empty or str(one.iloc[0]["coach"]).strip() != coach:
+                break
+            years_with += 1
+
+        rows.append(
+            {
+                "Team": team,
+                "year": year,
+                "coach": coach,
+                "coach_tourn_appearances_5y": appearances,
+                "coach_tourn_wins_5y": wins,
+                "coach_tourn_losses_5y": losses,
+                "coach_years_with_program": years_with,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _write_failed_teams_report(failed_teams: list[str], data_raw_dir: Path, run_tag: str) -> Path | None:
+    """Write unresolved team names to a report file."""
+    if not failed_teams:
+        return None
+    data_raw_dir = Path(data_raw_dir)
+    run_dir = data_raw_dir / "pipeline_runs"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    path = run_dir / f"team_history_failed_{run_tag}.txt"
+    lines = sorted({t for t in failed_teams if t})
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def build_training_from_all_tables(
+    *,
+    all_tables_path: Path,
+    team_history_cache_path: Path,
+    ext_data_dir: Path,
+    data_raw_dir: Path,
+    run_tag: str,
+    year_start: int,
+    year_end: int,
+    exclude_years: tuple[int, ...],
+    refresh_team_history: bool = False,
+    team_history_delay_sec: float = 0.8,
+    team_history_force_playwright: bool = False,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Build training frame from all-trank base + Torvik team-history enrichment."""
+    base = load_all_trank_base(all_tables_path, year_start, year_end, exclude_years)
+    if base.empty:
+        raise ValueError(f"No rows loaded from base file: {all_tables_path}")
+
+    teams = sorted(base["Team"].dropna().astype(str).str.strip().unique().tolist())
+    history_all, failed = build_team_history_all(
+        teams=teams,
+        cache_path=team_history_cache_path,
+        refresh=refresh_team_history,
+        delay_sec=team_history_delay_sec,
+        force_playwright=team_history_force_playwright,
+        user_agent=USER_AGENT,
+    )
+
+    skip = set(exclude_years)
+    history_all = history_all.copy()
+    if not history_all.empty:
+        history_all["year"] = pd.to_numeric(history_all["year"], errors="coerce")
+        history_all = history_all.dropna(subset=["year"])
+        history_all["year"] = history_all["year"].astype(int)
+        history_all = history_all[
+            (history_all["year"] >= year_start)
+            & (history_all["year"] <= year_end)
+            & (~history_all["year"].isin(skip))
+        ]
+        history_all["result"] = history_all["finish"].apply(_finish_to_result)
+        history_all["round"] = history_all["result"].apply(
+            lambda x: _result_to_round(x) if pd.notna(x) else np.nan
+        )
+
+    history_merge_cols = ["team", "year", "coach", "seed", "finish", "conf", "ov_rec", "conf_rec", "result", "round"]
+    hist_for_merge = history_all[history_merge_cols].rename(
+        columns={"team": "Team", "conf": "Conf_hist"}
+    ) if not history_all.empty else pd.DataFrame(columns=["Team", "year"])
+    merged = base.merge(hist_for_merge, on=["Team", "year"], how="left")
+    if "Conf_hist" in merged.columns:
+        merged["Conf"] = merged["Conf_hist"].fillna(merged.get("Conf", ""))
+        merged = merged.drop(columns=["Conf_hist"], errors="ignore")
+
+    coach_stats = compute_coach_stats_from_history(
+        merged[["Team", "year"]].drop_duplicates(),
+        history_all,
+        exclude_years=exclude_years,
+    )
+    merged = merged.merge(
+        coach_stats,
+        on=["Team", "year"],
+        how="left",
+        suffixes=("", "_coachcalc"),
+    )
+    if "coach_coachcalc" in merged.columns:
+        merged["coach"] = merged["coach"].replace("", np.nan).fillna(merged["coach_coachcalc"])
+        merged = merged.drop(columns=["coach_coachcalc"], errors="ignore")
+
+    # Preserve one row per Team/year before finalization.
+    merged = merged.drop_duplicates(subset=["Team", "year"], keep="first").reset_index(drop=True)
+
+    for c in [
+        "coach_tourn_appearances_5y",
+        "coach_tourn_wins_5y",
+        "coach_tourn_losses_5y",
+        "coach_years_with_program",
+    ]:
+        if c not in merged.columns:
+            merged[c] = 0
+        merged[c] = pd.to_numeric(merged[c], errors="coerce").fillna(0).astype(int)
+
+    report_path = _write_failed_teams_report(failed, data_raw_dir=data_raw_dir, run_tag=run_tag)
+    if report_path is not None:
+        LOGGER.warning(
+            {
+                "event": "team_history_missing_teams",
+                "missing_count": len(failed),
+                "report_path": str(report_path),
+            }
+        )
+
+    return _finalize_training_frame(
+        merged,
+        ext_data_dir,
+        skip_ext_merge=True,
+        skip_coach_merge=True,
+    )
+
+
+def load_team_tables_as_primary(
+    ext_data_dir: Path,
+    year_start: int,
+    year_end: int,
+    exclude_years: tuple[int, ...],
+) -> pd.DataFrame:
+    """Load and combine team-table CSVs as primary data source. Supports headless (positional) or header-row CSVs."""
+    ext_data_dir = Path(ext_data_dir)
+    skip = set(exclude_years)
+    combined = pd.DataFrame()
+    for f in sorted(ext_data_dir.glob("trank_team_table_data*.csv")):
+        try:
+            # Try with header first (manually compiled tables with column names)
+            df = pd.read_csv(f, header=0)
+            if df.empty or len(df.columns) < 4:
+                continue
+            raw_cols = [str(c).strip() for c in df.columns]
+            norm_keys = {_normalize_header(c) for c in raw_cols}
+            use_header = "team" in norm_keys or "year" in norm_keys or "barthag" in norm_keys
+            if use_header and any(nk in TEAM_TABLE_HEADER_TO_CANONICAL for nk in norm_keys):
+                rename = {c: TEAM_TABLE_HEADER_TO_CANONICAL[_normalize_header(c)] for c in raw_cols if _normalize_header(c) in TEAM_TABLE_HEADER_TO_CANONICAL}
+                df = df.rename(columns=rename)
+                df = df.loc[:, ~df.columns.duplicated()]
+                if "year" in df.columns:
+                    df["YEAR"] = pd.to_numeric(df["year"], errors="coerce")
+                elif "Year" in df.columns:
+                    df["YEAR"] = pd.to_numeric(df["Year"], errors="coerce")
+                else:
+                    raise ValueError("no year column")
+                if "Team" not in df.columns and "TEAM" in df.columns:
+                    df["Team"] = df["TEAM"]
+            else:
+                df = pd.read_csv(f, header=None)
+                if df.empty or len(df.columns) < 4:
+                    continue
+                df.columns = TEAM_TABLE_COL_NAMES[: len(df.columns)]
+                df["YEAR"] = pd.to_numeric(df["YEAR"], errors="coerce")
+            df = df.dropna(subset=["YEAR"])
+            df["YEAR"] = df["YEAR"].astype(int)
+            df = df[(df["YEAR"] >= year_start) & (df["YEAR"] <= year_end) & (~df["YEAR"].isin(skip))]
+            if df.empty:
+                continue
+            if "TEAM" not in df.columns and "Team" in df.columns:
+                df["TEAM"] = df["Team"]
+            elif "Team" not in df.columns and "TEAM" in df.columns:
+                df["Team"] = df["TEAM"]
+            combined = pd.concat([combined, df], ignore_index=True)
+        except Exception:
+            try:
+                df = pd.read_csv(f, header=None)
+                if df.empty or len(df.columns) < 4:
+                    continue
+                df.columns = TEAM_TABLE_COL_NAMES[: len(df.columns)]
+                if "YEAR" not in df.columns or "TEAM" not in df.columns:
+                    continue
+                df["YEAR"] = pd.to_numeric(df["YEAR"], errors="coerce")
+                df = df.dropna(subset=["YEAR"])
+                df["YEAR"] = df["YEAR"].astype(int)
+                df = df[(df["YEAR"] >= year_start) & (df["YEAR"] <= year_end) & (~df["YEAR"].isin(skip))]
+                if df.empty:
+                    continue
+                combined = pd.concat([combined, df], ignore_index=True)
+            except Exception:
+                continue
+    if combined.empty:
+        return combined
+    # Rename to canonical pipeline columns (may produce duplicate names e.g. Adj T.; keep first)
+    rename = {k: v for k, v in TEAM_TABLE_TO_CANONICAL.items() if k in combined.columns and k not in ("WINS", "GAMES")}
+    combined = combined.rename(columns=rename)
+    combined = combined.loc[:, ~combined.columns.duplicated()]
+    if "year" not in combined.columns and "YEAR" in combined.columns:
+        combined["year"] = combined["YEAR"]
+    if "Team" not in combined.columns and "TEAM" in combined.columns:
+        combined["Team"] = combined["TEAM"]
+    # W, L from WINS and GAMES (full-season; team table doesn't separate conf vs tourn)
+    if "WINS" in combined.columns and "GAMES" in combined.columns:
+        combined["W"] = pd.to_numeric(combined["WINS"], errors="coerce")
+        combined["L"] = pd.to_numeric(combined["GAMES"], errors="coerce") - combined["W"]
+    else:
+        combined["W"] = np.nan
+        combined["L"] = np.nan
+    combined["G"] = combined["GAMES"] if "GAMES" in combined.columns else (combined["W"] + combined["L"])
+    rank_col = combined.get("Barthag") if "Barthag" in combined.columns else combined.get("BARTHAG")
+    if rank_col is not None:
+        combined["Rk"] = combined.groupby("year")[rank_col.name].rank(ascending=False)
+    # Team tables don't have Conf or WAB; add placeholders (enrichment can fill from R table)
+    if "Conf" not in combined.columns:
+        combined["Conf"] = ""
+    if "WAB" not in combined.columns:
+        combined["WAB"] = np.nan
+    # Drop any leftover TEAM/YEAR duplicates from rename
+    for c in ["TEAM", "YEAR"]:
+        if c in combined.columns and c not in ("Team", "year"):
+            combined = combined.drop(columns=[c], errors="ignore")
+    return combined
+
+
+def fetch_tournament_table_only(
+    year_start: int,
+    year_end: int,
+    exclude_years: tuple[int, ...],
+) -> pd.DataFrame:
+    """Fetch only the tournament (T) table via HTTP from main Bart page (trank.php) for seed/result enrichment."""
+    import time
+    tourn = []
+    skip = set(exclude_years)
+    for year in range(year_start, year_end + 1):
+        if year in skip:
+            continue
+        t = _fetch_table(year, "T")  # HTTP only (no Playwright) — main Bart page
+        if t is not None:
+            step = 25
+            idx_drop = list(range(0, len(t), step))
+            if idx_drop:
+                t = t.drop(index=t.index[idx_drop]).reset_index(drop=True)
+            t["year"] = year
+            tourn.append(t)
+        time.sleep(2.5)
+    return pd.concat(tourn, ignore_index=True) if tourn else pd.DataFrame()
+
+
+def _tourn_team_clean(team_str: str) -> str:
+    """Strip seed and result suffixes from tournament Team string for matching."""
+    s = str(team_str).strip()
+    s = re.sub(r"\s+\d+\s*seed.*$", "", s, flags=re.I).strip()
+    for pat in ["R32", "R64", "Finals", "CHAMPS", "Elite Eight", "Sweet Sixteen", "Final Four"]:
+        s = s.replace(pat, "").strip()
+    return s.strip() or team_str
+
+
+def merge_seed_result_from_tourn(base: pd.DataFrame, tourn: pd.DataFrame) -> pd.DataFrame:
+    """Merge seed and result from tournament table into base (Team, year)."""
+    if tourn.empty or "Team" not in tourn.columns or "year" not in tourn.columns:
+        return base
+    result_map = {
+        "R32": 32, "R64": 64, "Finals": 2, "CHAMPS": 1,
+        "Elite Eight": 8, "Sweet Sixteen": 16, "Final Four": 4,
+    }
+    tourn = tourn.copy()
+    tourn["team_clean"] = tourn["Team"].astype(str).apply(_tourn_team_clean)
+    tourn["seed"] = tourn["Team"].apply(_extract_seed)
+    tourn["result"] = np.nan
+    for pat, val in result_map.items():
+        tourn.loc[tourn["Team"].astype(str).str.contains(pat, regex=False), "result"] = val
+    enrich = tourn[["team_clean", "year", "seed", "result"]].drop_duplicates(subset=["team_clean", "year"], keep="first")
+    enrich = enrich.rename(columns={"team_clean": "Team"})
+    base = base.merge(enrich, on=["Team", "year"], how="left", suffixes=("", "_tourn"))
+    for c in ["seed", "result"]:
+        if f"{c}_tourn" in base.columns:
+            base[c] = base[c].fillna(base[f"{c}_tourn"])
+            base = base.drop(columns=[f"{c}_tourn"], errors="ignore")
+    return base
+
+
+def fetch_regular_table_for_enrichment(
+    year_start: int,
+    year_end: int,
+    exclude_years: tuple[int, ...],
+    use_playwright: bool = False,
+) -> pd.DataFrame:
+    """Fetch regular-season (R) table from main Bart page (trank.php). Tries HTTP first; use_playwright=True for fallback."""
+    import time
+    out = []
+    skip = set(exclude_years)
+
+    def _fetch_loop(page=None):
+        for year in range(year_start, year_end + 1):
+            if year in skip:
+                continue
+            r = _fetch_table(year, "R", page)
+            if r is not None:
+                out.append(r)
+            time.sleep(2.5)
+
+    if use_playwright:
+        try:
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page = browser.new_page()
+                _fetch_loop(page)
+                browser.close()
+        except Exception:
+            _fetch_loop(None)
+    else:
+        _fetch_loop(None)
+
+    return pd.concat(out, ignore_index=True) if out else pd.DataFrame()
+
+
+def _regular_table_has_data(r_df: pd.DataFrame) -> bool:
+    """True if R table has usable stats (e.g. AdjOE or WAB populated)."""
+    if r_df is None or r_df.empty or len(r_df) < 2:
+        return False
+    for col in ("AdjOE", "AdjDE", "WAB"):
+        if col in r_df.columns and r_df[col].notna().any():
+            return True
+    return False
+
+
+# Stats from main Bart page (R table) to fill into team-table primary when missing
+_REGULAR_TABLE_FILL_COLS = [
+    "Rk", "Conf", "G", "Rec", "AdjOE", "AdjDE", "Barthag", "EFG%", "EFGD%",
+    "TOR", "TORD", "ORB", "DRB", "FTR", "FTRD", "2P%", "2P%D", "3P%", "3P%D",
+    "Adj T.", "WAB",
+]
+
+
+def merge_regular_into_base(base: pd.DataFrame, regular_df: pd.DataFrame) -> pd.DataFrame:
+    """Merge all stat columns from regular-season (R) table into base on (Team, year). Fills base where missing."""
+    if regular_df.empty or "Team" not in regular_df.columns or "year" not in regular_df.columns:
+        return base
+    r = regular_df.copy()
+    r["Team"] = r["Team"].astype(str).str.replace(r"\s+\d+\s*seed.*$", "", regex=True).str.strip()
+    # Merge all non-key columns from R (prefer _REGULAR_TABLE_FILL_COLS order, then any others)
+    all_fill = [c for c in _REGULAR_TABLE_FILL_COLS if c in r.columns]
+    extra = [c for c in r.columns if c not in ("Team", "year") and c not in all_fill]
+    merge_cols = all_fill + extra
+    if not merge_cols:
+        return base
+    r = r[["Team", "year"] + merge_cols].drop_duplicates(subset=["Team", "year"], keep="first")
+    base = base.merge(r, on=["Team", "year"], how="left", suffixes=("", "_r"))
+    for c in merge_cols:
+        r_col = f"{c}_r"
+        if r_col not in base.columns:
+            continue
+        r_vals = base[r_col]
+        if c in base.columns:
+            base_vals = base[c]
+            if pd.api.types.is_numeric_dtype(base_vals):
+                base[c] = base_vals.fillna(r_vals)
+            else:
+                mask = base_vals.isna() | (base_vals.astype(str).str.strip() == "")
+                base.loc[mask, c] = r_vals
+        else:
+            base[c] = r_vals
+        base = base.drop(columns=[r_col], errors="ignore")
+    return base
 
 
 # -----------------------------------------------------------------------------
@@ -460,22 +1543,43 @@ def build_features(
     # Deduplicate columns (merge can create duplicates with some table structures)
     final = final.loc[:, ~final.columns.duplicated()]
 
-    final = final.sort_values("AdjOE", ascending=False).reset_index(drop=True)
+    return _finalize_training_frame(final, ext_data_dir, skip_ext_merge=False)
 
-    # Seed from Team
-    final["seed"] = final["Team"].apply(_extract_seed)
 
-    # Result/round from Team string
+def _finalize_training_frame(
+    final: pd.DataFrame,
+    ext_data_dir: Path,
+    skip_ext_merge: bool = False,
+    skip_coach_merge: bool = False,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Shared finalization: sort, seed/result, numerics, round, optional ext/coach merge, Power6, training_data split."""
+    final = final.loc[:, ~final.columns.duplicated()]
+    # Sort by primary stat (needed for downstream); use fallback if AdjOE missing
+    sort_col = None
+    for col in ("AdjOE", "Barthag", "WAB"):
+        if col in final.columns and final[col].notna().any():
+            sort_col = col
+            break
+    if sort_col is not None:
+        final = final.sort_values(sort_col, ascending=False).reset_index(drop=True)
+
+    # Seed from Team (if not already present from team-table + tourn merge)
+    if "seed" not in final.columns or final["seed"].isna().all():
+        final["seed"] = final["Team"].apply(_extract_seed)
+
+    # Result/round from Team string (if not already present)
     result_map = {
         "R32": 32, "R64": 64, "Finals": 2, "CHAMPS": 1,
         "Elite Eight": 8, "Sweet Sixteen": 16, "Final Four": 4,
     }
-    final["result"] = np.nan
-    for pat, val in result_map.items():
-        final.loc[final["Team"].astype(str).str.contains(pat, regex=False), "result"] = val
+    if "result" not in final.columns or final["result"].isna().all():
+        final["result"] = np.nan
+        for pat, val in result_map.items():
+            final.loc[final["Team"].astype(str).str.contains(pat, regex=False), "result"] = val
 
     # Clean numeric columns (WAB, AdjOE, AdjDE, etc.)
-    final["WAB"] = final["WAB"].astype(str).apply(_clean_wab)
+    if "WAB" in final.columns:
+        final["WAB"] = final["WAB"].astype(str).apply(_clean_wab)
 
     numeric_cols = [
         "AdjOE", "AdjDE", "Barthag", "EFG%", "EFGD%", "TOR", "TORD",
@@ -485,7 +1589,8 @@ def build_features(
         if c in final.columns:
             final[c] = pd.to_numeric(final[c], errors="coerce")
 
-    final["WAB"] = pd.to_numeric(final["WAB"], errors="coerce")
+    if "WAB" in final.columns:
+        final["WAB"] = pd.to_numeric(final["WAB"], errors="coerce")
     final["seed"] = pd.to_numeric(final["seed"], errors="coerce")
 
     # Round encoding
@@ -501,59 +1606,77 @@ def build_features(
         r"\s+\d+\s*seed.*$", "", regex=True
     ).str.strip()
 
-    # Optional external data
-    col_names_ext = [
-        "TEAM", "ADJOE", "ADJDE", "BARTHAG", "RECORD", "WINS", "GAMES",
-        "EFG", "EFGD.", "FTRATE", "FTRATED", "TOV%", "TOV%D", "OREB%", "OPOREB%",
-        "RAWT", "2P%", "2P%D", "3P%", "3P%D", "BLK%", "BLKED%", "AST%", "OPAST%",
-        "3PRATE", "3PRATED", "ADJ.T", "AVGHGT", "EFFHGT", "EXP.", "YEAR",
-        "PAKE", "PASE", "TALENT", "blank", "FT%", "OPFT%", "PPPOFF", "PPPDEF", "ELITESOS",
-    ]
-    combined = pd.DataFrame(columns=col_names_ext)
-    ext_files = list(ext_data_dir.glob("trank_team_table_data*.csv"))
-    for f in ext_files:
-        try:
-            df = pd.read_csv(f, header=None)
-            df.columns = col_names_ext[: len(df.columns)]
-            if "BARTHAG" in df.columns and "YEAR" in df.columns:
-                df["Rk"] = df.groupby("YEAR")["BARTHAG"].rank(ascending=False)
-            combined = pd.concat([combined, df], ignore_index=True)
-        except Exception:
-            pass
-
     ext_cols = ["WINS", "BLK%", "BLKED%", "AST%", "OPAST%", "3PRATE", "3PRATED", "EFFHGT", "EXP.", "TALENT", "ELITESOS"]
-    if not combined.empty and "YEAR" in combined.columns and "TEAM" in combined.columns:
-        merge_cols = [c for c in ext_cols if c in combined.columns]
-        final = final.merge(
-            combined[["TEAM", "YEAR"] + merge_cols],
-            left_on=["Team", "year"],
-            right_on=["TEAM", "YEAR"],
-            how="left",
-        )
-        final = final.drop(columns=["TEAM", "YEAR"], errors="ignore")
+    if not skip_ext_merge:
+        # Optional external data (team-table CSVs merged into scraped base)
+        col_names_ext = [
+            "TEAM", "ADJOE", "ADJDE", "BARTHAG", "RECORD", "WINS", "GAMES",
+            "EFG", "EFGD.", "FTRATE", "FTRATED", "TOV%", "TOV%D", "OREB%", "OPOREB%",
+            "RAWT", "2P%", "2P%D", "3P%", "3P%D", "BLK%", "BLKED%", "AST%", "OPAST%",
+            "3PRATE", "3PRATED", "ADJ.T", "AVGHGT", "EFFHGT", "EXP.", "YEAR",
+            "PAKE", "PASE", "TALENT", "blank", "FT%", "OPFT%", "PPPOFF", "PPPDEF", "ELITESOS",
+        ]
+        combined = pd.DataFrame(columns=col_names_ext)
+        ext_files = list(ext_data_dir.glob("trank_team_table_data*.csv"))
+        for f in ext_files:
+            try:
+                df = pd.read_csv(f, header=None)
+                df.columns = col_names_ext[: len(df.columns)]
+                if "BARTHAG" in df.columns and "YEAR" in df.columns:
+                    df["Rk"] = df.groupby("YEAR")["BARTHAG"].rank(ascending=False)
+                combined = pd.concat([combined, df], ignore_index=True)
+            except Exception:
+                pass
+        core_from_ext = ["ADJOE", "ADJDE", "BARTHAG"]
+        if not combined.empty and "YEAR" in combined.columns and "TEAM" in combined.columns:
+            merge_cols = [c for c in ext_cols if c in combined.columns]
+            ext_core = [c for c in core_from_ext if c in combined.columns]
+            right_cols = ["TEAM", "YEAR"] + [c for c in (merge_cols + ext_core) if c in combined.columns]
+            final = final.merge(
+                combined[right_cols],
+                left_on=["Team", "year"],
+                right_on=["TEAM", "YEAR"],
+                how="left",
+                suffixes=("", "_ext"),
+            )
+            for dst, src in [("AdjOE", "ADJOE"), ("AdjDE", "ADJDE"), ("Barthag", "BARTHAG")]:
+                if dst in final.columns and src in final.columns:
+                    final[dst] = final[dst].fillna(pd.to_numeric(final[src], errors="coerce"))
+            for c in merge_cols:
+                if f"{c}_ext" in final.columns:
+                    if c in final.columns:
+                        final[c] = final[c].fillna(final[f"{c}_ext"])
+                    else:
+                        final[c] = final[f"{c}_ext"]
+                    final = final.drop(columns=[f"{c}_ext"], errors="ignore")
+                elif c not in final.columns:
+                    final[c] = 0
+            final = final.drop(columns=["TEAM", "YEAR"] + [c for c in core_from_ext if c in final.columns], errors="ignore")
+            final = final.loc[:, ~final.columns.duplicated()]
     for c in ext_cols:
         if c not in final.columns:
             final[c] = 0
 
     # Optional coach tournament experience (last 5 years: appearances, wins, losses)
     coach_cols = ["coach_tourn_appearances_5y", "coach_tourn_wins_5y", "coach_tourn_losses_5y", "coach_years_with_program"]
-    coach_files = list(ext_data_dir.glob("coach_tournament_experience*.csv"))
-    for f in coach_files:
-        try:
-            coach_df = pd.read_csv(f)
-            merge_coach = [c for c in coach_cols if c in coach_df.columns]
-            if "Team" in coach_df.columns and "Year" in coach_df.columns and merge_coach:
-                right = coach_df[["Team", "Year"] + merge_coach].rename(columns={"Year": "Year_coach"})
-                final = final.merge(
-                    right,
-                    left_on=["Team", "year"],
-                    right_on=["Team", "Year_coach"],
-                    how="left",
-                )
-                final = final.drop(columns=["Year_coach"], errors="ignore")
-                break
-        except Exception:
-            pass
+    if not skip_coach_merge and not any(c in final.columns for c in coach_cols):
+        coach_files = list(ext_data_dir.rglob("coach_tournament_experience*.csv"))
+        for f in coach_files:
+            try:
+                coach_df = pd.read_csv(f)
+                merge_coach = [c for c in coach_cols if c in coach_df.columns]
+                if "Team" in coach_df.columns and "Year" in coach_df.columns and merge_coach:
+                    right = coach_df[["Team", "Year"] + merge_coach].rename(columns={"Year": "Year_coach"})
+                    final = final.merge(
+                        right,
+                        left_on=["Team", "year"],
+                        right_on=["Team", "Year_coach"],
+                        how="left",
+                    )
+                    final = final.drop(columns=["Year_coach"], errors="ignore")
+                    break
+            except Exception:
+                pass
     for c in coach_cols:
         if c not in final.columns:
             final[c] = 0
@@ -568,6 +1691,8 @@ def build_features(
     final["coach_avg_wins_per_appearance"] = np.where(apps > 0, wins / apps, 0.0)
 
     # Power 6 / conference flags
+    if "Conf" not in final.columns:
+        final["Conf"] = ""
     power6 = ["B12", "B10", "SEC", "ACC", "P12", "BE"]
     final["Power6"] = (final["Conf"].isin(power6)).astype(int)
     for conf_abbr in ["B12", "B10", "SEC", "ACC", "P12", "BE", "MWC"]:
@@ -600,7 +1725,7 @@ def build_features(
 
     optional = [
         "WINS", "BLK%", "BLKED%", "AST%", "OPAST%", "3PRATE", "3PRATED",
-        "EFFHGT", "EXP.", "TALENT", "ELITESOS",
+        "EFFHGT", "EXP.", "TALENT", "ELITESOS", "WAB",
         "coach_tourn_appearances_5y", "coach_tourn_wins_5y", "coach_tourn_losses_5y",
         "coach_years_with_program",
         "coach_tourn_games_5y", "coach_tourn_win_pct_5y", "coach_avg_wins_per_appearance",
@@ -649,6 +1774,29 @@ def build_clean_training_dataset(full: pd.DataFrame) -> pd.DataFrame:
         out["Ship"] = (r >= 5).astype(int)
         out["Champ"] = (r == 6).astype(int)
 
+    # Split "Postseason rec" (e.g. "4–1") into postseason_wins and postseason_losses
+    if "Postseason rec" in out.columns:
+        rec = out["Postseason rec"].astype(str).str.strip()
+        parts = rec.str.split(r"[–\-]", n=1, regex=True)
+        wins = parts.str.get(0).replace("", float("nan"))
+        losses = parts.str.get(1).replace("", float("nan"))
+        out["postseason_wins"] = pd.to_numeric(wins, errors="coerce")
+        out["postseason_losses"] = pd.to_numeric(losses, errors="coerce")
+        out = out.drop(columns=["Postseason rec"])
+
+    # Derive conference tournament W/L by subtracting NCAA tournament W/L from postseason totals
+    if "postseason_wins" in out.columns and "round" in out.columns:
+        r = pd.to_numeric(out["round"], errors="coerce")
+        ncaa_wins = r.fillna(0)                                  # round = NCAA wins
+        ncaa_losses = pd.Series(0, index=out.index, dtype=float)
+        in_tourney = r.notna()
+        ncaa_losses[in_tourney & (r < 6)] = 1.0                  # everyone except champ loses once
+        # ncaa_losses stays 0 for champ (round==6) and non-NCAA (round==NaN)
+
+        out["conf_tourn_wins"] = out["postseason_wins"] - ncaa_wins
+        out["conf_tourn_losses"] = out["postseason_losses"] - ncaa_losses
+        out = out.drop(columns=["postseason_wins", "postseason_losses"], errors="ignore")
+
     return out
 
 
@@ -658,7 +1806,7 @@ def build_clean_training_dataset(full: pd.DataFrame) -> pd.DataFrame:
 
 # General model features (R: round ~ ... + optional coach experience when present)
 GEN_FEATURES = [
-    "WAB", "TOR", "Barthag", "AdjOE", "ORB", "EFGD%", "3P%", "AdjDE",
+    "TOR", "Barthag", "AdjOE", "ORB", "EFGD%", "3P%", "AdjDE",
     "seed", "TALENT", "AST%",
     "coach_tourn_appearances_5y", "coach_tourn_wins_5y", "coach_years_with_program",
     "coach_tourn_win_pct_5y", "coach_tourn_games_5y", "coach_avg_wins_per_appearance",
@@ -667,16 +1815,16 @@ GEN_POLY = {"Barthag": 2, "AdjDE": 2, "seed": 3}
 
 # Seed model config: (hist_seeds, holdout_seeds, features)
 SEED_MODELS = [
-    ([1, 2], [1, 2], ["WAB", "Barthag", "AdjOE", "OPAST%", "EXP.", "AdjDE", "seed", "predround"]),
-    ([1, 2, 3], [1, 2, 3], ["WAB", "Barthag", "AdjOE", "AdjDE", "seed", "predround"]),
-    ([2, 3, 4], [2, 3, 4], ["WAB", "Barthag", "AdjOE", "AdjDE", "seed", "predround"]),
-    ([3, 4, 5], [3, 4, 5], ["WAB", "WAB_3", "AST%", "Barthag", "AdjOE", "2P%", "TORD", "AdjDE", "seed", "predround"]),
-    ([4, 5, 6], [4, 5, 6], ["WAB", "Barthag", "AdjOE", "AdjDE", "seed", "predround"]),
-    ([5, 6, 7], [5, 6, 7], ["WAB", "FTRD", "AdjOE", "AdjDE", "seed", "predround"]),
-    ([6, 7, 8], [6, 7, 8], ["WAB", "Barthag", "AdjOE", "TOR", "Adj T.", "2P%", "seed", "predround"]),
-    ([7, 8, 9], [7, 8, 9], ["WAB", "Barthag", "AdjOE", "AdjDE", "TOR", "BLKED%", "AST%", "OPAST%", "seed", "predround"]),
-    ([8, 9, 10], [8, 9, 10], ["WAB", "Barthag", "AdjOE", "AdjDE", "seed", "predround", "TOR", "BLKED%", "AST%", "3PRATE", "ELITESOS"]),
-    ([9, 10, 11], [9, 10, 11], ["WAB", "Barthag", "AdjOE", "AdjDE", "seed", "predround", "2P%D", "WINS", "3PRATED", "TALENT", "ELITESOS"]),
+    ([1, 2], [1, 2], ["Barthag", "AdjOE", "OPAST%", "EXP.", "AdjDE", "seed", "predround"]),
+    ([1, 2, 3], [1, 2, 3], ["Barthag", "AdjOE", "AdjDE", "seed", "predround"]),
+    ([2, 3, 4], [2, 3, 4], ["Barthag", "AdjOE", "AdjDE", "seed", "predround"]),
+    ([3, 4, 5], [3, 4, 5], ["AST%", "Barthag", "AdjOE", "2P%", "TORD", "AdjDE", "seed", "predround"]),
+    ([4, 5, 6], [4, 5, 6], ["Barthag", "AdjOE", "AdjDE", "seed", "predround"]),
+    ([5, 6, 7], [5, 6, 7], ["FTRD", "AdjOE", "AdjDE", "seed", "predround"]),
+    ([6, 7, 8], [6, 7, 8], ["Barthag", "AdjOE", "TOR", "Adj T.", "2P%", "seed", "predround"]),
+    ([7, 8, 9], [7, 8, 9], ["Barthag", "AdjOE", "AdjDE", "TOR", "BLKED%", "AST%", "OPAST%", "seed", "predround"]),
+    ([8, 9, 10], [8, 9, 10], ["Barthag", "AdjOE", "AdjDE", "seed", "predround", "TOR", "BLKED%", "AST%", "3PRATE", "ELITESOS"]),
+    ([9, 10, 11], [9, 10, 11], ["Barthag", "AdjOE", "AdjDE", "seed", "predround", "2P%D", "WINS", "3PRATED", "TALENT", "ELITESOS"]),
     ([10, 11, 12], [10, 11, 12], ["FTR", "AST%", "OPAST%", "ELITESOS", "Barthag", "AdjDE", "AdjOE", "seed", "predround"]),
     ([11, 12, 13], [11, 12, 13], ["BLK%", "AST%", "OPAST%", "EFFHGT", "TALENT", "Barthag", "AdjOE", "AdjDE", "seed", "predround"]),
     ([12, 13, 14], [12, 13, 14], ["W", "FTR", "FTRD", "TOR", "TORD", "DRB", "TALENT", "ELITESOS", "Barthag", "AdjOE", "AdjDE", "seed", "predround"]),
@@ -735,7 +1883,11 @@ def jackknife_loo(
     """Leave-one-out cross-validation; return best model, MSE, pred, actual."""
     model_template = _build_regression_model(ridge_alpha)
     X, y = _get_Xy(df, features, poly=poly)
-    if X.empty or len(X) < 3:
+    if X.empty or len(y) == 0:
+        return model_template, np.inf, np.array([]), np.array([])
+    if len(X) < 3:
+        # Too few for meaningful LOO; still fit on all data so returned model is fitted
+        model_template.fit(X, y)
         return model_template, np.inf, np.array([]), np.array([])
 
     loo = LeaveOneOut()
@@ -862,10 +2014,8 @@ def train_general_model(
 
 
 def _ensure_derived_features(df: pd.DataFrame, features: list[str]) -> pd.DataFrame:
-    """Add derived columns (e.g. WAB_3) if in features but missing."""
+    """Add any required derived feature columns if needed."""
     df = df.copy()
-    if "WAB_3" in features and "WAB_3" not in df.columns and "WAB" in df.columns:
-        df["WAB_3"] = df["WAB"].astype(float) ** 3
     return df
 
 
@@ -1126,6 +2276,29 @@ def _write_optimization_report(
 # -----------------------------------------------------------------------------
 
 
+def _validate_training_data(df: pd.DataFrame) -> None:
+    """Print a short validation summary of the training dataset."""
+    if df.empty:
+        print("Validation: no rows.")
+        return
+    n = len(df)
+    cols = list(df.columns)
+    required = ["Team", "year", "round", "seed"]
+    missing = [c for c in required if c not in cols]
+    outcome_cols = ["round", "Round2", "S16", "E8", "F4", "Ship", "Champ"]
+    has_outcomes = [c for c in outcome_cols if c in cols]
+    years = pd.to_numeric(df["year"], errors="coerce").dropna()
+    year_range = (int(years.min()), int(years.max())) if len(years) else (None, None)
+    print("Validation:")
+    print(f"  Rows: {n}  Columns: {len(cols)}")
+    print(f"  Year range: {year_range[0]}–{year_range[1]}")
+    if missing:
+        print(f"  Missing required columns: {missing}")
+    else:
+        print("  Required columns: OK (Team, year, round, seed)")
+    print(f"  Outcome columns: {has_outcomes}")
+
+
 def run_pipeline(
     bracket_csv: str | None = None,
     n_sims: int | None = None,
@@ -1133,9 +2306,19 @@ def run_pipeline(
     ridge_alpha: float | None = None,
     optimize_ridge_alpha: bool | None = None,
     ridge_alpha_grid: list[float] | None = None,
+    data_only: bool = False,
+    year_start: int | None = None,
+    year_end: int | None = None,
+    refresh_team_history: bool = False,
+    use_trank_only: bool = False,
 ) -> None:
-    """Run full March Madness pipeline."""
+    """Run full March Madness pipeline. If data_only=True, stop after compiling and validating training data (no models)."""
     cfg = load_config()
+    if year_start is not None or year_end is not None:
+        cfg.setdefault("ingestion", {})
+        start = year_start if year_start is not None else cfg.get("ingestion", {}).get("year_range", [2008, 2025])[0]
+        end = year_end if year_end is not None else cfg.get("ingestion", {}).get("year_range", [2008, 2025])[1]
+        cfg["ingestion"]["year_range"] = [start, end]
     if bracket_csv is not None:
         cfg.setdefault("paths", {})["bracket_csv"] = bracket_csv
     if n_sims is not None:
@@ -1152,12 +2335,19 @@ def run_pipeline(
     runtime_cfg = _validate_runtime_config(cfg)
     out_prefix = _get_cfg_path(cfg, "output_training_csv", "data/processed/cbbtrainingdata")
     ext_dir = Path(_get_cfg_path(cfg, "data_external", "data/external"))
+    data_raw_dir = Path(_get_cfg_path(cfg, "data_raw", "data/raw"))
     data_processed_dir = Path(_get_cfg_path(cfg, "data_processed", "data/processed"))
+    all_tables_path = Path(_get_cfg_path(cfg, "all_trank_team_tables", "data/raw/assembled/all_trank_team_tables.csv"))
+    team_history_cache_path = Path(_get_cfg_path(cfg, "team_history_cache", "data/raw/team_history_cache.csv"))
     models_dir = Path(_get_cfg_path(cfg, "models", "models"))
     bracket_path = _get_cfg_path(cfg, "bracket_csv", "")
     year_range = cfg.get("ingestion", {}).get("year_range", [2008, 2025])
     year_start, year_end = year_range[0], year_range[1]
     exclude_years = tuple(cfg.get("ingestion", {}).get("exclude_years", [2020]))
+    team_history_delay_sec = float(cfg.get("ingestion", {}).get("team_history_delay_sec", 0.8))
+    team_history_force_playwright = bool(
+        cfg.get("ingestion", {}).get("team_history_force_playwright", False)
+    )
     run_tag = pd.Timestamp.now().strftime("%Y%m%d")
     start_time = time.time()
     LOGGER.info(
@@ -1172,11 +2362,23 @@ def run_pipeline(
         }
     )
 
-    print("Scraping Bart Torvik...")
-    master, conf, tourn = scrape_bart_torvik(year_start, year_end, exclude_years=exclude_years)
+    if use_trank_only:
+        print("Note: --trank-only is deprecated and ignored. Using all_trank_team_tables + team-history mode.")
 
-    print("Building features...")
-    training_data, training_data_full = build_features(master, conf, tourn, ext_dir)
+    print("Building training data from all_trank_team_tables.csv + team-history.php...")
+    training_data, training_data_full = build_training_from_all_tables(
+        all_tables_path=all_tables_path,
+        team_history_cache_path=team_history_cache_path,
+        ext_data_dir=ext_dir,
+        data_raw_dir=data_raw_dir,
+        run_tag=run_tag,
+        year_start=year_start,
+        year_end=year_end,
+        exclude_years=exclude_years,
+        refresh_team_history=refresh_team_history,
+        team_history_delay_sec=team_history_delay_sec,
+        team_history_force_playwright=team_history_force_playwright,
+    )
 
     out_path = Path(f"{out_prefix}_{run_tag}.csv")
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1204,6 +2406,11 @@ def run_pipeline(
             research_path = Path(f"{research_prefix}_{run_tag}.csv")
             research_full.to_csv(research_path, index=False)
             print(f"Research cut (last {research_seasons} seasons) written to {research_path} ({len(research_full)} rows)")
+
+    if data_only:
+        _validate_training_data(clean_df)
+        print("Data-only run complete. No models trained.")
+        return
 
     print("Training general model...")
     gen_model, gen_feats, gen_meta = train_general_model(

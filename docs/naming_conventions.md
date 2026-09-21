@@ -16,6 +16,16 @@ Consistent, descriptive names for data frames and key variables used across the 
 | `training_data_full` | Full feature set before dropping cols (for output CSV) |
 | `external_team_depth` | Optional team depth metrics from external CSVs |
 
+## Raw Data Prep (pre-pipeline assembly)
+
+| Variable / File | Description |
+|----------------|-------------|
+| `team_history_cache` | Scraped team history: team, year, coach, seed, finish, conf per team-year |
+| `team_history_cache_enriched` | Cache + 4 coach experience columns (appearances_5y, wins_5y, losses_5y, years_with_program) |
+| `trank_postseason_final` | Concatenated postseason records (all years, headerless) |
+| `all_trank_team_tables` | Master assembled table: base stats + postseason rec + enriched history (49 cols) |
+| `all_trank_team_tables_tournament` | Filtered to tournament teams only (finish IS NOT NULL) |
+
 ## Holdout / validation
 
 | Variable | Description |

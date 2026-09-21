@@ -1,0 +1,8 @@
+finish,team_count,elite_sos_mean,elite_sos_median,conf_avg_barthag_mean,conf_avg_barthag_median,finish_depth,finish_label
+R64,544,19.991065,17.771942,0.560716,0.546143,1,R64
+R32,272,26.289203,28.218041,0.704642,0.772441,2,R32
+Sweet Sixteen,136,28.997733,30.137819,0.752605,0.785653,3,Sweet 16
+Elite Eight,68,30.372436,30.964082,0.78297,0.80015,4,Elite 8
+Final Four,34,29.569127,30.902384,0.766119,0.79211,5,Final 4
+Finals,17,28.415214,29.681859,0.737854,0.77624,6,Finals
+CHAMPS,17,31.951825,31.735259,0.812124,0.8107,7,Champ

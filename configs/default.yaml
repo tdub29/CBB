@@ -9,11 +9,18 @@ ingestion:
   team_tables_year_range: [2008, 2025]
   team_tables_type: "R"  # R=regular season, P=postseason, T=tournament
   user_agent: "Mozilla/5.0"
+  team_history_delay_sec: 0.8
+  team_history_force_playwright: false
 paths:
   data_raw: data/raw
   data_interim: data/interim
   data_processed: data/processed
   data_external: data/external
+  all_trank_team_tables: "data/raw/assembled/all_trank_team_tables.csv"
+  all_trank_team_tables_tournament: "data/raw/assembled/all_trank_team_tables_tournament.csv"
+  team_history_cache: "data/raw/team_history_cache.csv"
+  team_history_cache_enriched: "data/raw/team_history_cache_enriched.csv"
+  trank_postseason_final: "data/raw/trank_postseason_final.csv"
   models: models
   reports: reports
   figures: reports/figures

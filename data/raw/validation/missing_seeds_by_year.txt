@@ -1,0 +1,26 @@
+Missing seeds by year (finish != R68; expected 4 of each seed 1-16)
+======================================================================
+
+No year is missing an entire seed (1-16). The gaps are exactly one team short
+for a given seed (or two in 2023).
+
+2008: 63 rows  → seed 9 has 3 (missing 1)
+2009: 63 rows  → seed 9 has 3 (missing 1)
+2010: 63 rows  → seed 5 has 3 (missing 1)
+2011: 63 rows  → seed 7 has 3 (missing 1)
+2012: 64 rows  → complete
+2013: 63 rows  → seed 16 has 3 (missing 1)
+2014: 64 rows  → complete
+2015: 64 rows  → complete
+2016: 63 rows  → seed 3 has 3 (missing 1)
+2017: 64 rows  → complete
+2018: 63 rows  → seed 7 has 3 (missing 1)
+2019: 64 rows  → complete
+2021: 64 rows  → complete
+2022: 64 rows  → complete
+2023: 62 rows  → seed 7 has 3, seed 16 has 3 (missing 2 total)
+2024: 63 rows  → seed 9 has 3 (missing 1)
+2025: 63 rows  → seed 4 has 3 (missing 1)
+
+Summary: Seeds never fully absent; one (or two) teams missing from a seed
+in years with 63 or 62 rows (likely R68/First Four or data join gaps).

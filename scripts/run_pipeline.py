@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import subprocess
 import sys
 from pathlib import Path
 
@@ -61,35 +60,76 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--skip-fetch",
         action="store_true",
-        help="Skip optional fetch_team_tables.py pre-step.",
+        help="Deprecated no-op (kept for backward compatibility).",
+    )
+    parser.add_argument(
+        "--refresh-team-history",
+        action="store_true",
+        help="Force refresh of team-history cache before building training data.",
+    )
+    parser.add_argument(
+        "--prep-raw",
+        action="store_true",
+        help="Run raw-data prep pipeline (enrich cache → recompile tables) before modeling.",
+    )
+    parser.add_argument(
+        "--data-only",
+        action="store_true",
+        help="Only compile and validate training data; do not run any models.",
+    )
+    parser.add_argument(
+        "--year",
+        type=int,
+        default=None,
+        metavar="YEAR",
+        help="Single year to compile (e.g. 2025); overrides config year range.",
+    )
+    parser.add_argument(
+        "--trank-only",
+        action="store_true",
+        help=argparse.SUPPRESS,
     )
     return parser.parse_args()
 
 
-def run_optional_fetch() -> None:
-    """Fetch optional external team-table files before main pipeline."""
-    fetch_script = project_root / "scripts" / "fetch_team_tables.py"
-    if not fetch_script.exists():
-        return
-    try:
-        result = subprocess.run(
-            [sys.executable, str(fetch_script)],
-            cwd=str(project_root),
-            capture_output=True,
-            text=True,
-            timeout=600,
-            check=False,
-        )
-        if result.returncode == 0 and result.stdout:
-            print(result.stdout)
-    except (subprocess.TimeoutExpired, OSError) as exc:
-        print(f"Note: Skipping team-tables fetch ({exc}). Pipeline continues with existing data.")
+def run_raw_data_prep() -> None:
+    """Run the raw-data preparation pipeline (enrich + recompile).
+
+    Equivalent to running these scripts in order:
+      1. python scripts/enrich_team_history_cache.py
+      2. python scripts/recompile_all_trank_team_tables.py
+    """
+    import subprocess
+    scripts_dir = project_root / "scripts"
+
+    print("=" * 60)
+    print("RAW DATA PREP: Step 1 - Enrich team-history cache")
+    print("=" * 60)
+    ret = subprocess.run(
+        [sys.executable, str(scripts_dir / "enrich_team_history_cache.py")],
+        cwd=str(project_root),
+    )
+    if ret.returncode != 0:
+        raise SystemExit(f"enrich_team_history_cache.py failed (exit {ret.returncode})")
+
+    print()
+    print("=" * 60)
+    print("RAW DATA PREP: Step 2 - Recompile all_trank_team_tables")
+    print("=" * 60)
+    ret = subprocess.run(
+        [sys.executable, str(scripts_dir / "recompile_all_trank_team_tables.py")],
+        cwd=str(project_root),
+    )
+    if ret.returncode != 0:
+        raise SystemExit(f"recompile_all_trank_team_tables.py failed (exit {ret.returncode})")
+    print()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    if not args.skip_fetch:
-        run_optional_fetch()
+
+    if args.prep_raw:
+        run_raw_data_prep()
 
     alpha_grid = None
     if args.alpha_grid:
@@ -98,6 +138,10 @@ if __name__ == "__main__":
         except ValueError as exc:
             raise SystemExit(f"Invalid --alpha-grid value: {args.alpha_grid!r}") from exc
 
+    year_start = year_end = None
+    if args.year is not None:
+        year_start = year_end = args.year
+
     run_pipeline(
         bracket_csv=args.bracket,
         n_sims=args.n_sims,
@@ -105,4 +149,9 @@ if __name__ == "__main__":
         ridge_alpha=args.ridge_alpha,
         optimize_ridge_alpha=False if args.no_alpha_tune else None,
         ridge_alpha_grid=alpha_grid,
+        data_only=args.data_only,
+        year_start=year_start,
+        year_end=year_end,
+        refresh_team_history=args.refresh_team_history,
+        use_trank_only=args.trank_only,
     )

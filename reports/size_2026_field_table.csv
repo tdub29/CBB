@@ -1,0 +1,69 @@
+projected_seed,team,conf,barthag,is_former_champion,championship_count,last_title_year,last_title_seed,title_history,EFFHGT,seed_group,seed_action_tier,full_group_rho,recent_group_rho,full_seed_avg_effhgt,recent_seed_avg_effhgt,full_primary_delta,recent_primary_delta,full_primary_position,recent_primary_position,carryover_direction,carryover_confidence_note,logo_fallback
+1,Florida,SEC,0.9733,True,1,2025.0,1,2025 (1),83.084,1-2,Secondary-use pocket,0.107767,-0.054278,81.03425,81.329156,2.04975,1.754844,above baseline,above baseline,positive carryover,some support from recent trends,False
+1,Michigan,B10,0.9832,False,0,,,,82.653,1-2,Secondary-use pocket,0.107767,-0.054278,81.03425,81.329156,1.61875,1.323844,above baseline,above baseline,positive carryover,some support from recent trends,False
+1,Arizona,B12,0.9772,False,0,,,,81.866,1-2,Secondary-use pocket,0.107767,-0.054278,81.03425,81.329156,0.83175,0.536844,above baseline,above baseline,positive carryover,some support from recent trends,False
+1,Duke,ACC,0.981,True,2,2015.0,1,2010 (1); 2015 (1),81.4605,1-2,Secondary-use pocket,0.107767,-0.054278,81.03425,81.329156,0.42625,0.131344,above baseline,near baseline,positive carryover,mixed evidence,False
+2,Illinois,B10,0.9697,False,0,,,,83.2075,1-2,Secondary-use pocket,0.107767,-0.054278,80.843875,81.056188,2.363625,2.151313,above baseline,above baseline,positive carryover,some support from recent trends,False
+2,Iowa St.,B12,0.9545,False,0,,,,81.3795,1-2,Secondary-use pocket,0.107767,-0.054278,80.843875,81.056188,0.535625,0.323313,above baseline,near baseline,positive carryover,mixed evidence,False
+2,Connecticut,BE,0.9612,True,4,2024.0,1,2011 (3); 2014 (7); 2023 (4); 2024 (1),81.3615,1-2,Secondary-use pocket,0.107767,-0.054278,80.843875,81.056188,0.517625,0.305313,above baseline,near baseline,positive carryover,mixed evidence,False
+2,Houston,B12,0.9712,False,0,,,,80.7685,1-2,Secondary-use pocket,0.107767,-0.054278,80.843875,81.056188,-0.075375,-0.287688,near baseline,near baseline,mixed,mixed evidence,False
+3,Purdue,B10,0.9588,False,0,,,,82.185,3-4,Low-use pocket,-0.032272,-0.071951,80.802574,81.325313,1.382426,0.859687,above baseline,above baseline,positive carryover,some support from recent trends,False
+3,Virginia,ACC,0.9371,True,1,2019.0,1,2019 (1),82.104,3-4,Low-use pocket,-0.032272,-0.071951,80.802574,81.325313,1.301426,0.778688,above baseline,above baseline,positive carryover,some support from recent trends,False
+3,Michigan St.,B10,0.9474,False,0,,,,81.673,3-4,Low-use pocket,-0.032272,-0.071951,80.802574,81.325313,0.870426,0.347687,above baseline,above baseline,positive carryover,some support from recent trends,False
+3,Gonzaga,WCC,0.9496,False,0,,,,80.589,3-4,Low-use pocket,-0.032272,-0.071951,80.802574,81.325313,-0.213574,-0.736313,near baseline,below baseline,cautious negative,some support from recent trends,False
+4,Alabama,SEC,0.9389,False,0,,,,81.244,3-4,Low-use pocket,-0.032272,-0.071951,80.822978,80.973438,0.421022,0.270562,above baseline,near baseline,cautious positive,mixed evidence,False
+4,Kansas,B12,0.9407,True,2,2022.0,1,2008 (1); 2022 (1),80.783,3-4,Low-use pocket,-0.032272,-0.071951,80.822978,80.973438,-0.039978,-0.190438,near baseline,near baseline,mixed,mixed evidence,False
+4,Nebraska,B10,0.9355,False,0,,,,80.681,3-4,Low-use pocket,-0.032272,-0.071951,80.822978,80.973438,-0.141978,-0.292438,near baseline,near baseline,mixed,mixed evidence,False
+4,Vanderbilt,SEC,0.9422,False,0,,,,79.927,3-4,Low-use pocket,-0.032272,-0.071951,80.822978,80.973438,-0.895978,-1.046438,below baseline,below baseline,cautious negative,mixed evidence,False
+5,Wisconsin,B10,0.9093,False,0,,,,82.5905,5-6,Low-use pocket,-0.067307,0.01529,80.584294,81.191156,2.006206,1.399344,above baseline,above baseline,positive carryover,some support from recent trends,False
+5,Tennessee,SEC,0.9474,False,0,,,,82.2555,5-6,Low-use pocket,-0.067307,0.01529,80.584294,81.191156,1.671206,1.064344,above baseline,above baseline,positive carryover,some support from recent trends,False
+5,Arkansas,SEC,0.9326,False,0,,,,81.416,5-6,Low-use pocket,-0.067307,0.01529,80.584294,81.191156,0.831706,0.224844,above baseline,near baseline,cautious positive,mixed evidence,False
+5,Texas Tech,B12,0.9456,False,0,,,,79.346,5-6,Low-use pocket,-0.067307,0.01529,80.584294,81.191156,-1.238294,-1.845156,below baseline,below baseline,cautious negative,mixed evidence,False
+6,North Carolina,ACC,0.9111,True,2,2017.0,1,2009 (1); 2017 (1),82.719,5-6,Low-use pocket,-0.067307,0.01529,80.495397,80.4625,2.223603,2.2565,above baseline,above baseline,positive carryover,some support from recent trends,False
+6,Kentucky,SEC,0.8891,True,1,2012.0,1,2012 (1),81.845,5-6,Low-use pocket,-0.067307,0.01529,80.495397,80.4625,1.349603,1.3825,above baseline,above baseline,positive carryover,some support from recent trends,False
+6,Louisville,ACC,0.9419,True,1,2013.0,1,2013 (1),81.7075,5-6,Low-use pocket,-0.067307,0.01529,80.495397,80.4625,1.212103,1.245,above baseline,above baseline,positive carryover,some support from recent trends,False
+6,St. John's,BE,0.9262,False,0,,,,80.4635,5-6,Low-use pocket,-0.067307,0.01529,80.495397,80.4625,-0.031897,0.001,near baseline,near baseline,mixed,mixed evidence,False
+7,Georgia,SEC,0.8913,False,0,,,,81.5165,7-8,Low-use pocket,-0.076575,0.047543,80.495272,80.94375,1.021228,0.57275,above baseline,above baseline,positive carryover,some support from recent trends,False
+7,Miami FL,ACC,0.8846,False,0,,,,81.4845,7-8,Low-use pocket,-0.076575,0.047543,80.495272,80.94375,0.989228,0.54075,above baseline,above baseline,positive carryover,some support from recent trends,False
+7,UCLA,B10,0.8933,False,0,,,,81.349,7-8,Low-use pocket,-0.076575,0.047543,80.495272,80.94375,0.853728,0.40525,above baseline,above baseline,positive carryover,some support from recent trends,False
+7,BYU,B12,0.8906,False,0,,,,80.922,7-8,Low-use pocket,-0.076575,0.047543,80.495272,80.94375,0.426728,-0.02175,above baseline,near baseline,cautious positive,mixed evidence,False
+8,Saint Mary's,WCC,0.9066,False,0,,,,82.3675,7-8,Low-use pocket,-0.076575,0.047543,80.438544,80.700125,1.928956,1.667375,above baseline,above baseline,positive carryover,some support from recent trends,False
+8,Ohio St.,B10,0.8975,False,0,,,,81.614,7-8,Low-use pocket,-0.076575,0.047543,80.438544,80.700125,1.175456,0.913875,above baseline,above baseline,positive carryover,some support from recent trends,False
+8,Clemson,ACC,0.8972,False,0,,,,81.572,7-8,Low-use pocket,-0.076575,0.047543,80.438544,80.700125,1.133456,0.871875,above baseline,above baseline,positive carryover,some support from recent trends,False
+8,TCU,B12,0.823,False,0,,,,79.189,7-8,Low-use pocket,-0.076575,0.047543,80.438544,80.700125,-1.249544,-1.511125,below baseline,below baseline,cautious negative,mixed evidence,False
+9,Utah St.,MWC,0.8874,False,0,,,,80.933,9-10,Low-use pocket,0.077143,0.052524,80.555699,80.817563,0.377301,0.115437,above baseline,near baseline,cautious positive,mixed evidence,False
+9,Iowa,B10,0.9181,False,0,,,,80.794,9-10,Low-use pocket,0.077143,0.052524,80.555699,80.817563,0.238301,-0.023563,near baseline,near baseline,mixed,mixed evidence,False
+9,Villanova,BE,0.887,True,2,2018.0,1,2016 (2); 2018 (1),80.7385,9-10,Low-use pocket,0.077143,0.052524,80.555699,80.817563,0.182801,-0.079063,near baseline,near baseline,mixed,mixed evidence,False
+9,Texas A&M,SEC,0.8859,False,0,,,,80.346,9-10,Low-use pocket,0.077143,0.052524,80.555699,80.817563,-0.209699,-0.471563,near baseline,below baseline,cautious negative,some support from recent trends,False
+10,Oklahoma,SEC,0.8352,False,0,,,,81.4505,9-10,Low-use pocket,0.077143,0.052524,80.361581,80.453219,1.088919,0.997281,above baseline,above baseline,positive carryover,some support from recent trends,False
+10,Saint Louis,A10,0.8942,False,0,,,,80.1295,9-10,Low-use pocket,0.077143,0.052524,80.361581,80.453219,-0.232081,-0.323719,near baseline,near baseline,mixed,mixed evidence,False
+10,Miami OH,MAC,0.7345,False,0,,,,80.11,9-10,Low-use pocket,0.077143,0.052524,80.361581,80.453219,-0.251581,-0.343219,near baseline,near baseline,mixed,mixed evidence,False
+10,N.C. State,ACC,0.888,False,0,,,,79.348,9-10,Low-use pocket,0.077143,0.052524,80.361581,80.453219,-1.013581,-1.105219,below baseline,below baseline,cautious negative,mixed evidence,False
+11,Missouri,SEC,0.8465,False,0,,,,82.7565,11-13,Low-use pocket,0.017024,0.034256,80.439787,80.575031,2.316713,2.181469,above baseline,above baseline,positive carryover,some support from recent trends,False
+11,UCF,B12,0.8269,False,0,,,,82.063,11-13,Low-use pocket,0.017024,0.034256,80.439787,80.575031,1.623213,1.487969,above baseline,above baseline,positive carryover,some support from recent trends,False
+11,SMU,ACC,0.8649,False,0,,,,81.978,11-13,Low-use pocket,0.017024,0.034256,80.439787,80.575031,1.538213,1.402969,above baseline,above baseline,positive carryover,some support from recent trends,False
+11,Santa Clara,WCC,0.8895,False,0,,,,81.845,11-13,Low-use pocket,0.017024,0.034256,80.439787,80.575031,1.405213,1.269969,above baseline,above baseline,positive carryover,some support from recent trends,False
+11,VCU,A10,0.8117,False,0,,,,80.9195,11-13,Low-use pocket,0.017024,0.034256,80.439787,80.575031,0.479713,0.344469,above baseline,above baseline,positive carryover,some support from recent trends,False
+11,South Florida,Amer,0.812,False,0,,,,79.713,11-13,Low-use pocket,0.017024,0.034256,80.439787,80.575031,-0.726787,-0.862031,below baseline,below baseline,cautious negative,mixed evidence,False
+12,McNeese St.,Slnd,0.7474,False,0,,,,79.776,11-13,Low-use pocket,0.017024,0.034256,79.932574,79.978469,-0.156574,-0.202469,near baseline,near baseline,mixed,mixed evidence,False
+12,Yale,Ivy,0.7109,False,0,,,,79.705,11-13,Low-use pocket,0.017024,0.034256,79.932574,79.978469,-0.227574,-0.273469,near baseline,below baseline,cautious negative,some support from recent trends,False
+12,High Point,BSth,0.7105,False,0,,,,79.616,11-13,Low-use pocket,0.017024,0.034256,79.932574,79.978469,-0.316574,-0.362469,below baseline,below baseline,cautious negative,mixed evidence,False
+12,Akron,MAC,0.7762,False,0,,,,77.912,11-13,Low-use pocket,0.017024,0.034256,79.932574,79.978469,-2.020574,-2.066469,below baseline,below baseline,cautious negative,mixed evidence,False
+13,Hofstra,CAA,0.6794,False,0,,,,81.1335,11-13,Low-use pocket,0.017024,0.034256,79.894875,79.798969,1.238625,1.334531,above baseline,above baseline,positive carryover,some support from recent trends,False
+13,Utah Valley,WAC,0.7347,False,0,,,,80.187,11-13,Low-use pocket,0.017024,0.034256,79.894875,79.798969,0.292125,0.388031,near baseline,above baseline,cautious positive,some support from recent trends,False
+13,Northern Iowa,MVC,0.7409,False,0,,,,79.735,11-13,Low-use pocket,0.017024,0.034256,79.894875,79.798969,-0.159875,-0.063969,near baseline,near baseline,mixed,mixed evidence,False
+13,Sam Houston St.,CUSA,0.667,False,0,,,,79.653,11-13,Low-use pocket,0.017024,0.034256,79.894875,79.798969,-0.241875,-0.145969,near baseline,near baseline,mixed,mixed evidence,True
+14,UC Irvine,BW,0.6474,False,0,,,,81.2615,14-16,Low-use pocket,-0.030306,-0.305057,79.635463,79.7705,1.626037,1.491,above baseline,above baseline,positive carryover,some support from recent trends,False
+14,Troy,SB,0.5391,False,0,,,,80.431,14-16,Low-use pocket,-0.030306,-0.305057,79.635463,79.7705,0.795537,0.6605,above baseline,above baseline,positive carryover,some support from recent trends,False
+14,North Dakota St.,Sum,0.6137,False,0,,,,79.5905,14-16,Low-use pocket,-0.030306,-0.305057,79.635463,79.7705,-0.044963,-0.18,near baseline,near baseline,mixed,mixed evidence,False
+14,Wright St.,Horz,0.5979,False,0,,,,79.5255,14-16,Low-use pocket,-0.030306,-0.305057,79.635463,79.7705,-0.109963,-0.245,near baseline,near baseline,mixed,mixed evidence,False
+15,Furman,SC,0.4279,False,0,,,,81.414,14-16,Low-use pocket,-0.030306,-0.305057,79.540993,79.93375,1.873007,1.48025,above baseline,above baseline,positive carryover,some support from recent trends,False
+15,Idaho,BSky,0.5185,False,0,,,,80.587,14-16,Low-use pocket,-0.030306,-0.305057,79.540993,79.93375,1.046007,0.65325,above baseline,above baseline,positive carryover,some support from recent trends,False
+15,Siena,MAAC,0.4206,False,0,,,,79.8315,14-16,Low-use pocket,-0.030306,-0.305057,79.540993,79.93375,0.290507,-0.10225,near baseline,near baseline,mixed,mixed evidence,False
+15,Tennessee St.,OVC,0.3353,False,0,,,,79.747,14-16,Low-use pocket,-0.030306,-0.305057,79.540993,79.93375,0.206007,-0.18675,near baseline,near baseline,mixed,mixed evidence,False
+16,Queens,ASun,0.4071,False,0,,,,80.7875,14-16,Low-use pocket,-0.030306,-0.305057,79.45214,79.721906,1.33536,1.065594,above baseline,above baseline,positive carryover,some support from recent trends,True
+16,Lehigh,Pat,0.2202,False,0,,,,79.8325,14-16,Low-use pocket,-0.030306,-0.305057,79.45214,79.721906,0.38036,0.110594,above baseline,near baseline,cautious positive,mixed evidence,False
+16,UMBC,AE,0.3946,False,0,,,,79.5255,14-16,Low-use pocket,-0.030306,-0.305057,79.45214,79.721906,0.07336,-0.196406,near baseline,near baseline,mixed,mixed evidence,False
+16,Southern,SWAC,0.3346,False,0,,,,79.3475,14-16,Low-use pocket,-0.030306,-0.305057,79.45214,79.721906,-0.10464,-0.374406,near baseline,below baseline,cautious negative,some support from recent trends,False
+16,LIU,NEC,0.3512,False,0,,,,78.684,14-16,Low-use pocket,-0.030306,-0.305057,79.45214,79.721906,-0.76814,-1.037906,below baseline,below baseline,cautious negative,mixed evidence,False
+16,Howard,MEAC,0.3969,False,0,,,,78.5985,14-16,Low-use pocket,-0.030306,-0.305057,79.45214,79.721906,-0.85364,-1.123406,below baseline,below baseline,cautious negative,mixed evidence,False

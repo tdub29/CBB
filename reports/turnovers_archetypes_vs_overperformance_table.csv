@@ -1,0 +1,5 @@
+archetype,team_count,mean_overperformance,median_overperformance,avg_tor_edge,avg_tord_edge,avg_blk_pct_edge,avg_adjt_edge
+clean offense + live defense,215,0.050684,-0.029412,1.347086,1.878447,0.888488,0.412982
+clean offense only,341,0.098585,-0.117647,1.739706,-2.026565,-1.147628,0.105969
+live defense only,306,-4.8e-05,-0.176471,-1.931613,2.109842,1.187558,-0.192657
+below both baselines,226,-0.196903,-0.176471,-1.291105,-1.585925,-0.721577,-0.291918

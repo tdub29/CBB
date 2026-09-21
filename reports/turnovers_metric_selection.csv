@@ -1,0 +1,5 @@
+category,metric,label,seed_adjusted_spearman,offense_primary_metric,defense_primary_metric,selection_note
+offense,TOR,Offensive turnover rate,0.065265,TOR,TORD,TOR remains the default lead offense metric unless another metric leads by >= 0.05; observed lead margin = 0.007.
+offense,BLKED%,Offensive shots blocked rate,0.072649,TOR,TORD,TOR remains the default lead offense metric unless another metric leads by >= 0.05; observed lead margin = 0.007.
+defense,TORD,Defensive turnover rate forced,0.047486,TOR,TORD,TORD remains the default lead defense metric unless another metric leads by >= 0.05; observed lead margin = 0.046.
+defense,BLK%,Block rate,0.001721,TOR,TORD,TORD remains the default lead defense metric unless another metric leads by >= 0.05; observed lead margin = 0.046.

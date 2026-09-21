@@ -1,0 +1,5 @@
+archetype,team_count,mean_overperformance,median_overperformance,adv_rate,avg_exp,avg_exp_rank,avg_coach_primary,avg_coach_win_pct_5y
+above both seed baselines,202,0.031669,-0.117647,0.381188,2.119194,83.970297,5.905941,0.434835
+above player experience only,367,0.002244,-0.117647,0.389646,2.135868,74.762943,1.019074,0.108116
+above coach experience only,206,0.07253,-0.117647,0.432039,1.488463,251.291262,7.262136,0.524555
+below both seed baselines,313,-0.070804,-0.117647,0.351438,1.538252,238.501597,1.041534,0.107774

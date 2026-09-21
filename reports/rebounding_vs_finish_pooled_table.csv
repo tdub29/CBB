@@ -1,0 +1,5 @@
+metric,bucket,team_count,mean_overperformance,median_overperformance,seed_adjusted_rho
+ORB,Better than seed baseline,562,0.050607,-0.117647,0.048489
+ORB,Worse than seed baseline,526,-0.054071,-0.176471,0.048489
+DRB,Better than seed baseline,532,0.021644,-0.117647,0.005271
+DRB,Worse than seed baseline,556,-0.02071,-0.176471,0.005271

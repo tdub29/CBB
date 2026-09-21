@@ -4,7 +4,7 @@ Predict NCAA Men's March Madness tournament advancement (round reached) using Ba
 
 ## Project goals
 
-- **Ingest** regular-season, postseason, and tournament data from [Bart Torvik](https://barttorvik.com) (2008–2024).
+- **Ingest** a precompiled regular-season base from `data/raw/all_trank_team_tables.csv` and enrich with [Bart Torvik](https://barttorvik.com) `team-history.php` (2008–2025, excluding 2020).
 - **Engineer features** including conference tournament W/L, round encoding (0–6), Power 6 conference flags, and seed-stratified indicators.
 - **Model** tournament round advancement with a general linear model plus 14 seed-specific models, selected via jackknife leave-one-out cross-validation.
 - **Output** training CSVs, model artifacts, and optional 2023 holdout validation.
@@ -12,7 +12,7 @@ Predict NCAA Men's March Madness tournament advancement (round reached) using Ba
 ## Modeling approach
 
 - **Target**: `round` (0 = Round of 64, 6 = Champion).
-- **Features**: AdjOE, AdjDE, Barthag, WAB, seed, conference flags (B12, B10, SEC, etc.), optional team depth (EFFHGT, TALENT, AST%, etc.) when external data is available.
+- **Features**: AdjOE, AdjDE, Barthag, seed, conference flags (B12, B10, SEC, etc.), optional team depth (EFFHGT, TALENT, AST%, etc.) when external data is available.
 - **Models**: One general LM + 14 seed-stratified LMs for finer prediction by seed tier.
 - **Validation**: Jackknife LOO cross-validation; Metrics package for bias and RMSE.
 
@@ -67,13 +67,13 @@ Or `python -m src.pipelines.madness`
 
 | Source | Description |
 |--------|-------------|
-| **Bart Torvik** | [barttorvik.com](https://barttorvik.com) – regular-season (R), postseason (P), and tournament (T) tables. Primary source; scraped automatically. |
+| **Bart Torvik** | [barttorvik.com](https://barttorvik.com) – precompiled `all_trank_team_tables.csv` base plus `team-history.php` enrichment (coach, seed, finish, conference, coach 5y stats). |
 | **Optional external files** | Placed in `data/external/` when available: `trank_team_table_data*.csv`, `cleanteam.xlsx`, `teamdata23.csv`. See [docs/data_sources.md](docs/data_sources.md). |
 
 ## Known limitations
 
 - **Optional external data**: Richer features (EFFHGT, TALENT, etc.) require external CSVs. Pipeline runs without them; optional columns are filled with 0.
-- **2023 holdout**: Needs `cleanteam.xlsx` and `teamdata23.csv` in `data/external/`, or falls back to 2023 teams from the scrape.
+- **2023 holdout**: Needs `cleanteam.xlsx` and `teamdata23.csv` in `data/external/`, or falls back to 2023 teams from training data.
 - **`bart_injuryimpact`**: Exploratory only; requires optional `toRvik` package. Does not affect main pipeline.
 
 ## Project structure

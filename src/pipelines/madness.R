@@ -14,9 +14,9 @@ library(httr)
 library(dplyr)
 
 regular_season_raw <- data.frame()
+years <- setdiff(2008:2025, 2020)  # Exclude 2020 (COVID, no tournament)
 
 # Scrape regular season data from Bart Torvik
-years <- setdiff(2008:2025, 2020)  # Exclude 2020 (COVID, no tournament)
 for (year in years){
   url2<- as.character(year)
   url1 <- "https://barttorvik.com/trank.php?year="

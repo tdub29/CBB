@@ -1,0 +1,4 @@
+metric,label,seed_adjusted_spearman,offense_primary_metric,selection_note
+3P%,Three-point percentage,-0.004223,3P%,3P% remains the default lead offense metric unless another metric leads by >= 0.05; observed lead margin = 0.006.
+3PRATE,Three-point attempt rate,0.001501,3P%,3P% remains the default lead offense metric unless another metric leads by >= 0.05; observed lead margin = 0.006.
+3P%D,Opponent three-point percentage,0.022795,3P%,3P%D is the defensive companion metric for this day.

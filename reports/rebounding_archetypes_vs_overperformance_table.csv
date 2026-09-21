@@ -1,0 +1,5 @@
+archetype,team_count,mean_overperformance,median_overperformance,avg_orb_edge,avg_drb_edge
+strong on both ends,215,0.087415,-0.029412,2.725356,2.333379
+defensive-glass only,317,-0.022963,-0.117647,-3.779449,2.7412
+offensive-glass only,347,0.027801,-0.117647,3.474029,-2.607315
+below both baselines,209,-0.101252,-0.176471,-2.839016,-2.22918

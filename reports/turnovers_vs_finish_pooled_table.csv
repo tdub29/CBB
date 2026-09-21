@@ -1,0 +1,2 @@
+metric,raw_spearman,seed_adjusted_spearman,tord_seed_adjusted_spearman,blk_seed_adjusted_spearman,blked_seed_adjusted_spearman,champ_mean_tor,r64_mean_tor,champ_minus_r64,field_mean_tor
+TOR,0.180547,0.065265,0.047486,0.001721,0.072649,16.841176,18.123897,-1.282721,17.767096
