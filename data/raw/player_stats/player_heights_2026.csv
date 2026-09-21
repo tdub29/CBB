@@ -1,0 +1,2246 @@
+player,team,height
+La Salle A10 -13,Alabama 4,9-22
+San Jose St MWC -13,Alabama 4,8-23
+Princeton Ivy -14,Alabama 4,9-20
+Long Beach St BW -16,Alabama 4,9-22
+Pepperdine WCC -15,Alabama 4,9-23
+Loyola Chicago A10 -15,Alabama 4,8-23
+Brown Ivy -14,Alabama 4,9-18
+IU Indy Horz -20,Alabama 4,7-25
+Northeastern CAA -19,Alabama 4,7-24
+Southeastern Louisiana Slnd -16,Alabama 4,9-22
+Evansville MVC -17,Alabama 4,7-25
+Cal St Bakersfield BW -18,Alabama 4,8-24
+North Florida ASun -19,Alabama 4,7-25
+Niagara MAAC -18,Alabama 4,8-22
+UTSA (A) Rice Amer -17,Alabama 4,5-24
+Air Force MWC -19,Alabama 4,3-28
+North Alabama ASun -17,Alabama 4,9-21
+Northern Illinois MAC -15,Alabama 4,9-21
+Chicago St NEC -19,Alabama 4,7-25
+Southern Indiana OVC -20,Alabama 4,7-23
+Alcorn St SWAC -15,Alabama 4,8-22
+Louisiana Monroe SB -23,Alabama 4,4-28
+New Hampshire AE -16,Alabama 4,9-21
+Maine AE -20,Alabama 4,8-24
+Saint Francis NEC -19,Alabama 4,7-24
+South Carolina St MEAC -16,Alabama 4,9-21
+Bryant AE -17,Alabama 4,9-22
+Maryland Eastern Shore MEAC -16,Alabama 4,9-22
+Rider MAAC -19,Alabama 4,4-25
+Binghamton AE -20,Alabama 4,8-23
+UMKC Sum -21,Alabama 4,4-27
+VMI SC -22,Alabama 4,6-26
+Gardner Webb BSth -23,Alabama 4,4-29
+Delaware St MEAC -18,Alabama 4,7-22
+Coppin St MEAC -19,Alabama 4,7-24
+Mississippi Valley St SWAC -23,Alabama 4,3-29
+Western Illinois OVC -23,Alabama 4,5-26
+La Salle A10 -13,Arizona*** 1,9-22
+San Jose St MWC -13,Arizona*** 1,8-23
+Princeton Ivy -14,Arizona*** 1,9-20
+Long Beach St BW -16,Arizona*** 1,9-22
+Pepperdine WCC -15,Arizona*** 1,9-23
+Loyola Chicago A10 -15,Arizona*** 1,8-23
+Brown Ivy -14,Arizona*** 1,9-18
+IU Indy Horz -20,Arizona*** 1,7-25
+Northeastern CAA -19,Arizona*** 1,7-24
+Southeastern Louisiana Slnd -16,Arizona*** 1,9-22
+Evansville MVC -17,Arizona*** 1,7-25
+Cal St Bakersfield BW -18,Arizona*** 1,8-24
+North Florida ASun -19,Arizona*** 1,7-25
+Niagara MAAC -18,Arizona*** 1,8-22
+UTSA (A) Rice Amer -17,Arizona*** 1,5-24
+Air Force MWC -19,Arizona*** 1,3-28
+North Alabama ASun -17,Arizona*** 1,9-21
+Northern Illinois MAC -15,Arizona*** 1,9-21
+Chicago St NEC -19,Arizona*** 1,7-25
+Southern Indiana OVC -20,Arizona*** 1,7-23
+Alcorn St SWAC -15,Arizona*** 1,8-22
+Louisiana Monroe SB -23,Arizona*** 1,4-28
+New Hampshire AE -16,Arizona*** 1,9-21
+Maine AE -20,Arizona*** 1,8-24
+Saint Francis NEC -19,Arizona*** 1,7-24
+South Carolina St MEAC -16,Arizona*** 1,9-21
+Bryant AE -17,Arizona*** 1,9-22
+Maryland Eastern Shore MEAC -16,Arizona*** 1,9-22
+Rider MAAC -19,Arizona*** 1,4-25
+Binghamton AE -20,Arizona*** 1,8-23
+UMKC Sum -21,Arizona*** 1,4-27
+VMI SC -22,Arizona*** 1,6-26
+Gardner Webb BSth -23,Arizona*** 1,4-29
+Delaware St MEAC -18,Arizona*** 1,7-22
+Coppin St MEAC -19,Arizona*** 1,7-24
+Mississippi Valley St SWAC -23,Arizona*** 1,3-29
+Western Illinois OVC -23,Arizona*** 1,5-26
+La Salle A10 -13,Arkansas 5,9-22
+San Jose St MWC -13,Arkansas 5,8-23
+Princeton Ivy -14,Arkansas 5,9-20
+Long Beach St BW -16,Arkansas 5,9-22
+Pepperdine WCC -15,Arkansas 5,9-23
+Loyola Chicago A10 -15,Arkansas 5,8-23
+Brown Ivy -14,Arkansas 5,9-18
+IU Indy Horz -20,Arkansas 5,7-25
+Northeastern CAA -19,Arkansas 5,7-24
+Southeastern Louisiana Slnd -16,Arkansas 5,9-22
+Evansville MVC -17,Arkansas 5,7-25
+Cal St Bakersfield BW -18,Arkansas 5,8-24
+North Florida ASun -19,Arkansas 5,7-25
+Niagara MAAC -18,Arkansas 5,8-22
+UTSA (A) Rice Amer -17,Arkansas 5,5-24
+Air Force MWC -19,Arkansas 5,3-28
+North Alabama ASun -17,Arkansas 5,9-21
+Northern Illinois MAC -15,Arkansas 5,9-21
+Chicago St NEC -19,Arkansas 5,7-25
+Southern Indiana OVC -20,Arkansas 5,7-23
+Alcorn St SWAC -15,Arkansas 5,8-22
+Louisiana Monroe SB -23,Arkansas 5,4-28
+New Hampshire AE -16,Arkansas 5,9-21
+Maine AE -20,Arkansas 5,8-24
+Saint Francis NEC -19,Arkansas 5,7-24
+South Carolina St MEAC -16,Arkansas 5,9-21
+Bryant AE -17,Arkansas 5,9-22
+Maryland Eastern Shore MEAC -16,Arkansas 5,9-22
+Rider MAAC -19,Arkansas 5,4-25
+Binghamton AE -20,Arkansas 5,8-23
+UMKC Sum -21,Arkansas 5,4-27
+VMI SC -22,Arkansas 5,6-26
+Gardner Webb BSth -23,Arkansas 5,4-29
+Delaware St MEAC -18,Arkansas 5,7-22
+Coppin St MEAC -19,Arkansas 5,7-24
+Mississippi Valley St SWAC -23,Arkansas 5,3-29
+Western Illinois OVC -23,Arkansas 5,5-26
+La Salle A10 -13,BYU 7,9-22
+San Jose St MWC -13,BYU 7,8-23
+Princeton Ivy -14,BYU 7,9-20
+Long Beach St BW -16,BYU 7,9-22
+Pepperdine WCC -15,BYU 7,9-23
+Loyola Chicago A10 -15,BYU 7,8-23
+Brown Ivy -14,BYU 7,9-18
+IU Indy Horz -20,BYU 7,7-25
+Northeastern CAA -19,BYU 7,7-24
+Southeastern Louisiana Slnd -16,BYU 7,9-22
+Evansville MVC -17,BYU 7,7-25
+Cal St Bakersfield BW -18,BYU 7,8-24
+North Florida ASun -19,BYU 7,7-25
+Niagara MAAC -18,BYU 7,8-22
+UTSA (A) Rice Amer -17,BYU 7,5-24
+Air Force MWC -19,BYU 7,3-28
+North Alabama ASun -17,BYU 7,9-21
+Northern Illinois MAC -15,BYU 7,9-21
+Chicago St NEC -19,BYU 7,7-25
+Southern Indiana OVC -20,BYU 7,7-23
+Alcorn St SWAC -15,BYU 7,8-22
+Louisiana Monroe SB -23,BYU 7,4-28
+New Hampshire AE -16,BYU 7,9-21
+Maine AE -20,BYU 7,8-24
+Saint Francis NEC -19,BYU 7,7-24
+South Carolina St MEAC -16,BYU 7,9-21
+Bryant AE -17,BYU 7,9-22
+Maryland Eastern Shore MEAC -16,BYU 7,9-22
+Rider MAAC -19,BYU 7,4-25
+Binghamton AE -20,BYU 7,8-23
+UMKC Sum -21,BYU 7,4-27
+VMI SC -22,BYU 7,6-26
+Gardner Webb BSth -23,BYU 7,4-29
+Delaware St MEAC -18,BYU 7,7-22
+Coppin St MEAC -19,BYU 7,7-24
+Mississippi Valley St SWAC -23,BYU 7,3-29
+Western Illinois OVC -23,BYU 7,5-26
+La Salle A10 -13,Bethune Cookman*** 16,9-22
+San Jose St MWC -13,Bethune Cookman*** 16,8-23
+Princeton Ivy -14,Bethune Cookman*** 16,9-20
+Long Beach St BW -16,Bethune Cookman*** 16,9-22
+Pepperdine WCC -15,Bethune Cookman*** 16,9-23
+Loyola Chicago A10 -15,Bethune Cookman*** 16,8-23
+Brown Ivy -14,Bethune Cookman*** 16,9-18
+IU Indy Horz -20,Bethune Cookman*** 16,7-25
+Northeastern CAA -19,Bethune Cookman*** 16,7-24
+Southeastern Louisiana Slnd -16,Bethune Cookman*** 16,9-22
+Evansville MVC -17,Bethune Cookman*** 16,7-25
+Cal St Bakersfield BW -18,Bethune Cookman*** 16,8-24
+North Florida ASun -19,Bethune Cookman*** 16,7-25
+Niagara MAAC -18,Bethune Cookman*** 16,8-22
+UTSA (A) Rice Amer -17,Bethune Cookman*** 16,5-24
+Air Force MWC -19,Bethune Cookman*** 16,3-28
+North Alabama ASun -17,Bethune Cookman*** 16,9-21
+Northern Illinois MAC -15,Bethune Cookman*** 16,9-21
+Chicago St NEC -19,Bethune Cookman*** 16,7-25
+Southern Indiana OVC -20,Bethune Cookman*** 16,7-23
+Alcorn St SWAC -15,Bethune Cookman*** 16,8-22
+Louisiana Monroe SB -23,Bethune Cookman*** 16,4-28
+New Hampshire AE -16,Bethune Cookman*** 16,9-21
+Maine AE -20,Bethune Cookman*** 16,8-24
+Saint Francis NEC -19,Bethune Cookman*** 16,7-24
+South Carolina St MEAC -16,Bethune Cookman*** 16,9-21
+Bryant AE -17,Bethune Cookman*** 16,9-22
+Maryland Eastern Shore MEAC -16,Bethune Cookman*** 16,9-22
+Rider MAAC -19,Bethune Cookman*** 16,4-25
+Binghamton AE -20,Bethune Cookman*** 16,8-23
+UMKC Sum -21,Bethune Cookman*** 16,4-27
+VMI SC -22,Bethune Cookman*** 16,6-26
+Gardner Webb BSth -23,Bethune Cookman*** 16,4-29
+Delaware St MEAC -18,Bethune Cookman*** 16,7-22
+Coppin St MEAC -19,Bethune Cookman*** 16,7-24
+Mississippi Valley St SWAC -23,Bethune Cookman*** 16,3-29
+Western Illinois OVC -23,Bethune Cookman*** 16,5-26
+La Salle A10 -13,Bradley***,9-22
+San Jose St MWC -13,Bradley***,8-23
+Princeton Ivy -14,Bradley***,9-20
+Long Beach St BW -16,Bradley***,9-22
+Pepperdine WCC -15,Bradley***,9-23
+Loyola Chicago A10 -15,Bradley***,8-23
+Brown Ivy -14,Bradley***,9-18
+IU Indy Horz -20,Bradley***,7-25
+Northeastern CAA -19,Bradley***,7-24
+Southeastern Louisiana Slnd -16,Bradley***,9-22
+Evansville MVC -17,Bradley***,7-25
+Cal St Bakersfield BW -18,Bradley***,8-24
+North Florida ASun -19,Bradley***,7-25
+Niagara MAAC -18,Bradley***,8-22
+UTSA (A) Rice Amer -17,Bradley***,5-24
+Air Force MWC -19,Bradley***,3-28
+North Alabama ASun -17,Bradley***,9-21
+Northern Illinois MAC -15,Bradley***,9-21
+Chicago St NEC -19,Bradley***,7-25
+Southern Indiana OVC -20,Bradley***,7-23
+Alcorn St SWAC -15,Bradley***,8-22
+Louisiana Monroe SB -23,Bradley***,4-28
+New Hampshire AE -16,Bradley***,9-21
+Maine AE -20,Bradley***,8-24
+Saint Francis NEC -19,Bradley***,7-24
+South Carolina St MEAC -16,Bradley***,9-21
+Bryant AE -17,Bradley***,9-22
+Maryland Eastern Shore MEAC -16,Bradley***,9-22
+Rider MAAC -19,Bradley***,4-25
+Binghamton AE -20,Bradley***,8-23
+UMKC Sum -21,Bradley***,4-27
+VMI SC -22,Bradley***,6-26
+Gardner Webb BSth -23,Bradley***,4-29
+Delaware St MEAC -18,Bradley***,7-22
+Coppin St MEAC -19,Bradley***,7-24
+Mississippi Valley St SWAC -23,Bradley***,3-29
+Western Illinois OVC -23,Bradley***,5-26
+La Salle A10 -13,Central Arkansas***,9-22
+San Jose St MWC -13,Central Arkansas***,8-23
+Princeton Ivy -14,Central Arkansas***,9-20
+Long Beach St BW -16,Central Arkansas***,9-22
+Pepperdine WCC -15,Central Arkansas***,9-23
+Loyola Chicago A10 -15,Central Arkansas***,8-23
+Brown Ivy -14,Central Arkansas***,9-18
+IU Indy Horz -20,Central Arkansas***,7-25
+Northeastern CAA -19,Central Arkansas***,7-24
+Southeastern Louisiana Slnd -16,Central Arkansas***,9-22
+Evansville MVC -17,Central Arkansas***,7-25
+Cal St Bakersfield BW -18,Central Arkansas***,8-24
+North Florida ASun -19,Central Arkansas***,7-25
+Niagara MAAC -18,Central Arkansas***,8-22
+UTSA (A) Rice Amer -17,Central Arkansas***,5-24
+Air Force MWC -19,Central Arkansas***,3-28
+North Alabama ASun -17,Central Arkansas***,9-21
+Northern Illinois MAC -15,Central Arkansas***,9-21
+Chicago St NEC -19,Central Arkansas***,7-25
+Southern Indiana OVC -20,Central Arkansas***,7-23
+Alcorn St SWAC -15,Central Arkansas***,8-22
+Louisiana Monroe SB -23,Central Arkansas***,4-28
+New Hampshire AE -16,Central Arkansas***,9-21
+Maine AE -20,Central Arkansas***,8-24
+Saint Francis NEC -19,Central Arkansas***,7-24
+South Carolina St MEAC -16,Central Arkansas***,9-21
+Bryant AE -17,Central Arkansas***,9-22
+Maryland Eastern Shore MEAC -16,Central Arkansas***,9-22
+Rider MAAC -19,Central Arkansas***,4-25
+Binghamton AE -20,Central Arkansas***,8-23
+UMKC Sum -21,Central Arkansas***,4-27
+VMI SC -22,Central Arkansas***,6-26
+Gardner Webb BSth -23,Central Arkansas***,4-29
+Delaware St MEAC -18,Central Arkansas***,7-22
+Coppin St MEAC -19,Central Arkansas***,7-24
+Mississippi Valley St SWAC -23,Central Arkansas***,3-29
+Western Illinois OVC -23,Central Arkansas***,5-26
+La Salle A10 -13,Clemson 8,9-22
+San Jose St MWC -13,Clemson 8,8-23
+Princeton Ivy -14,Clemson 8,9-20
+Long Beach St BW -16,Clemson 8,9-22
+Pepperdine WCC -15,Clemson 8,9-23
+Loyola Chicago A10 -15,Clemson 8,8-23
+Brown Ivy -14,Clemson 8,9-18
+IU Indy Horz -20,Clemson 8,7-25
+Northeastern CAA -19,Clemson 8,7-24
+Southeastern Louisiana Slnd -16,Clemson 8,9-22
+Evansville MVC -17,Clemson 8,7-25
+Cal St Bakersfield BW -18,Clemson 8,8-24
+North Florida ASun -19,Clemson 8,7-25
+Niagara MAAC -18,Clemson 8,8-22
+UTSA (A) Rice Amer -17,Clemson 8,5-24
+Air Force MWC -19,Clemson 8,3-28
+North Alabama ASun -17,Clemson 8,9-21
+Northern Illinois MAC -15,Clemson 8,9-21
+Chicago St NEC -19,Clemson 8,7-25
+Southern Indiana OVC -20,Clemson 8,7-23
+Alcorn St SWAC -15,Clemson 8,8-22
+Louisiana Monroe SB -23,Clemson 8,4-28
+New Hampshire AE -16,Clemson 8,9-21
+Maine AE -20,Clemson 8,8-24
+Saint Francis NEC -19,Clemson 8,7-24
+South Carolina St MEAC -16,Clemson 8,9-21
+Bryant AE -17,Clemson 8,9-22
+Maryland Eastern Shore MEAC -16,Clemson 8,9-22
+Rider MAAC -19,Clemson 8,4-25
+Binghamton AE -20,Clemson 8,8-23
+UMKC Sum -21,Clemson 8,4-27
+VMI SC -22,Clemson 8,6-26
+Gardner Webb BSth -23,Clemson 8,4-29
+Delaware St MEAC -18,Clemson 8,7-22
+Coppin St MEAC -19,Clemson 8,7-24
+Mississippi Valley St SWAC -23,Clemson 8,3-29
+Western Illinois OVC -23,Clemson 8,5-26
+La Salle A10 -13,Connecticut*** 1,9-22
+San Jose St MWC -13,Connecticut*** 1,8-23
+Princeton Ivy -14,Connecticut*** 1,9-20
+Long Beach St BW -16,Connecticut*** 1,9-22
+Pepperdine WCC -15,Connecticut*** 1,9-23
+Loyola Chicago A10 -15,Connecticut*** 1,8-23
+Brown Ivy -14,Connecticut*** 1,9-18
+IU Indy Horz -20,Connecticut*** 1,7-25
+Northeastern CAA -19,Connecticut*** 1,7-24
+Southeastern Louisiana Slnd -16,Connecticut*** 1,9-22
+Evansville MVC -17,Connecticut*** 1,7-25
+Cal St Bakersfield BW -18,Connecticut*** 1,8-24
+North Florida ASun -18,Connecticut*** 1,7-25
+Niagara MAAC -18,Connecticut*** 1,8-22
+UTSA (A) Rice Amer -17,Connecticut*** 1,5-24
+Air Force MWC -19,Connecticut*** 1,3-28
+North Alabama ASun -17,Connecticut*** 1,9-21
+Northern Illinois MAC -15,Connecticut*** 1,9-21
+Chicago St NEC -19,Connecticut*** 1,7-25
+Southern Indiana OVC -20,Connecticut*** 1,7-23
+Alcorn St SWAC -15,Connecticut*** 1,8-22
+Louisiana Monroe SB -23,Connecticut*** 1,4-28
+New Hampshire AE -16,Connecticut*** 1,9-21
+Maine AE -20,Connecticut*** 1,8-24
+Saint Francis NEC -19,Connecticut*** 1,7-24
+South Carolina St MEAC -16,Connecticut*** 1,9-21
+Bryant AE -17,Connecticut*** 1,9-22
+Maryland Eastern Shore MEAC -16,Connecticut*** 1,9-22
+Rider MAAC -19,Connecticut*** 1,4-25
+Binghamton AE -20,Connecticut*** 1,8-23
+UMKC Sum -21,Connecticut*** 1,4-27
+VMI SC -22,Connecticut*** 1,6-26
+Gardner Webb BSth -23,Connecticut*** 1,4-29
+Delaware St MEAC -18,Connecticut*** 1,7-22
+Coppin St MEAC -19,Connecticut*** 1,7-24
+Mississippi Valley St SWAC -23,Connecticut*** 1,3-29
+Western Illinois OVC -23,Connecticut*** 1,5-26
+La Salle A10 -13,Duke*** 1,9-22
+San Jose St MWC -13,Duke*** 1,8-23
+Princeton Ivy -14,Duke*** 1,9-20
+Long Beach St BW -16,Duke*** 1,9-22
+Pepperdine WCC -15,Duke*** 1,9-23
+Loyola Chicago A10 -15,Duke*** 1,8-23
+Brown Ivy -14,Duke*** 1,9-18
+IU Indy Horz -20,Duke*** 1,7-25
+Northeastern CAA -19,Duke*** 1,7-24
+Southeastern Louisiana Slnd -16,Duke*** 1,9-22
+Evansville MVC -17,Duke*** 1,7-25
+Cal St Bakersfield BW -18,Duke*** 1,8-24
+North Florida ASun -18,Duke*** 1,7-25
+Niagara MAAC -18,Duke*** 1,8-22
+UTSA (A) Rice Amer -17,Duke*** 1,5-24
+Air Force MWC -19,Duke*** 1,3-28
+North Alabama ASun -17,Duke*** 1,9-21
+Northern Illinois MAC -15,Duke*** 1,9-21
+Chicago St NEC -19,Duke*** 1,7-25
+Southern Indiana OVC -20,Duke*** 1,7-23
+Alcorn St SWAC -15,Duke*** 1,8-22
+Louisiana Monroe SB -23,Duke*** 1,4-28
+New Hampshire AE -16,Duke*** 1,9-21
+Maine AE -20,Duke*** 1,8-24
+Saint Francis NEC -19,Duke*** 1,7-24
+South Carolina St MEAC -16,Duke*** 1,9-21
+Bryant AE -17,Duke*** 1,9-22
+Maryland Eastern Shore MEAC -16,Duke*** 1,9-22
+Rider MAAC -19,Duke*** 1,4-25
+Binghamton AE -20,Duke*** 1,8-23
+UMKC Sum -21,Duke*** 1,4-27
+VMI SC -22,Duke*** 1,6-26
+Gardner Webb BSth -23,Duke*** 1,4-29
+Delaware St MEAC -18,Duke*** 1,7-22
+Coppin St MEAC -19,Duke*** 1,7-24
+Mississippi Valley St SWAC -23,Duke*** 1,3-29
+Western Illinois OVC -23,Duke*** 1,5-26
+La Salle A10 -13,East Tennessee St.*** 15,9-22
+San Jose St MWC -13,East Tennessee St.*** 15,8-23
+Princeton Ivy -14,East Tennessee St.*** 15,9-20
+Long Beach St BW -16,East Tennessee St.*** 15,9-22
+Pepperdine WCC -15,East Tennessee St.*** 15,9-23
+Loyola Chicago A10 -15,East Tennessee St.*** 15,8-23
+Brown Ivy -14,East Tennessee St.*** 15,9-18
+IU Indy Horz -20,East Tennessee St.*** 15,7-25
+Northeastern CAA -19,East Tennessee St.*** 15,7-24
+Southeastern Louisiana Slnd -16,East Tennessee St.*** 15,9-22
+Evansville MVC -17,East Tennessee St.*** 15,7-25
+Cal St Bakersfield BW -18,East Tennessee St.*** 15,8-24
+North Florida ASun -18,East Tennessee St.*** 15,7-25
+Niagara MAAC -18,East Tennessee St.*** 15,8-22
+UTSA (A) Rice Amer -17,East Tennessee St.*** 15,5-24
+Air Force MWC -19,East Tennessee St.*** 15,3-28
+North Alabama ASun -17,East Tennessee St.*** 15,9-21
+Northern Illinois MAC -15,East Tennessee St.*** 15,9-21
+Chicago St NEC -19,East Tennessee St.*** 15,7-25
+Southern Indiana OVC -20,East Tennessee St.*** 15,7-23
+Alcorn St SWAC -15,East Tennessee St.*** 15,8-22
+Louisiana Monroe SB -23,East Tennessee St.*** 15,4-28
+New Hampshire AE -16,East Tennessee St.*** 15,9-21
+Maine AE -20,East Tennessee St.*** 15,8-24
+Saint Francis NEC -19,East Tennessee St.*** 15,7-24
+South Carolina St MEAC -16,East Tennessee St.*** 15,9-21
+Bryant AE -17,East Tennessee St.*** 15,9-22
+Maryland Eastern Shore MEAC -16,East Tennessee St.*** 15,9-22
+Rider MAAC -19,East Tennessee St.*** 15,4-25
+Binghamton AE -20,East Tennessee St.*** 15,8-23
+UMKC Sum -21,East Tennessee St.*** 15,4-27
+VMI SC -22,East Tennessee St.*** 15,6-26
+Gardner Webb BSth -23,East Tennessee St.*** 15,4-29
+Delaware St MEAC -18,East Tennessee St.*** 15,7-22
+Coppin St MEAC -19,East Tennessee St.*** 15,7-24
+Mississippi Valley St SWAC -23,East Tennessee St.*** 15,3-29
+Western Illinois OVC -23,East Tennessee St.*** 15,5-26
+La Salle A10 -13,Florida*** 2,9-22
+San Jose St MWC -13,Florida*** 2,8-23
+Princeton Ivy -14,Florida*** 2,9-20
+Long Beach St BW -16,Florida*** 2,9-22
+Pepperdine WCC -15,Florida*** 2,9-23
+Loyola Chicago A10 -15,Florida*** 2,8-23
+Brown Ivy -14,Florida*** 2,9-18
+IU Indy Horz -20,Florida*** 2,7-25
+Northeastern CAA -19,Florida*** 2,7-24
+Southeastern Louisiana Slnd -16,Florida*** 2,9-22
+Evansville MVC -17,Florida*** 2,7-25
+Cal St Bakersfield BW -18,Florida*** 2,8-24
+North Florida ASun -18,Florida*** 2,7-25
+Niagara MAAC -18,Florida*** 2,8-22
+UTSA (A) Rice Amer -17,Florida*** 2,5-24
+Air Force MWC -19,Florida*** 2,3-28
+North Alabama ASun -17,Florida*** 2,9-21
+Northern Illinois MAC -15,Florida*** 2,9-21
+Chicago St NEC -19,Florida*** 2,7-25
+Southern Indiana OVC -20,Florida*** 2,7-23
+Alcorn St SWAC -15,Florida*** 2,8-22
+Louisiana Monroe SB -23,Florida*** 2,4-28
+New Hampshire AE -16,Florida*** 2,9-21
+Maine AE -20,Florida*** 2,8-24
+Saint Francis NEC -19,Florida*** 2,7-24
+South Carolina St MEAC -16,Florida*** 2,9-21
+Bryant AE -17,Florida*** 2,9-22
+Maryland Eastern Shore MEAC -16,Florida*** 2,9-22
+Rider MAAC -19,Florida*** 2,4-25
+Binghamton AE -20,Florida*** 2,8-23
+UMKC Sum -21,Florida*** 2,4-27
+VMI SC -22,Florida*** 2,6-26
+Gardner Webb BSth -23,Florida*** 2,4-29
+Delaware St MEAC -18,Florida*** 2,7-22
+Coppin St MEAC -19,Florida*** 2,7-24
+Mississippi Valley St SWAC -23,Florida*** 2,3-29
+Western Illinois OVC -23,Florida*** 2,5-26
+La Salle A10 -13,Georgia 8,9-22
+San Jose St MWC -13,Georgia 8,8-23
+Princeton Ivy -14,Georgia 8,9-20
+Long Beach St BW -16,Georgia 8,9-22
+Pepperdine WCC -15,Georgia 8,9-23
+Loyola Chicago A10 -15,Georgia 8,8-23
+Brown Ivy -14,Georgia 8,9-18
+IU Indy Horz -20,Georgia 8,7-25
+Northeastern CAA -19,Georgia 8,7-24
+Southeastern Louisiana Slnd -16,Georgia 8,9-22
+Evansville MVC -17,Georgia 8,7-25
+Cal St Bakersfield BW -18,Georgia 8,8-24
+North Florida ASun -18,Georgia 8,7-25
+Niagara MAAC -18,Georgia 8,8-22
+UTSA (A) Rice Amer -17,Georgia 8,5-24
+Air Force MWC -19,Georgia 8,3-28
+North Alabama ASun -17,Georgia 8,9-21
+Northern Illinois MAC -15,Georgia 8,9-21
+Chicago St NEC -19,Georgia 8,7-25
+Southern Indiana OVC -20,Georgia 8,7-23
+Alcorn St SWAC -15,Georgia 8,8-22
+Louisiana Monroe SB -23,Georgia 8,4-28
+New Hampshire AE -16,Georgia 8,9-21
+Maine AE -20,Georgia 8,8-24
+Saint Francis NEC -19,Georgia 8,7-24
+South Carolina St MEAC -16,Georgia 8,9-21
+Bryant AE -17,Georgia 8,9-22
+Maryland Eastern Shore MEAC -16,Georgia 8,9-22
+Rider MAAC -19,Georgia 8,4-25
+Binghamton AE -20,Georgia 8,8-23
+UMKC Sum -21,Georgia 8,4-27
+VMI SC -22,Georgia 8,6-26
+Gardner Webb BSth -23,Georgia 8,4-29
+Delaware St MEAC -18,Georgia 8,7-22
+Coppin St MEAC -19,Georgia 8,7-24
+Mississippi Valley St SWAC -23,Georgia 8,3-29
+Western Illinois OVC -23,Georgia 8,5-26
+La Salle A10 -13,Indiana 11,9-22
+San Jose St MWC -13,Indiana 11,8-23
+Princeton Ivy -14,Indiana 11,9-20
+Pepperdine WCC -15,Indiana 11,9-23
+Loyola Chicago A10 -15,Indiana 11,8-23
+Brown Ivy -14,Indiana 11,9-18
+IU Indy Horz -20,Indiana 11,7-25
+Northeastern CAA -19,Indiana 11,7-24
+Southeastern Louisiana Slnd -16,Indiana 11,9-22
+Evansville MVC -17,Indiana 11,7-25
+Cal St Bakersfield BW -18,Indiana 11,8-24
+North Florida ASun -19,Indiana 11,7-25
+Niagara MAAC -18,Indiana 11,8-22
+UTSA (A) Rice Amer -17,Indiana 11,5-24
+Air Force MWC -19,Indiana 11,3-28
+North Alabama ASun -17,Indiana 11,9-21
+Northern Illinois MAC -15,Indiana 11,9-21
+Chicago St NEC -19,Indiana 11,7-25
+Southern Indiana OVC -20,Indiana 11,7-23
+Alcorn St SWAC -15,Indiana 11,8-22
+Louisiana Monroe SB -23,Indiana 11,4-28
+New Hampshire AE -16,Indiana 11,9-21
+Maine AE -20,Indiana 11,8-24
+Saint Francis NEC -19,Indiana 11,7-24
+South Carolina St MEAC -16,Indiana 11,9-21
+Bryant AE -17,Indiana 11,9-22
+Maryland Eastern Shore MEAC -16,Indiana 11,9-22
+Rider MAAC -19,Indiana 11,4-25
+Binghamton AE -20,Indiana 11,8-23
+UMKC Sum -21,Indiana 11,4-27
+VMI SC -22,Indiana 11,6-26
+Gardner Webb BSth -23,Indiana 11,4-29
+Delaware St MEAC -18,Indiana 11,7-22
+Coppin St MEAC -19,Indiana 11,7-24
+Mississippi Valley St SWAC -23,Indiana 11,3-29
+Western Illinois OVC -23,Indiana 11,5-26
+La Salle A10 -13,Iowa St. 3,9-22
+San Jose St MWC -13,Iowa St. 3,8-23
+Princeton Ivy -14,Iowa St. 3,9-20
+Pepperdine WCC -15,Iowa St. 3,9-23
+Loyola Chicago A10 -15,Iowa St. 3,8-23
+Brown Ivy -14,Iowa St. 3,9-18
+IU Indy Horz -20,Iowa St. 3,7-25
+Northeastern CAA -19,Iowa St. 3,7-24
+Southeastern Louisiana Slnd -16,Iowa St. 3,9-22
+Evansville MVC -17,Iowa St. 3,7-25
+Cal St Bakersfield BW -18,Iowa St. 3,8-24
+North Florida ASun -19,Iowa St. 3,7-25
+Niagara MAAC -18,Iowa St. 3,8-22
+UTSA (A) Rice Amer -17,Iowa St. 3,5-24
+Air Force MWC -19,Iowa St. 3,3-28
+North Alabama ASun -17,Iowa St. 3,9-21
+Northern Illinois MAC -15,Iowa St. 3,9-21
+Chicago St NEC -19,Iowa St. 3,7-25
+Southern Indiana OVC -20,Iowa St. 3,7-23
+Alcorn St SWAC -15,Iowa St. 3,8-22
+Louisiana Monroe SB -23,Iowa St. 3,4-28
+New Hampshire AE -16,Iowa St. 3,9-21
+Maine AE -20,Iowa St. 3,8-24
+Saint Francis NEC -19,Iowa St. 3,7-24
+South Carolina St MEAC -16,Iowa St. 3,9-21
+Bryant AE -17,Iowa St. 3,9-22
+Maryland Eastern Shore MEAC -16,Iowa St. 3,9-22
+Rider MAAC -19,Iowa St. 3,4-25
+Binghamton AE -20,Iowa St. 3,8-23
+UMKC Sum -21,Iowa St. 3,4-27
+VMI SC -22,Iowa St. 3,6-26
+Gardner Webb BSth -23,Iowa St. 3,4-29
+Delaware St MEAC -18,Iowa St. 3,7-22
+Coppin St MEAC -19,Iowa St. 3,7-24
+Mississippi Valley St SWAC -23,Iowa St. 3,3-29
+Western Illinois OVC -23,Iowa St. 3,5-26
+La Salle A10 -13,Iowa 8,9-22
+San Jose St MWC -13,Iowa 8,8-23
+Princeton Ivy -14,Iowa 8,9-20
+Pepperdine WCC -15,Iowa 8,9-23
+Loyola Chicago A10 -15,Iowa 8,8-23
+Brown Ivy -14,Iowa 8,9-18
+IU Indy Horz -20,Iowa 8,7-25
+Northeastern CAA -19,Iowa 8,7-24
+Southeastern Louisiana Slnd -16,Iowa 8,9-22
+Evansville MVC -17,Iowa 8,7-25
+Cal St Bakersfield BW -18,Iowa 8,8-24
+North Florida ASun -19,Iowa 8,7-25
+Niagara MAAC -18,Iowa 8,8-22
+UTSA (A) Rice Amer -17,Iowa 8,5-24
+Air Force MWC -19,Iowa 8,3-28
+North Alabama ASun -17,Iowa 8,9-21
+Northern Illinois MAC -15,Iowa 8,9-21
+Chicago St NEC -19,Iowa 8,7-25
+Southern Indiana OVC -20,Iowa 8,7-23
+Alcorn St SWAC -15,Iowa 8,8-22
+Louisiana Monroe SB -23,Iowa 8,4-28
+New Hampshire AE -16,Iowa 8,9-21
+Maine AE -20,Iowa 8,8-24
+Saint Francis NEC -19,Iowa 8,7-24
+South Carolina St MEAC -16,Iowa 8,9-21
+Bryant AE -17,Iowa 8,9-22
+Maryland Eastern Shore MEAC -16,Iowa 8,9-22
+Rider MAAC -19,Iowa 8,4-25
+Binghamton AE -20,Iowa 8,8-23
+UMKC Sum -21,Iowa 8,4-27
+VMI SC -22,Iowa 8,6-26
+Gardner Webb BSth -23,Iowa 8,4-29
+Delaware St MEAC -18,Iowa 8,7-22
+Coppin St MEAC -19,Iowa 8,7-24
+Mississippi Valley St SWAC -23,Iowa 8,3-29
+Western Illinois OVC -23,Iowa 8,5-26
+La Salle A10 -13,Kansas 4,9-22
+San Jose St MWC -13,Kansas 4,8-23
+Princeton Ivy -14,Kansas 4,9-20
+Pepperdine WCC -15,Kansas 4,9-23
+Loyola Chicago A10 -15,Kansas 4,8-23
+Brown Ivy -14,Kansas 4,9-18
+IU Indy Horz -20,Kansas 4,7-25
+Northeastern CAA -19,Kansas 4,7-24
+Southeastern Louisiana Slnd -16,Kansas 4,9-22
+Evansville MVC -17,Kansas 4,7-25
+Cal St Bakersfield BW -18,Kansas 4,8-24
+North Florida ASun -19,Kansas 4,7-25
+Niagara MAAC -18,Kansas 4,8-22
+UTSA (A) Rice Amer -17,Kansas 4,5-24
+Air Force MWC -19,Kansas 4,3-28
+North Alabama ASun -17,Kansas 4,9-21
+Northern Illinois MAC -15,Kansas 4,9-21
+Chicago St NEC -19,Kansas 4,7-25
+Southern Indiana OVC -20,Kansas 4,7-23
+Alcorn St SWAC -15,Kansas 4,8-22
+Louisiana Monroe SB -23,Kansas 4,4-28
+New Hampshire AE -16,Kansas 4,9-21
+Maine AE -20,Kansas 4,8-24
+Saint Francis NEC -19,Kansas 4,7-24
+South Carolina St MEAC -16,Kansas 4,9-21
+Bryant AE -17,Kansas 4,9-22
+Maryland Eastern Shore MEAC -16,Kansas 4,9-22
+Rider MAAC -19,Kansas 4,4-25
+Binghamton AE -20,Kansas 4,8-23
+UMKC Sum -21,Kansas 4,4-27
+VMI SC -22,Kansas 4,6-26
+Gardner Webb BSth -23,Kansas 4,4-29
+Delaware St MEAC -18,Kansas 4,7-22
+Coppin St MEAC -19,Kansas 4,7-24
+Mississippi Valley St SWAC -23,Kansas 4,3-29
+Western Illinois OVC -23,Kansas 4,5-26
+La Salle A10 -13,Kentucky 6,9-22
+San Jose St MWC -13,Kentucky 6,8-23
+Princeton Ivy -14,Kentucky 6,9-20
+Pepperdine WCC -15,Kentucky 6,9-23
+Loyola Chicago A10 -15,Kentucky 6,8-23
+Brown Ivy -14,Kentucky 6,9-18
+IU Indy Horz -20,Kentucky 6,7-25
+Northeastern CAA -19,Kentucky 6,7-24
+Southeastern Louisiana Slnd -16,Kentucky 6,9-22
+Evansville MVC -17,Kentucky 6,7-25
+Cal St Bakersfield BW -18,Kentucky 6,8-24
+North Florida ASun -19,Kentucky 6,7-25
+Niagara MAAC -18,Kentucky 6,8-22
+UTSA (A) Rice Amer -17,Kentucky 6,5-24
+Air Force MWC -19,Kentucky 6,3-28
+North Alabama ASun -17,Kentucky 6,9-21
+Northern Illinois MAC -15,Kentucky 6,9-21
+Chicago St NEC -19,Kentucky 6,7-25
+Southern Indiana OVC -20,Kentucky 6,7-23
+Alcorn St SWAC -15,Kentucky 6,8-22
+Louisiana Monroe SB -23,Kentucky 6,4-28
+New Hampshire AE -16,Kentucky 6,9-21
+Maine AE -20,Kentucky 6,8-24
+Saint Francis NEC -19,Kentucky 6,7-24
+South Carolina St MEAC -16,Kentucky 6,9-21
+Bryant AE -17,Kentucky 6,9-22
+Maryland Eastern Shore MEAC -16,Kentucky 6,9-22
+Rider MAAC -19,Kentucky 6,4-25
+Binghamton AE -20,Kentucky 6,8-23
+UMKC Sum -21,Kentucky 6,4-27
+VMI SC -22,Kentucky 6,6-26
+Gardner Webb BSth -23,Kentucky 6,4-29
+Delaware St MEAC -18,Kentucky 6,7-22
+Coppin St MEAC -19,Kentucky 6,7-24
+Mississippi Valley St SWAC -23,Kentucky 6,3-29
+Western Illinois OVC -23,Kentucky 6,5-26
+La Salle A10 -13,LIU*** 16,9-22
+San Jose St MWC -13,LIU*** 16,8-23
+Princeton Ivy -14,LIU*** 16,9-20
+Pepperdine WCC -15,LIU*** 16,9-23
+Loyola Chicago A10 -15,LIU*** 16,8-23
+Brown Ivy -14,LIU*** 16,9-18
+IU Indy Horz -20,LIU*** 16,7-25
+Northeastern CAA -19,LIU*** 16,7-24
+Southeastern Louisiana Slnd -16,LIU*** 16,9-22
+Evansville MVC -17,LIU*** 16,7-25
+Cal St Bakersfield BW -18,LIU*** 16,8-24
+North Florida ASun -19,LIU*** 16,7-25
+Niagara MAAC -18,LIU*** 16,8-22
+UTSA (A) Rice Amer -17,LIU*** 16,5-24
+Air Force MWC -19,LIU*** 16,3-28
+North Alabama ASun -17,LIU*** 16,9-21
+Northern Illinois MAC -15,LIU*** 16,9-21
+Chicago St NEC -19,LIU*** 16,7-25
+Southern Indiana OVC -20,LIU*** 16,7-23
+Alcorn St SWAC -15,LIU*** 16,8-22
+Louisiana Monroe SB -23,LIU*** 16,4-28
+New Hampshire AE -16,LIU*** 16,9-21
+Maine AE -20,LIU*** 16,8-24
+Saint Francis NEC -19,LIU*** 16,7-24
+South Carolina St MEAC -16,LIU*** 16,9-21
+Bryant AE -17,LIU*** 16,9-22
+Maryland Eastern Shore MEAC -16,LIU*** 16,9-22
+Rider MAAC -19,LIU*** 16,4-25
+Binghamton AE -20,LIU*** 16,8-23
+UMKC Sum -21,LIU*** 16,4-27
+VMI SC -22,LIU*** 16,6-26
+Gardner Webb BSth -23,LIU*** 16,4-29
+Delaware St MEAC -18,LIU*** 16,7-22
+Coppin St MEAC -19,LIU*** 16,7-24
+Mississippi Valley St SWAC -23,LIU*** 16,3-29
+Western Illinois OVC -23,LIU*** 16,5-26
+La Salle A10 -13,Liberty*** 12,9-22
+San Jose St MWC -13,Liberty*** 12,8-23
+Princeton Ivy -14,Liberty*** 12,9-20
+Pepperdine WCC -15,Liberty*** 12,9-23
+Loyola Chicago A10 -15,Liberty*** 12,8-23
+Brown Ivy -14,Liberty*** 12,9-18
+IU Indy Horz -20,Liberty*** 12,7-25
+Northeastern CAA -19,Liberty*** 12,7-24
+Southeastern Louisiana Slnd -16,Liberty*** 12,9-22
+Evansville MVC -17,Liberty*** 12,7-25
+Cal St Bakersfield BW -18,Liberty*** 12,8-24
+North Florida ASun -19,Liberty*** 12,7-25
+Niagara MAAC -18,Liberty*** 12,8-22
+UTSA (A) Rice Amer -17,Liberty*** 12,5-24
+Air Force MWC -19,Liberty*** 12,3-28
+North Alabama ASun -17,Liberty*** 12,9-21
+Northern Illinois MAC -15,Liberty*** 12,9-21
+Chicago St NEC -19,Liberty*** 12,7-25
+Southern Indiana OVC -20,Liberty*** 12,7-23
+Alcorn St SWAC -15,Liberty*** 12,8-22
+Louisiana Monroe SB -23,Liberty*** 12,4-28
+New Hampshire AE -16,Liberty*** 12,9-21
+Maine AE -20,Liberty*** 12,8-24
+Saint Francis NEC -19,Liberty*** 12,7-24
+South Carolina St MEAC -16,Liberty*** 12,9-21
+Bryant AE -17,Liberty*** 12,9-22
+Maryland Eastern Shore MEAC -16,Liberty*** 12,9-22
+Rider MAAC -19,Liberty*** 12,4-25
+Binghamton AE -20,Liberty*** 12,8-23
+UMKC Sum -21,Liberty*** 12,4-27
+VMI SC -22,Liberty*** 12,6-26
+Gardner Webb BSth -23,Liberty*** 12,4-29
+Delaware St MEAC -18,Liberty*** 12,7-22
+Coppin St MEAC -19,Liberty*** 12,7-24
+Mississippi Valley St SWAC -23,Liberty*** 12,3-29
+Western Illinois OVC -23,Liberty*** 12,5-26
+La Salle A10 -13,Louisville 6,9-22
+San Jose St MWC -13,Louisville 6,8-23
+Princeton Ivy -14,Louisville 6,9-20
+Pepperdine WCC -15,Louisville 6,9-23
+Loyola Chicago A10 -15,Louisville 6,8-23
+Brown Ivy -14,Louisville 6,9-18
+IU Indy Horz -20,Louisville 6,7-25
+Northeastern CAA -19,Louisville 6,7-24
+Southeastern Louisiana Slnd -16,Louisville 6,9-22
+Evansville MVC -17,Louisville 6,7-25
+Cal St Bakersfield BW -18,Louisville 6,8-24
+North Florida ASun -19,Louisville 6,7-25
+Niagara MAAC -18,Louisville 6,8-22
+UTSA (A) Rice Amer -17,Louisville 6,5-24
+Air Force MWC -19,Louisville 6,3-28
+North Alabama ASun -17,Louisville 6,9-21
+Northern Illinois MAC -15,Louisville 6,9-21
+Chicago St NEC -19,Louisville 6,7-25
+Southern Indiana OVC -20,Louisville 6,7-23
+Alcorn St SWAC -15,Louisville 6,8-22
+Louisiana Monroe SB -23,Louisville 6,4-28
+New Hampshire AE -16,Louisville 6,9-21
+Maine AE -20,Louisville 6,8-24
+Saint Francis NEC -19,Louisville 6,7-24
+South Carolina St MEAC -16,Louisville 6,9-21
+Bryant AE -17,Louisville 6,9-22
+Maryland Eastern Shore MEAC -16,Louisville 6,9-22
+Rider MAAC -19,Louisville 6,4-25
+Binghamton AE -20,Louisville 6,8-23
+UMKC Sum -21,Louisville 6,4-27
+VMI SC -22,Louisville 6,6-26
+Gardner Webb BSth -23,Louisville 6,4-29
+Delaware St MEAC -18,Louisville 6,7-22
+Coppin St MEAC -19,Louisville 6,7-24
+Mississippi Valley St SWAC -23,Louisville 6,3-29
+Western Illinois OVC -23,Louisville 6,5-26
+La Salle A10 -13,McNeese St.***,9-22
+San Jose St MWC -13,McNeese St.***,8-23
+Princeton Ivy -14,McNeese St.***,9-20
+Pepperdine WCC -15,McNeese St.***,9-23
+Loyola Chicago A10 -15,McNeese St.***,8-23
+Brown Ivy -14,McNeese St.***,9-18
+IU Indy Horz -20,McNeese St.***,7-25
+Northeastern CAA -19,McNeese St.***,7-24
+Southeastern Louisiana Slnd -16,McNeese St.***,9-22
+Evansville MVC -17,McNeese St.***,7-25
+Cal St Bakersfield BW -18,McNeese St.***,8-24
+North Florida ASun -19,McNeese St.***,7-25
+Niagara MAAC -18,McNeese St.***,8-22
+UTSA (A) Rice Amer -17,McNeese St.***,5-24
+Air Force MWC -19,McNeese St.***,3-28
+North Alabama ASun -17,McNeese St.***,9-21
+Northern Illinois MAC -15,McNeese St.***,9-21
+Chicago St NEC -19,McNeese St.***,7-25
+Southern Indiana OVC -20,McNeese St.***,7-23
+Alcorn St SWAC -15,McNeese St.***,8-22
+Louisiana Monroe SB -23,McNeese St.***,4-28
+New Hampshire AE -16,McNeese St.***,9-21
+Maine AE -20,McNeese St.***,8-24
+Saint Francis NEC -19,McNeese St.***,7-24
+South Carolina St MEAC -16,McNeese St.***,9-21
+Bryant AE -17,McNeese St.***,9-22
+Maryland Eastern Shore MEAC -16,McNeese St.***,9-22
+Rider MAAC -19,McNeese St.***,4-25
+Binghamton AE -20,McNeese St.***,8-23
+UMKC Sum -21,McNeese St.***,4-27
+VMI SC -22,McNeese St.***,6-26
+Gardner Webb BSth -23,McNeese St.***,4-29
+Delaware St MEAC -18,McNeese St.***,7-22
+Coppin St MEAC -19,McNeese St.***,7-24
+Mississippi Valley St SWAC -23,McNeese St.***,3-29
+Western Illinois OVC -23,McNeese St.***,5-26
+La Salle A10 -13,Merrimack*** 16,9-22
+San Jose St MWC -13,Merrimack*** 16,8-23
+Princeton Ivy -14,Merrimack*** 16,9-20
+Pepperdine WCC -15,Merrimack*** 16,9-23
+Loyola Chicago A10 -15,Merrimack*** 16,8-23
+Brown Ivy -14,Merrimack*** 16,9-18
+IU Indy Horz -20,Merrimack*** 16,7-25
+Northeastern CAA -19,Merrimack*** 16,7-24
+Southeastern Louisiana Slnd -16,Merrimack*** 16,9-22
+Evansville MVC -17,Merrimack*** 16,7-25
+Cal St Bakersfield BW -18,Merrimack*** 16,8-24
+North Florida ASun -19,Merrimack*** 16,7-25
+Niagara MAAC -18,Merrimack*** 16,8-22
+UTSA (A) Rice Amer -17,Merrimack*** 16,5-24
+Air Force MWC -19,Merrimack*** 16,3-28
+North Alabama ASun -17,Merrimack*** 16,9-21
+Northern Illinois MAC -15,Merrimack*** 16,9-21
+Chicago St NEC -19,Merrimack*** 16,7-25
+Southern Indiana OVC -20,Merrimack*** 16,7-23
+Alcorn St SWAC -15,Merrimack*** 16,8-22
+Louisiana Monroe SB -23,Merrimack*** 16,4-28
+New Hampshire AE -16,Merrimack*** 16,9-21
+Maine AE -20,Merrimack*** 16,8-24
+Saint Francis NEC -19,Merrimack*** 16,7-24
+South Carolina St MEAC -16,Merrimack*** 16,9-21
+Bryant AE -17,Merrimack*** 16,9-22
+Maryland Eastern Shore MEAC -16,Merrimack*** 16,9-22
+Rider MAAC -19,Merrimack*** 16,4-25
+Binghamton AE -20,Merrimack*** 16,8-23
+UMKC Sum -21,Merrimack*** 16,4-27
+VMI SC -22,Merrimack*** 16,6-26
+Gardner Webb BSth -23,Merrimack*** 16,4-29
+Delaware St MEAC -18,Merrimack*** 16,7-22
+Coppin St MEAC -19,Merrimack*** 16,7-24
+Mississippi Valley St SWAC -23,Merrimack*** 16,3-29
+Western Illinois OVC -23,Merrimack*** 16,5-26
+La Salle A10 -13,Miami FL 7,9-22
+San Jose St MWC -13,Miami FL 7,8-23
+Princeton Ivy -14,Miami FL 7,9-20
+Pepperdine WCC -15,Miami FL 7,9-23
+Loyola Chicago A10 -15,Miami FL 7,8-23
+Brown Ivy -14,Miami FL 7,9-18
+IU Indy Horz -20,Miami FL 7,7-25
+Northeastern CAA -19,Miami FL 7,7-24
+Southeastern Louisiana Slnd -16,Miami FL 7,9-22
+Evansville MVC -17,Miami FL 7,7-25
+Cal St Bakersfield BW -18,Miami FL 7,8-24
+North Florida ASun -19,Miami FL 7,7-25
+Niagara MAAC -18,Miami FL 7,8-22
+UTSA (A) Rice Amer -17,Miami FL 7,5-24
+Air Force MWC -19,Miami FL 7,3-28
+North Alabama ASun -17,Miami FL 7,9-21
+Northern Illinois MAC -15,Miami FL 7,9-21
+Chicago St NEC -19,Miami FL 7,7-25
+Southern Indiana OVC -20,Miami FL 7,7-23
+Alcorn St SWAC -15,Miami FL 7,8-22
+Louisiana Monroe SB -23,Miami FL 7,4-28
+New Hampshire AE -16,Miami FL 7,9-21
+Maine AE -20,Miami FL 7,8-24
+Saint Francis NEC -19,Miami FL 7,7-24
+South Carolina St MEAC -16,Miami FL 7,9-21
+Bryant AE -17,Miami FL 7,9-22
+Maryland Eastern Shore MEAC -16,Miami FL 7,9-22
+Rider MAAC -19,Miami FL 7,4-25
+Binghamton AE -20,Miami FL 7,8-23
+UMKC Sum -21,Miami FL 7,4-27
+VMI SC -22,Miami FL 7,6-26
+Gardner Webb BSth -23,Miami FL 7,4-29
+Delaware St MEAC -18,Miami FL 7,7-22
+Coppin St MEAC -19,Miami FL 7,7-24
+Mississippi Valley St SWAC -23,Miami FL 7,3-29
+Western Illinois OVC -23,Miami FL 7,5-26
+La Salle A10 -13,Miami OH*** 11,9-22
+San Jose St MWC -13,Miami OH*** 11,8-23
+Princeton Ivy -14,Miami OH*** 11,9-20
+Pepperdine WCC -15,Miami OH*** 11,9-23
+Loyola Chicago A10 -15,Miami OH*** 11,8-23
+Brown Ivy -14,Miami OH*** 11,9-18
+IU Indy Horz -20,Miami OH*** 11,7-25
+Northeastern CAA -19,Miami OH*** 11,7-24
+Southeastern Louisiana Slnd -16,Miami OH*** 11,9-22
+Evansville MVC -17,Miami OH*** 11,7-25
+Cal St Bakersfield BW -18,Miami OH*** 11,8-24
+North Florida ASun -19,Miami OH*** 11,7-25
+Niagara MAAC -18,Miami OH*** 11,8-22
+UTSA (A) Rice Amer -17,Miami OH*** 11,5-24
+Air Force MWC -19,Miami OH*** 11,3-28
+North Alabama ASun -17,Miami OH*** 11,9-21
+Northern Illinois MAC -15,Miami OH*** 11,9-21
+Chicago St NEC -19,Miami OH*** 11,7-25
+Southern Indiana OVC -20,Miami OH*** 11,7-23
+Alcorn St SWAC -15,Miami OH*** 11,8-22
+Louisiana Monroe SB -23,Miami OH*** 11,4-28
+New Hampshire AE -16,Miami OH*** 11,9-21
+Maine AE -20,Miami OH*** 11,8-24
+Saint Francis NEC -19,Miami OH*** 11,7-24
+South Carolina St MEAC -16,Miami OH*** 11,9-21
+Bryant AE -17,Miami OH*** 11,9-22
+Maryland Eastern Shore MEAC -16,Miami OH*** 11,9-22
+Rider MAAC -19,Miami OH*** 11,4-25
+Binghamton AE -20,Miami OH*** 11,8-23
+UMKC Sum -21,Miami OH*** 11,4-27
+VMI SC -22,Miami OH*** 11,6-26
+Gardner Webb BSth -23,Miami OH*** 11,4-29
+Delaware St MEAC -18,Miami OH*** 11,7-22
+Coppin St MEAC -19,Miami OH*** 11,7-24
+Mississippi Valley St SWAC -23,Miami OH*** 11,3-29
+Western Illinois OVC -23,Miami OH*** 11,5-26
+La Salle A10 -13,Michigan St. 2,9-22
+San Jose St MWC -13,Michigan St. 2,8-23
+Princeton Ivy -14,Michigan St. 2,9-20
+Pepperdine WCC -15,Michigan St. 2,9-23
+Loyola Chicago A10 -15,Michigan St. 2,8-23
+Brown Ivy -14,Michigan St. 2,9-18
+IU Indy Horz -20,Michigan St. 2,7-25
+Northeastern CAA -19,Michigan St. 2,7-24
+Southeastern Louisiana Slnd -16,Michigan St. 2,9-22
+Evansville MVC -17,Michigan St. 2,7-25
+Cal St Bakersfield BW -18,Michigan St. 2,8-24
+North Florida ASun -19,Michigan St. 2,7-25
+Niagara MAAC -18,Michigan St. 2,8-22
+UTSA (A) Rice Amer -17,Michigan St. 2,5-24
+Air Force MWC -19,Michigan St. 2,3-28
+North Alabama ASun -17,Michigan St. 2,9-21
+Northern Illinois MAC -15,Michigan St. 2,9-21
+Chicago St NEC -19,Michigan St. 2,7-25
+Southern Indiana OVC -20,Michigan St. 2,7-23
+Alcorn St SWAC -15,Michigan St. 2,8-22
+Louisiana Monroe SB -23,Michigan St. 2,4-28
+New Hampshire AE -16,Michigan St. 2,9-21
+Maine AE -20,Michigan St. 2,8-24
+Saint Francis NEC -19,Michigan St. 2,7-24
+South Carolina St MEAC -16,Michigan St. 2,9-21
+Bryant AE -17,Michigan St. 2,9-22
+Maryland Eastern Shore MEAC -16,Michigan St. 2,9-22
+Rider MAAC -19,Michigan St. 2,4-25
+Binghamton AE -20,Michigan St. 2,8-23
+UMKC Sum -21,Michigan St. 2,4-27
+VMI SC -22,Michigan St. 2,6-26
+Gardner Webb BSth -23,Michigan St. 2,4-29
+Delaware St MEAC -18,Michigan St. 2,7-22
+Coppin St MEAC -19,Michigan St. 2,7-24
+Mississippi Valley St SWAC -23,Michigan St. 2,3-29
+Western Illinois OVC -23,Michigan St. 2,5-26
+La Salle A10 -13,Michigan*** 1,9-22
+San Jose St MWC -13,Michigan*** 1,8-23
+Princeton Ivy -14,Michigan*** 1,9-20
+Pepperdine WCC -15,Michigan*** 1,9-23
+Loyola Chicago A10 -15,Michigan*** 1,8-23
+Brown Ivy -14,Michigan*** 1,9-18
+IU Indy Horz -20,Michigan*** 1,7-25
+Northeastern CAA -19,Michigan*** 1,7-24
+Southeastern Louisiana Slnd -16,Michigan*** 1,9-22
+Evansville MVC -17,Michigan*** 1,7-25
+Cal St Bakersfield BW -18,Michigan*** 1,8-24
+North Florida ASun -19,Michigan*** 1,7-25
+Niagara MAAC -18,Michigan*** 1,8-22
+UTSA (A) Rice Amer -17,Michigan*** 1,5-24
+Air Force MWC -19,Michigan*** 1,3-28
+North Alabama ASun -17,Michigan*** 1,9-21
+Northern Illinois MAC -15,Michigan*** 1,9-21
+Chicago St NEC -19,Michigan*** 1,7-25
+Southern Indiana OVC -20,Michigan*** 1,7-23
+Alcorn St SWAC -15,Michigan*** 1,8-22
+Louisiana Monroe SB -23,Michigan*** 1,4-28
+New Hampshire AE -16,Michigan*** 1,9-21
+Maine AE -20,Michigan*** 1,8-24
+Saint Francis NEC -19,Michigan*** 1,7-24
+South Carolina St MEAC -16,Michigan*** 1,9-21
+Bryant AE -17,Michigan*** 1,9-22
+Maryland Eastern Shore MEAC -16,Michigan*** 1,9-22
+Rider MAAC -19,Michigan*** 1,4-25
+Binghamton AE -20,Michigan*** 1,8-23
+UMKC Sum -21,Michigan*** 1,4-27
+VMI SC -22,Michigan*** 1,6-26
+Gardner Webb BSth -23,Michigan*** 1,4-29
+Delaware St MEAC -18,Michigan*** 1,7-22
+Coppin St MEAC -19,Michigan*** 1,7-24
+Mississippi Valley St SWAC -23,Michigan*** 1,3-29
+Western Illinois OVC -23,Michigan*** 1,5-26
+La Salle A10 -13,Missouri 10,9-22
+San Jose St MWC -13,Missouri 10,8-23
+Princeton Ivy -14,Missouri 10,9-20
+Pepperdine WCC -15,Missouri 10,9-23
+Loyola Chicago A10 -15,Missouri 10,8-23
+Brown Ivy -14,Missouri 10,9-18
+IU Indy Horz -20,Missouri 10,7-25
+Northeastern CAA -19,Missouri 10,7-24
+Southeastern Louisiana Slnd -16,Missouri 10,9-22
+Evansville MVC -17,Missouri 10,7-25
+Cal St Bakersfield BW -18,Missouri 10,8-24
+North Florida ASun -19,Missouri 10,7-25
+Niagara MAAC -18,Missouri 10,8-22
+UTSA (A) Rice Amer -17,Missouri 10,5-24
+Air Force MWC -19,Missouri 10,3-28
+North Alabama ASun -17,Missouri 10,9-21
+Northern Illinois MAC -15,Missouri 10,9-21
+Chicago St NEC -19,Missouri 10,7-25
+Southern Indiana OVC -20,Missouri 10,7-23
+Alcorn St SWAC -15,Missouri 10,8-22
+Louisiana Monroe SB -23,Missouri 10,4-28
+New Hampshire AE -16,Missouri 10,9-21
+Maine AE -20,Missouri 10,8-24
+Saint Francis NEC -19,Missouri 10,7-24
+South Carolina St MEAC -16,Missouri 10,9-21
+Bryant AE -17,Missouri 10,9-22
+Maryland Eastern Shore MEAC -16,Missouri 10,9-22
+Rider MAAC -19,Missouri 10,4-25
+Binghamton AE -20,Missouri 10,8-23
+UMKC Sum -21,Missouri 10,4-27
+VMI SC -22,Missouri 10,6-26
+Gardner Webb BSth -23,Missouri 10,4-29
+Delaware St MEAC -18,Missouri 10,7-22
+Coppin St MEAC -19,Missouri 10,7-24
+Mississippi Valley St SWAC -23,Missouri 10,3-29
+Western Illinois OVC -23,Missouri 10,5-26
+La Salle A10 -13,N.C. State 9,9-22
+San Jose St MWC -13,N.C. State 9,8-23
+Princeton Ivy -14,N.C. State 9,9-20
+Pepperdine WCC -15,N.C. State 9,9-23
+Loyola Chicago A10 -15,N.C. State 9,8-23
+Brown Ivy -14,N.C. State 9,9-18
+IU Indy Horz -20,N.C. State 9,7-25
+Northeastern CAA -19,N.C. State 9,7-24
+Southeastern Louisiana Slnd -16,N.C. State 9,9-22
+Evansville MVC -17,N.C. State 9,7-25
+Cal St Bakersfield BW -18,N.C. State 9,8-24
+North Florida ASun -19,N.C. State 9,7-25
+Niagara MAAC -18,N.C. State 9,8-22
+UTSA (A) Rice Amer -17,N.C. State 9,5-24
+Air Force MWC -19,N.C. State 9,3-28
+North Alabama ASun -17,N.C. State 9,9-21
+Northern Illinois MAC -15,N.C. State 9,9-21
+Chicago St NEC -19,N.C. State 9,7-25
+Southern Indiana OVC -20,N.C. State 9,7-23
+Alcorn St SWAC -15,N.C. State 9,8-22
+Louisiana Monroe SB -23,N.C. State 9,4-28
+New Hampshire AE -16,N.C. State 9,9-21
+Maine AE -20,N.C. State 9,8-24
+Saint Francis NEC -19,N.C. State 9,7-24
+South Carolina St MEAC -16,N.C. State 9,9-21
+Bryant AE -17,N.C. State 9,9-22
+Maryland Eastern Shore MEAC -16,N.C. State 9,9-22
+Rider MAAC -19,N.C. State 9,4-25
+Binghamton AE -20,N.C. State 9,8-23
+UMKC Sum -21,N.C. State 9,4-27
+VMI SC -22,N.C. State 9,6-26
+Gardner Webb BSth -23,N.C. State 9,4-29
+Delaware St MEAC -18,N.C. State 9,7-22
+Coppin St MEAC -19,N.C. State 9,7-24
+Mississippi Valley St SWAC -23,N.C. State 9,3-29
+Western Illinois OVC -23,N.C. State 9,5-26
+La Salle A10 -13,Navy*** 14,9-22
+San Jose St MWC -13,Navy*** 14,8-23
+Princeton Ivy -14,Navy*** 14,9-20
+Pepperdine WCC -15,Navy*** 14,9-23
+Loyola Chicago A10 -15,Navy*** 14,8-23
+Brown Ivy -14,Navy*** 14,9-18
+IU Indy Horz -20,Navy*** 14,7-25
+Northeastern CAA -19,Navy*** 14,7-24
+Southeastern Louisiana Slnd -16,Navy*** 14,9-22
+Evansville MVC -17,Navy*** 14,7-25
+Cal St Bakersfield BW -18,Navy*** 14,8-24
+North Florida ASun -19,Navy*** 14,7-25
+Niagara MAAC -18,Navy*** 14,8-22
+UTSA (A) Rice Amer -17,Navy*** 14,5-24
+Air Force MWC -19,Navy*** 14,3-28
+North Alabama ASun -17,Navy*** 14,9-21
+Northern Illinois MAC -15,Navy*** 14,9-21
+Chicago St NEC -19,Navy*** 14,7-25
+Southern Indiana OVC -20,Navy*** 14,7-23
+Alcorn St SWAC -15,Navy*** 14,8-22
+Louisiana Monroe SB -23,Navy*** 14,4-28
+New Hampshire AE -16,Navy*** 14,9-21
+Maine AE -20,Navy*** 14,8-24
+Saint Francis NEC -19,Navy*** 14,7-24
+South Carolina St MEAC -16,Navy*** 14,9-21
+Bryant AE -17,Navy*** 14,9-22
+Maryland Eastern Shore MEAC -16,Navy*** 14,9-22
+Rider MAAC -19,Navy*** 14,4-25
+Binghamton AE -20,Navy*** 14,8-23
+UMKC Sum -21,Navy*** 14,4-27
+VMI SC -22,Navy*** 14,6-26
+Gardner Webb BSth -23,Navy*** 14,4-29
+Delaware St MEAC -18,Navy*** 14,7-22
+Coppin St MEAC -19,Navy*** 14,7-24
+Mississippi Valley St SWAC -23,Navy*** 14,3-29
+Western Illinois OVC -23,Navy*** 14,5-26
+La Salle A10 -13,Nebraska 3,9-22
+San Jose St MWC -13,Nebraska 3,8-23
+Princeton Ivy -14,Nebraska 3,9-20
+Pepperdine WCC -15,Nebraska 3,9-23
+Loyola Chicago A10 -15,Nebraska 3,8-23
+Brown Ivy -14,Nebraska 3,9-18
+IU Indy Horz -20,Nebraska 3,7-25
+Northeastern CAA -19,Nebraska 3,7-24
+Southeastern Louisiana Slnd -16,Nebraska 3,9-22
+Evansville MVC -17,Nebraska 3,7-25
+Cal St Bakersfield BW -18,Nebraska 3,8-24
+North Florida ASun -19,Nebraska 3,7-25
+Niagara MAAC -18,Nebraska 3,8-22
+UTSA (A) Rice Amer -17,Nebraska 3,5-24
+Air Force MWC -19,Nebraska 3,3-28
+North Alabama ASun -17,Nebraska 3,9-21
+Northern Illinois MAC -15,Nebraska 3,9-21
+Chicago St NEC -19,Nebraska 3,7-25
+Southern Indiana OVC -20,Nebraska 3,7-23
+Alcorn St SWAC -15,Nebraska 3,8-22
+Louisiana Monroe SB -23,Nebraska 3,4-28
+New Hampshire AE -16,Nebraska 3,9-21
+Maine AE -20,Nebraska 3,8-24
+Saint Francis NEC -19,Nebraska 3,7-24
+South Carolina St MEAC -16,Nebraska 3,9-21
+Bryant AE -17,Nebraska 3,9-22
+Maryland Eastern Shore MEAC -16,Nebraska 3,9-22
+Rider MAAC -19,Nebraska 3,4-25
+Binghamton AE -20,Nebraska 3,8-23
+UMKC Sum -21,Nebraska 3,4-27
+VMI SC -22,Nebraska 3,6-26
+Gardner Webb BSth -23,Nebraska 3,4-29
+Delaware St MEAC -18,Nebraska 3,7-22
+Coppin St MEAC -19,Nebraska 3,7-24
+Mississippi Valley St SWAC -23,Nebraska 3,3-29
+Western Illinois OVC -23,Nebraska 3,5-26
+La Salle A10 -13,North Carolina 5,9-22
+San Jose St MWC -13,North Carolina 5,8-23
+Princeton Ivy -14,North Carolina 5,9-20
+Pepperdine WCC -15,North Carolina 5,9-23
+Loyola Chicago A10 -15,North Carolina 5,8-23
+Brown Ivy -14,North Carolina 5,9-18
+IU Indy Horz -20,North Carolina 5,7-25
+Northeastern CAA -19,North Carolina 5,7-24
+Southeastern Louisiana Slnd -16,North Carolina 5,9-22
+Evansville MVC -17,North Carolina 5,7-25
+Cal St Bakersfield BW -18,North Carolina 5,8-24
+North Florida ASun -19,North Carolina 5,7-25
+Niagara MAAC -18,North Carolina 5,8-22
+UTSA (A) Rice Amer -17,North Carolina 5,5-24
+Air Force MWC -19,North Carolina 5,3-28
+North Alabama ASun -17,North Carolina 5,9-21
+Northern Illinois MAC -15,North Carolina 5,9-21
+Chicago St NEC -19,North Carolina 5,7-25
+Southern Indiana OVC -20,North Carolina 5,7-23
+Alcorn St SWAC -15,North Carolina 5,8-22
+Louisiana Monroe SB -23,North Carolina 5,4-28
+New Hampshire AE -16,North Carolina 5,9-21
+Maine AE -20,North Carolina 5,8-24
+Saint Francis NEC -19,North Carolina 5,7-24
+South Carolina St MEAC -16,North Carolina 5,9-21
+Bryant AE -17,North Carolina 5,9-22
+Maryland Eastern Shore MEAC -16,North Carolina 5,9-22
+Rider MAAC -19,North Carolina 5,4-25
+Binghamton AE -20,North Carolina 5,8-23
+UMKC Sum -21,North Carolina 5,4-27
+VMI SC -22,North Carolina 5,6-26
+Gardner Webb BSth -23,North Carolina 5,4-29
+Delaware St MEAC -18,North Carolina 5,7-22
+Coppin St MEAC -19,North Carolina 5,7-24
+Mississippi Valley St SWAC -23,North Carolina 5,3-29
+Western Illinois OVC -23,North Carolina 5,5-26
+La Salle A10 -13,North Dakota St.*** 14,9-22
+San Jose St MWC -13,North Dakota St.*** 14,8-23
+Princeton Ivy -14,North Dakota St.*** 14,9-20
+Pepperdine WCC -15,North Dakota St.*** 14,9-23
+Loyola Chicago A10 -15,North Dakota St.*** 14,8-23
+Brown Ivy -14,North Dakota St.*** 14,9-18
+IU Indy Horz -20,North Dakota St.*** 14,7-25
+Northeastern CAA -19,North Dakota St.*** 14,7-24
+Southeastern Louisiana Slnd -16,North Dakota St.*** 14,9-22
+Evansville MVC -17,North Dakota St.*** 14,7-25
+Cal St Bakersfield BW -18,North Dakota St.*** 14,8-24
+North Florida ASun -19,North Dakota St.*** 14,7-25
+Niagara MAAC -18,North Dakota St.*** 14,8-22
+UTSA (A) Rice Amer -17,North Dakota St.*** 14,5-24
+Air Force MWC -19,North Dakota St.*** 14,3-28
+North Alabama ASun -17,North Dakota St.*** 14,9-21
+Northern Illinois MAC -15,North Dakota St.*** 14,9-21
+Chicago St NEC -19,North Dakota St.*** 14,7-25
+Southern Indiana OVC -20,North Dakota St.*** 14,7-23
+Alcorn St SWAC -15,North Dakota St.*** 14,8-22
+Louisiana Monroe SB -23,North Dakota St.*** 14,4-28
+New Hampshire AE -16,North Dakota St.*** 14,9-21
+Maine AE -20,North Dakota St.*** 14,8-24
+Saint Francis NEC -19,North Dakota St.*** 14,7-24
+South Carolina St MEAC -16,North Dakota St.*** 14,9-21
+Bryant AE -17,North Dakota St.*** 14,9-22
+Maryland Eastern Shore MEAC -16,North Dakota St.*** 14,9-22
+Rider MAAC -19,North Dakota St.*** 14,4-25
+Binghamton AE -20,North Dakota St.*** 14,8-23
+UMKC Sum -21,North Dakota St.*** 14,4-27
+VMI SC -22,North Dakota St.*** 14,6-26
+Gardner Webb BSth -23,North Dakota St.*** 14,4-29
+Delaware St MEAC -18,North Dakota St.*** 14,7-22
+Coppin St MEAC -19,North Dakota St.*** 14,7-24
+Mississippi Valley St SWAC -23,North Dakota St.*** 14,3-29
+Western Illinois OVC -23,North Dakota St.*** 14,5-26
+La Salle A10 -13,Northern Colorado***,9-22
+San Jose St MWC -13,Northern Colorado***,8-23
+Princeton Ivy -14,Northern Colorado***,9-20
+Pepperdine WCC -15,Northern Colorado***,9-23
+Loyola Chicago A10 -15,Northern Colorado***,8-23
+Brown Ivy -14,Northern Colorado***,9-18
+IU Indy Horz -20,Northern Colorado***,7-25
+Northeastern CAA -19,Northern Colorado***,7-24
+Southeastern Louisiana Slnd -16,Northern Colorado***,9-22
+Evansville MVC -17,Northern Colorado***,7-25
+Cal St Bakersfield BW -18,Northern Colorado***,8-24
+North Florida ASun -19,Northern Colorado***,7-25
+Niagara MAAC -18,Northern Colorado***,8-22
+UTSA (A) Rice Amer -17,Northern Colorado***,5-24
+Air Force MWC -19,Northern Colorado***,3-28
+North Alabama ASun -17,Northern Colorado***,9-21
+Northern Illinois MAC -15,Northern Colorado***,9-21
+Chicago St NEC -19,Northern Colorado***,7-25
+Southern Indiana OVC -20,Northern Colorado***,7-23
+Alcorn St SWAC -15,Northern Colorado***,8-22
+Louisiana Monroe SB -23,Northern Colorado***,4-28
+New Hampshire AE -16,Northern Colorado***,9-21
+Maine AE -20,Northern Colorado***,8-24
+Saint Francis NEC -19,Northern Colorado***,7-24
+South Carolina St MEAC -16,Northern Colorado***,9-21
+Bryant AE -17,Northern Colorado***,9-22
+Maryland Eastern Shore MEAC -16,Northern Colorado***,9-22
+Rider MAAC -19,Northern Colorado***,4-25
+Binghamton AE -20,Northern Colorado***,8-23
+UMKC Sum -21,Northern Colorado***,4-27
+VMI SC -22,Northern Colorado***,6-26
+Gardner Webb BSth -23,Northern Colorado***,4-29
+Delaware St MEAC -18,Northern Colorado***,7-22
+Coppin St MEAC -19,Northern Colorado***,7-24
+Mississippi Valley St SWAC -23,Northern Colorado***,3-29
+Western Illinois OVC -23,Northern Colorado***,5-26
+La Salle A10 -13,Ohio St. 11,9-22
+San Jose St MWC -13,Ohio St. 11,8-23
+Princeton Ivy -14,Ohio St. 11,9-20
+Pepperdine WCC -15,Ohio St. 11,9-23
+Loyola Chicago A10 -15,Ohio St. 11,8-23
+Brown Ivy -14,Ohio St. 11,9-18
+IU Indy Horz -20,Ohio St. 11,7-25
+Northeastern CAA -19,Ohio St. 11,7-24
+Southeastern Louisiana Slnd -16,Ohio St. 11,9-22
+Evansville MVC -17,Ohio St. 11,7-25
+Cal St Bakersfield BW -18,Ohio St. 11,8-24
+North Florida ASun -19,Ohio St. 11,7-25
+Niagara MAAC -18,Ohio St. 11,8-22
+UTSA (A) Rice Amer -17,Ohio St. 11,5-24
+Air Force MWC -19,Ohio St. 11,3-28
+North Alabama ASun -17,Ohio St. 11,9-21
+Northern Illinois MAC -15,Ohio St. 11,9-21
+Chicago St NEC -19,Ohio St. 11,7-25
+Southern Indiana OVC -20,Ohio St. 11,7-23
+Alcorn St SWAC -15,Ohio St. 11,8-22
+Louisiana Monroe SB -23,Ohio St. 11,4-28
+New Hampshire AE -16,Ohio St. 11,9-21
+Maine AE -20,Ohio St. 11,8-24
+Saint Francis NEC -19,Ohio St. 11,7-24
+South Carolina St MEAC -16,Ohio St. 11,9-21
+Bryant AE -17,Ohio St. 11,9-22
+Maryland Eastern Shore MEAC -16,Ohio St. 11,9-22
+Rider MAAC -19,Ohio St. 11,4-25
+Binghamton AE -20,Ohio St. 11,8-23
+UMKC Sum -21,Ohio St. 11,4-27
+VMI SC -22,Ohio St. 11,6-26
+Gardner Webb BSth -23,Ohio St. 11,4-29
+Delaware St MEAC -18,Ohio St. 11,7-22
+Coppin St MEAC -19,Ohio St. 11,7-24
+Mississippi Valley St SWAC -23,Ohio St. 11,3-29
+Western Illinois OVC -23,Ohio St. 11,5-26
+La Salle A10 -13,Purdue 3,9-22
+San Jose St MWC -13,Purdue 3,8-23
+Princeton Ivy -14,Purdue 3,9-20
+Pepperdine WCC -15,Purdue 3,9-23
+Loyola Chicago A10 -15,Purdue 3,8-23
+Brown Ivy -14,Purdue 3,9-18
+IU Indy Horz -20,Purdue 3,7-25
+Northeastern CAA -19,Purdue 3,7-24
+Southeastern Louisiana Slnd -16,Purdue 3,9-22
+Evansville MVC -17,Purdue 3,7-25
+Cal St Bakersfield BW -18,Purdue 3,8-24
+North Florida ASun -19,Purdue 3,7-25
+Niagara MAAC -18,Purdue 3,8-22
+UTSA (A) Rice Amer -17,Purdue 3,5-24
+Air Force MWC -19,Purdue 3,3-28
+North Alabama ASun -17,Purdue 3,9-21
+Northern Illinois MAC -15,Purdue 3,9-21
+Chicago St NEC -19,Purdue 3,7-25
+Southern Indiana OVC -20,Purdue 3,7-23
+Alcorn St SWAC -15,Purdue 3,8-22
+Louisiana Monroe SB -23,Purdue 3,4-28
+New Hampshire AE -16,Purdue 3,9-21
+Maine AE -20,Purdue 3,8-24
+Saint Francis NEC -19,Purdue 3,7-24
+South Carolina St MEAC -16,Purdue 3,9-21
+Bryant AE -17,Purdue 3,9-22
+Maryland Eastern Shore MEAC -16,Purdue 3,9-22
+Rider MAAC -19,Purdue 3,4-25
+Binghamton AE -20,Purdue 3,8-23
+UMKC Sum -21,Purdue 3,4-27
+VMI SC -22,Purdue 3,6-26
+Gardner Webb BSth -23,Purdue 3,4-29
+Delaware St MEAC -18,Purdue 3,7-22
+Coppin St MEAC -19,Purdue 3,7-24
+Mississippi Valley St SWAC -23,Purdue 3,3-29
+Western Illinois OVC -23,Purdue 3,5-26
+La Salle A10 -13,Robert Morris***,9-22
+San Jose St MWC -13,Robert Morris***,8-23
+Princeton Ivy -14,Robert Morris***,9-20
+Pepperdine WCC -15,Robert Morris***,9-23
+Loyola Chicago A10 -15,Robert Morris***,8-23
+Brown Ivy -14,Robert Morris***,9-18
+IU Indy Horz -20,Robert Morris***,7-25
+Northeastern CAA -19,Robert Morris***,7-24
+Southeastern Louisiana Slnd -16,Robert Morris***,9-22
+Evansville MVC -17,Robert Morris***,7-25
+Cal St Bakersfield BW -18,Robert Morris***,8-24
+North Florida ASun -19,Robert Morris***,7-25
+Niagara MAAC -18,Robert Morris***,8-22
+UTSA (A) Rice Amer -17,Robert Morris***,5-24
+Air Force MWC -19,Robert Morris***,3-28
+North Alabama ASun -17,Robert Morris***,9-21
+Northern Illinois MAC -15,Robert Morris***,9-21
+Chicago St NEC -19,Robert Morris***,7-25
+Southern Indiana OVC -20,Robert Morris***,7-23
+Alcorn St SWAC -15,Robert Morris***,8-22
+Louisiana Monroe SB -23,Robert Morris***,4-28
+New Hampshire AE -16,Robert Morris***,9-21
+Maine AE -20,Robert Morris***,8-24
+Saint Francis NEC -19,Robert Morris***,7-24
+South Carolina St MEAC -16,Robert Morris***,9-21
+Bryant AE -17,Robert Morris***,9-22
+Maryland Eastern Shore MEAC -16,Robert Morris***,9-22
+Rider MAAC -19,Robert Morris***,4-25
+Binghamton AE -20,Robert Morris***,8-23
+UMKC Sum -21,Robert Morris***,4-27
+VMI SC -22,Robert Morris***,6-26
+Gardner Webb BSth -23,Robert Morris***,4-29
+Delaware St MEAC -18,Robert Morris***,7-22
+Coppin St MEAC -19,Robert Morris***,7-24
+Mississippi Valley St SWAC -23,Robert Morris***,3-29
+Western Illinois OVC -23,Robert Morris***,5-26
+La Salle A10 -13,SMU 11,9-22
+San Jose St MWC -13,SMU 11,8-23
+Princeton Ivy -14,SMU 11,9-20
+Pepperdine WCC -15,SMU 11,9-23
+Loyola Chicago A10 -15,SMU 11,8-23
+Brown Ivy -14,SMU 11,9-18
+IU Indy Horz -20,SMU 11,7-25
+Northeastern CAA -19,SMU 11,7-24
+Southeastern Louisiana Slnd -16,SMU 11,9-22
+Evansville MVC -17,SMU 11,7-25
+Cal St Bakersfield BW -18,SMU 11,8-24
+North Florida ASun -19,SMU 11,7-25
+Niagara MAAC -18,SMU 11,8-22
+UTSA (A) Rice Amer -17,SMU 11,5-24
+Air Force MWC -19,SMU 11,3-28
+North Alabama ASun -17,SMU 11,9-21
+Northern Illinois MAC -15,SMU 11,9-21
+Chicago St NEC -19,SMU 11,7-25
+Southern Indiana OVC -20,SMU 11,7-23
+Alcorn St SWAC -15,SMU 11,8-22
+Louisiana Monroe SB -23,SMU 11,4-28
+New Hampshire AE -16,SMU 11,9-21
+Maine AE -20,SMU 11,8-24
+Saint Francis NEC -19,SMU 11,7-24
+South Carolina St MEAC -16,SMU 11,9-21
+Bryant AE -17,SMU 11,9-22
+Maryland Eastern Shore MEAC -16,SMU 11,9-22
+Rider MAAC -19,SMU 11,4-25
+Binghamton AE -20,SMU 11,8-23
+UMKC Sum -21,SMU 11,4-27
+VMI SC -22,SMU 11,6-26
+Gardner Webb BSth -23,SMU 11,4-29
+Delaware St MEAC -18,SMU 11,7-22
+Coppin St MEAC -19,SMU 11,7-24
+Mississippi Valley St SWAC -23,SMU 11,3-29
+Western Illinois OVC -23,SMU 11,5-26
+La Salle A10 -13,Saint Louis*** 8,9-22
+San Jose St MWC -13,Saint Louis*** 8,8-23
+Princeton Ivy -14,Saint Louis*** 8,9-20
+Pepperdine WCC -15,Saint Louis*** 8,9-23
+Loyola Chicago A10 -15,Saint Louis*** 8,8-23
+Brown Ivy -14,Saint Louis*** 8,9-18
+IU Indy Horz -20,Saint Louis*** 8,7-25
+Northeastern CAA -19,Saint Louis*** 8,7-24
+Southeastern Louisiana Slnd -16,Saint Louis*** 8,9-22
+Evansville MVC -17,Saint Louis*** 8,7-25
+Cal St Bakersfield BW -18,Saint Louis*** 8,8-24
+North Florida ASun -19,Saint Louis*** 8,7-25
+Niagara MAAC -18,Saint Louis*** 8,8-22
+UTSA (A) Rice Amer -17,Saint Louis*** 8,5-24
+Air Force MWC -19,Saint Louis*** 8,3-28
+North Alabama ASun -17,Saint Louis*** 8,9-21
+Northern Illinois MAC -15,Saint Louis*** 8,9-21
+Chicago St NEC -19,Saint Louis*** 8,7-25
+Southern Indiana OVC -20,Saint Louis*** 8,7-23
+Alcorn St SWAC -15,Saint Louis*** 8,8-22
+Louisiana Monroe SB -23,Saint Louis*** 8,4-28
+New Hampshire AE -16,Saint Louis*** 8,9-21
+Maine AE -20,Saint Louis*** 8,8-24
+Saint Francis NEC -19,Saint Louis*** 8,7-24
+South Carolina St MEAC -16,Saint Louis*** 8,9-21
+Bryant AE -17,Saint Louis*** 8,9-22
+Maryland Eastern Shore MEAC -16,Saint Louis*** 8,9-22
+Rider MAAC -19,Saint Louis*** 8,4-25
+Binghamton AE -20,Saint Louis*** 8,8-23
+UMKC Sum -21,Saint Louis*** 8,4-27
+VMI SC -22,Saint Louis*** 8,6-26
+Gardner Webb BSth -23,Saint Louis*** 8,4-29
+Delaware St MEAC -18,Saint Louis*** 8,7-22
+Coppin St MEAC -19,Saint Louis*** 8,7-24
+Mississippi Valley St SWAC -23,Saint Louis*** 8,3-29
+Western Illinois OVC -23,Saint Louis*** 8,5-26
+La Salle A10 -13,Saint Mary's 7,9-22
+San Jose St MWC -13,Saint Mary's 7,8-23
+Princeton Ivy -14,Saint Mary's 7,9-20
+Pepperdine WCC -15,Saint Mary's 7,9-23
+Loyola Chicago A10 -15,Saint Mary's 7,8-23
+Brown Ivy -14,Saint Mary's 7,9-18
+IU Indy Horz -20,Saint Mary's 7,7-25
+Northeastern CAA -19,Saint Mary's 7,7-24
+Southeastern Louisiana Slnd -16,Saint Mary's 7,9-22
+Evansville MVC -17,Saint Mary's 7,7-25
+Cal St Bakersfield BW -18,Saint Mary's 7,8-24
+North Florida ASun -19,Saint Mary's 7,7-25
+Niagara MAAC -18,Saint Mary's 7,8-22
+UTSA (A) Rice Amer -17,Saint Mary's 7,5-24
+Air Force MWC -19,Saint Mary's 7,3-28
+North Alabama ASun -17,Saint Mary's 7,9-21
+Northern Illinois MAC -15,Saint Mary's 7,9-21
+Chicago St NEC -19,Saint Mary's 7,7-25
+Southern Indiana OVC -20,Saint Mary's 7,7-23
+Alcorn St SWAC -15,Saint Mary's 7,8-22
+Louisiana Monroe SB -23,Saint Mary's 7,4-28
+New Hampshire AE -16,Saint Mary's 7,9-21
+Maine AE -20,Saint Mary's 7,8-24
+Saint Francis NEC -19,Saint Mary's 7,7-24
+South Carolina St MEAC -16,Saint Mary's 7,9-21
+Bryant AE -17,Saint Mary's 7,9-22
+Maryland Eastern Shore MEAC -16,Saint Mary's 7,9-22
+Rider MAAC -19,Saint Mary's 7,4-25
+Binghamton AE -20,Saint Mary's 7,8-23
+UMKC Sum -21,Saint Mary's 7,4-27
+VMI SC -22,Saint Mary's 7,6-26
+Gardner Webb BSth -23,Saint Mary's 7,4-29
+Delaware St MEAC -18,Saint Mary's 7,7-22
+Coppin St MEAC -19,Saint Mary's 7,7-24
+Mississippi Valley St SWAC -23,Saint Mary's 7,3-29
+Western Illinois OVC -23,Saint Mary's 7,5-26
+La Salle A10 -13,Santa Clara 11,9-22
+San Jose St MWC -13,Santa Clara 11,8-23
+Princeton Ivy -14,Santa Clara 11,9-20
+Pepperdine WCC -15,Santa Clara 11,9-23
+Loyola Chicago A10 -15,Santa Clara 11,8-23
+Brown Ivy -14,Santa Clara 11,9-18
+IU Indy Horz -20,Santa Clara 11,7-25
+Northeastern CAA -19,Santa Clara 11,7-24
+Southeastern Louisiana Slnd -16,Santa Clara 11,9-22
+Evansville MVC -17,Santa Clara 11,7-25
+Cal St Bakersfield BW -18,Santa Clara 11,8-24
+North Florida ASun -19,Santa Clara 11,7-25
+Niagara MAAC -18,Santa Clara 11,8-22
+UTSA (A) Rice Amer -17,Santa Clara 11,5-24
+Air Force MWC -19,Santa Clara 11,3-28
+North Alabama ASun -17,Santa Clara 11,9-21
+Northern Illinois MAC -15,Santa Clara 11,9-21
+Chicago St NEC -19,Santa Clara 11,7-25
+Southern Indiana OVC -20,Santa Clara 11,7-23
+Alcorn St SWAC -15,Santa Clara 11,8-22
+Louisiana Monroe SB -23,Santa Clara 11,4-28
+New Hampshire AE -16,Santa Clara 11,9-21
+Maine AE -20,Santa Clara 11,8-24
+Saint Francis NEC -19,Santa Clara 11,7-24
+South Carolina St MEAC -16,Santa Clara 11,9-21
+Bryant AE -17,Santa Clara 11,9-22
+Maryland Eastern Shore MEAC -16,Santa Clara 11,9-22
+Rider MAAC -19,Santa Clara 11,4-25
+Binghamton AE -20,Santa Clara 11,8-23
+UMKC Sum -21,Santa Clara 11,4-27
+VMI SC -22,Santa Clara 11,6-26
+Gardner Webb BSth -23,Santa Clara 11,4-29
+Delaware St MEAC -18,Santa Clara 11,7-22
+Coppin St MEAC -19,Santa Clara 11,7-24
+Mississippi Valley St SWAC -23,Santa Clara 11,3-29
+Western Illinois OVC -23,Santa Clara 11,5-26
+La Salle A10 -13,South Florida*** 12,9-22
+San Jose St MWC -13,South Florida*** 12,8-23
+Princeton Ivy -14,South Florida*** 12,9-20
+Pepperdine WCC -15,South Florida*** 12,9-23
+Loyola Chicago A10 -15,South Florida*** 12,8-23
+Brown Ivy -14,South Florida*** 12,9-18
+IU Indy Horz -20,South Florida*** 12,7-25
+Northeastern CAA -19,South Florida*** 12,7-24
+Southeastern Louisiana Slnd -16,South Florida*** 12,9-22
+Evansville MVC -17,South Florida*** 12,7-25
+Cal St Bakersfield BW -18,South Florida*** 12,8-24
+North Florida ASun -19,South Florida*** 12,7-25
+Niagara MAAC -18,South Florida*** 12,8-22
+UTSA (A) Rice Amer -17,South Florida*** 12,5-24
+Air Force MWC -19,South Florida*** 12,3-28
+North Alabama ASun -17,South Florida*** 12,9-21
+Northern Illinois MAC -15,South Florida*** 12,9-21
+Chicago St NEC -19,South Florida*** 12,7-25
+Southern Indiana OVC -20,South Florida*** 12,7-23
+Alcorn St SWAC -15,South Florida*** 12,8-22
+Louisiana Monroe SB -23,South Florida*** 12,4-28
+New Hampshire AE -16,South Florida*** 12,9-21
+Maine AE -20,South Florida*** 12,8-24
+Saint Francis NEC -19,South Florida*** 12,7-24
+South Carolina St MEAC -16,South Florida*** 12,9-21
+Bryant AE -17,South Florida*** 12,9-22
+Maryland Eastern Shore MEAC -16,South Florida*** 12,9-22
+Rider MAAC -19,South Florida*** 12,4-25
+Binghamton AE -20,South Florida*** 12,8-23
+UMKC Sum -21,South Florida*** 12,4-27
+VMI SC -22,South Florida*** 12,6-26
+Gardner Webb BSth -23,South Florida*** 12,4-29
+Delaware St MEAC -18,South Florida*** 12,7-22
+Coppin St MEAC -19,South Florida*** 12,7-24
+Mississippi Valley St SWAC -23,South Florida*** 12,3-29
+Western Illinois OVC -23,South Florida*** 12,5-26
+La Salle A10 -13,St. John's 6,9-22
+San Jose St MWC -13,St. John's 6,8-23
+Princeton Ivy -14,St. John's 6,9-20
+Pepperdine WCC -15,St. John's 6,9-23
+Loyola Chicago A10 -15,St. John's 6,8-23
+Brown Ivy -14,St. John's 6,9-18
+IU Indy Horz -20,St. John's 6,7-25
+Northeastern CAA -19,St. John's 6,7-24
+Southeastern Louisiana Slnd -16,St. John's 6,9-22
+Evansville MVC -17,St. John's 6,7-25
+Cal St Bakersfield BW -18,St. John's 6,8-24
+North Florida ASun -19,St. John's 6,7-25
+Niagara MAAC -18,St. John's 6,8-22
+UTSA (A) Rice Amer -17,St. John's 6,5-24
+Air Force MWC -19,St. John's 6,3-28
+North Alabama ASun -17,St. John's 6,9-21
+Northern Illinois MAC -15,St. John's 6,9-21
+Chicago St NEC -19,St. John's 6,7-25
+Southern Indiana OVC -20,St. John's 6,7-23
+Alcorn St SWAC -15,St. John's 6,8-22
+Louisiana Monroe SB -23,St. John's 6,4-28
+New Hampshire AE -16,St. John's 6,9-21
+Maine AE -20,St. John's 6,8-24
+Saint Francis NEC -19,St. John's 6,7-24
+South Carolina St MEAC -16,St. John's 6,9-21
+Bryant AE -17,St. John's 6,9-22
+Maryland Eastern Shore MEAC -16,St. John's 6,9-22
+Rider MAAC -19,St. John's 6,4-25
+Binghamton AE -20,St. John's 6,8-23
+UMKC Sum -21,St. John's 6,4-27
+VMI SC -22,St. John's 6,6-26
+Gardner Webb BSth -23,St. John's 6,4-29
+Delaware St MEAC -18,St. John's 6,7-22
+Coppin St MEAC -19,St. John's 6,7-24
+Mississippi Valley St SWAC -23,St. John's 6,3-29
+Western Illinois OVC -23,St. John's 6,5-26
+La Salle A10 -13,TCU 10,9-22
+San Jose St MWC -13,TCU 10,8-23
+Princeton Ivy -14,TCU 10,9-20
+Pepperdine WCC -15,TCU 10,9-23
+Loyola Chicago A10 -15,TCU 10,8-23
+Brown Ivy -14,TCU 10,9-18
+IU Indy Horz -20,TCU 10,7-25
+Northeastern CAA -19,TCU 10,7-24
+Southeastern Louisiana Slnd -16,TCU 10,9-22
+Evansville MVC -17,TCU 10,7-25
+Cal St Bakersfield BW -18,TCU 10,8-24
+North Florida ASun -19,TCU 10,7-25
+Niagara MAAC -18,TCU 10,8-22
+UTSA (A) Rice Amer -17,TCU 10,5-24
+Air Force MWC -19,TCU 10,3-28
+North Alabama ASun -17,TCU 10,9-21
+Northern Illinois MAC -15,TCU 10,9-21
+Chicago St NEC -19,TCU 10,7-25
+Southern Indiana OVC -20,TCU 10,7-23
+Alcorn St SWAC -15,TCU 10,8-22
+Louisiana Monroe SB -23,TCU 10,4-28
+New Hampshire AE -16,TCU 10,9-21
+Maine AE -20,TCU 10,8-24
+Saint Francis NEC -19,TCU 10,7-24
+South Carolina St MEAC -16,TCU 10,9-21
+Bryant AE -17,TCU 10,9-22
+Maryland Eastern Shore MEAC -16,TCU 10,9-22
+Rider MAAC -19,TCU 10,4-25
+Binghamton AE -20,TCU 10,8-23
+UMKC Sum -21,TCU 10,4-27
+VMI SC -22,TCU 10,6-26
+Gardner Webb BSth -23,TCU 10,4-29
+Delaware St MEAC -18,TCU 10,7-22
+Coppin St MEAC -19,TCU 10,7-24
+Mississippi Valley St SWAC -23,TCU 10,3-29
+Western Illinois OVC -23,TCU 10,5-26
+La Salle A10 -13,Tennessee St.*** 16,9-22
+San Jose St MWC -13,Tennessee St.*** 16,8-23
+Princeton Ivy -14,Tennessee St.*** 16,9-20
+Pepperdine WCC -15,Tennessee St.*** 16,9-23
+Loyola Chicago A10 -15,Tennessee St.*** 16,8-23
+Brown Ivy -14,Tennessee St.*** 16,9-18
+IU Indy Horz -20,Tennessee St.*** 16,7-25
+Northeastern CAA -19,Tennessee St.*** 16,7-24
+Southeastern Louisiana Slnd -16,Tennessee St.*** 16,9-22
+Evansville MVC -17,Tennessee St.*** 16,7-25
+Cal St Bakersfield BW -18,Tennessee St.*** 16,8-24
+North Florida ASun -19,Tennessee St.*** 16,7-25
+Niagara MAAC -18,Tennessee St.*** 16,8-22
+UTSA (A) Rice Amer -17,Tennessee St.*** 16,5-24
+Air Force MWC -19,Tennessee St.*** 16,3-28
+North Alabama ASun -17,Tennessee St.*** 16,9-21
+Northern Illinois MAC -15,Tennessee St.*** 16,9-21
+Chicago St NEC -19,Tennessee St.*** 16,7-25
+Southern Indiana OVC -20,Tennessee St.*** 16,7-23
+Alcorn St SWAC -15,Tennessee St.*** 16,8-22
+Louisiana Monroe SB -23,Tennessee St.*** 16,4-28
+New Hampshire AE -16,Tennessee St.*** 16,9-21
+Maine AE -20,Tennessee St.*** 16,8-24
+Saint Francis NEC -19,Tennessee St.*** 16,7-24
+South Carolina St MEAC -16,Tennessee St.*** 16,9-21
+Bryant AE -17,Tennessee St.*** 16,9-22
+Maryland Eastern Shore MEAC -16,Tennessee St.*** 16,9-22
+Rider MAAC -19,Tennessee St.*** 16,4-25
+Binghamton AE -20,Tennessee St.*** 16,8-23
+UMKC Sum -21,Tennessee St.*** 16,4-27
+VMI SC -22,Tennessee St.*** 16,6-26
+Gardner Webb BSth -23,Tennessee St.*** 16,4-29
+Delaware St MEAC -18,Tennessee St.*** 16,7-22
+Coppin St MEAC -19,Tennessee St.*** 16,7-24
+Mississippi Valley St SWAC -23,Tennessee St.*** 16,3-29
+Western Illinois OVC -23,Tennessee St.*** 16,5-26
+La Salle A10 -13,Tennessee 5,9-22
+San Jose St MWC -13,Tennessee 5,8-23
+Princeton Ivy -14,Tennessee 5,9-20
+Pepperdine WCC -15,Tennessee 5,9-23
+Loyola Chicago A10 -15,Tennessee 5,8-23
+Brown Ivy -14,Tennessee 5,9-18
+IU Indy Horz -20,Tennessee 5,7-25
+Northeastern CAA -19,Tennessee 5,7-24
+Southeastern Louisiana Slnd -16,Tennessee 5,9-22
+Evansville MVC -17,Tennessee 5,7-25
+Cal St Bakersfield BW -18,Tennessee 5,8-24
+North Florida ASun -19,Tennessee 5,7-25
+Niagara MAAC -18,Tennessee 5,8-22
+UTSA (A) Rice Amer -17,Tennessee 5,5-24
+Air Force MWC -19,Tennessee 5,3-28
+North Alabama ASun -17,Tennessee 5,9-21
+Northern Illinois MAC -15,Tennessee 5,9-21
+Chicago St NEC -19,Tennessee 5,7-25
+Southern Indiana OVC -20,Tennessee 5,7-23
+Alcorn St SWAC -15,Tennessee 5,8-22
+Louisiana Monroe SB -23,Tennessee 5,4-28
+New Hampshire AE -16,Tennessee 5,9-21
+Maine AE -20,Tennessee 5,8-24
+Saint Francis NEC -19,Tennessee 5,7-24
+South Carolina St MEAC -16,Tennessee 5,9-21
+Bryant AE -17,Tennessee 5,9-22
+Maryland Eastern Shore MEAC -16,Tennessee 5,9-22
+Rider MAAC -19,Tennessee 5,4-25
+Binghamton AE -20,Tennessee 5,8-23
+UMKC Sum -21,Tennessee 5,4-27
+VMI SC -22,Tennessee 5,6-26
+Gardner Webb BSth -23,Tennessee 5,4-29
+Delaware St MEAC -18,Tennessee 5,7-22
+Coppin St MEAC -19,Tennessee 5,7-24
+Mississippi Valley St SWAC -23,Tennessee 5,3-29
+Western Illinois OVC -23,Tennessee 5,5-26
+La Salle A10 -13,Texas A&M 10,9-22
+San Jose St MWC -13,Texas A&M 10,8-23
+Princeton Ivy -14,Texas A&M 10,9-20
+Pepperdine WCC -15,Texas A&M 10,9-23
+Loyola Chicago A10 -15,Texas A&M 10,8-23
+Brown Ivy -14,Texas A&M 10,9-18
+IU Indy Horz -20,Texas A&M 10,7-25
+Northeastern CAA -19,Texas A&M 10,7-24
+Southeastern Louisiana Slnd -16,Texas A&M 10,9-22
+Evansville MVC -17,Texas A&M 10,7-25
+Cal St Bakersfield BW -18,Texas A&M 10,8-24
+North Florida ASun -19,Texas A&M 10,7-25
+Niagara MAAC -18,Texas A&M 10,8-22
+UTSA (A) Rice Amer -17,Texas A&M 10,5-24
+Air Force MWC -19,Texas A&M 10,3-28
+North Alabama ASun -17,Texas A&M 10,9-21
+Northern Illinois MAC -15,Texas A&M 10,9-21
+Chicago St NEC -19,Texas A&M 10,7-25
+Southern Indiana OVC -20,Texas A&M 10,7-23
+Alcorn St SWAC -15,Texas A&M 10,8-22
+Louisiana Monroe SB -23,Texas A&M 10,4-28
+New Hampshire AE -16,Texas A&M 10,9-21
+Maine AE -20,Texas A&M 10,8-24
+Saint Francis NEC -19,Texas A&M 10,7-24
+South Carolina St MEAC -16,Texas A&M 10,9-21
+Bryant AE -17,Texas A&M 10,9-22
+Maryland Eastern Shore MEAC -16,Texas A&M 10,9-22
+Rider MAAC -19,Texas A&M 10,4-25
+Binghamton AE -20,Texas A&M 10,8-23
+UMKC Sum -21,Texas A&M 10,4-27
+VMI SC -22,Texas A&M 10,6-26
+Gardner Webb BSth -23,Texas A&M 10,4-29
+Delaware St MEAC -18,Texas A&M 10,7-22
+Coppin St MEAC -19,Texas A&M 10,7-24
+Mississippi Valley St SWAC -23,Texas A&M 10,3-29
+Western Illinois OVC -23,Texas A&M 10,5-26
+La Salle A10 -13,Texas Tech 3,9-22
+San Jose St MWC -13,Texas Tech 3,8-23
+Princeton Ivy -14,Texas Tech 3,9-20
+Pepperdine WCC -15,Texas Tech 3,9-23
+Loyola Chicago A10 -15,Texas Tech 3,8-23
+Brown Ivy -14,Texas Tech 3,9-18
+IU Indy Horz -20,Texas Tech 3,7-25
+Northeastern CAA -19,Texas Tech 3,7-24
+Southeastern Louisiana Slnd -16,Texas Tech 3,9-22
+Evansville MVC -17,Texas Tech 3,7-25
+Cal St Bakersfield BW -18,Texas Tech 3,8-24
+North Florida ASun -19,Texas Tech 3,7-25
+Niagara MAAC -18,Texas Tech 3,8-22
+UTSA (A) Rice Amer -17,Texas Tech 3,5-24
+Air Force MWC -19,Texas Tech 3,3-28
+North Alabama ASun -17,Texas Tech 3,9-21
+Northern Illinois MAC -15,Texas Tech 3,9-21
+Chicago St NEC -19,Texas Tech 3,7-25
+Southern Indiana OVC -20,Texas Tech 3,7-23
+Alcorn St SWAC -15,Texas Tech 3,8-22
+Louisiana Monroe SB -23,Texas Tech 3,4-28
+New Hampshire AE -16,Texas Tech 3,9-21
+Maine AE -20,Texas Tech 3,8-24
+Saint Francis NEC -19,Texas Tech 3,7-24
+South Carolina St MEAC -16,Texas Tech 3,9-21
+Bryant AE -17,Texas Tech 3,9-22
+Maryland Eastern Shore MEAC -16,Texas Tech 3,9-22
+Rider MAAC -19,Texas Tech 3,4-25
+Binghamton AE -20,Texas Tech 3,8-23
+UMKC Sum -21,Texas Tech 3,4-27
+VMI SC -22,Texas Tech 3,6-26
+Gardner Webb BSth -23,Texas Tech 3,4-29
+Delaware St MEAC -18,Texas Tech 3,7-22
+Coppin St MEAC -19,Texas Tech 3,7-24
+Mississippi Valley St SWAC -23,Texas Tech 3,3-29
+Western Illinois OVC -23,Texas Tech 3,5-26
+La Salle A10 -13,Texas 10,9-22
+San Jose St MWC -13,Texas 10,8-23
+Princeton Ivy -14,Texas 10,9-20
+Pepperdine WCC -15,Texas 10,9-23
+Loyola Chicago A10 -15,Texas 10,8-23
+Brown Ivy -14,Texas 10,9-18
+IU Indy Horz -20,Texas 10,7-25
+Northeastern CAA -19,Texas 10,7-24
+Southeastern Louisiana Slnd -16,Texas 10,9-22
+Evansville MVC -17,Texas 10,7-25
+Cal St Bakersfield BW -18,Texas 10,8-24
+North Florida ASun -19,Texas 10,7-25
+Niagara MAAC -18,Texas 10,8-22
+UTSA (A) Rice Amer -17,Texas 10,5-24
+Air Force MWC -19,Texas 10,3-28
+North Alabama ASun -17,Texas 10,9-21
+Northern Illinois MAC -15,Texas 10,9-21
+Chicago St NEC -19,Texas 10,7-25
+Southern Indiana OVC -20,Texas 10,7-23
+Alcorn St SWAC -15,Texas 10,8-22
+Louisiana Monroe SB -23,Texas 10,4-28
+New Hampshire AE -16,Texas 10,9-21
+Maine AE -20,Texas 10,8-24
+Saint Francis NEC -19,Texas 10,7-24
+South Carolina St MEAC -16,Texas 10,9-21
+Bryant AE -17,Texas 10,9-22
+Maryland Eastern Shore MEAC -16,Texas 10,9-22
+Rider MAAC -19,Texas 10,4-25
+Binghamton AE -20,Texas 10,8-23
+UMKC Sum -21,Texas 10,4-27
+VMI SC -22,Texas 10,6-26
+Gardner Webb BSth -23,Texas 10,4-29
+Delaware St MEAC -18,Texas 10,7-22
+Coppin St MEAC -19,Texas 10,7-24
+Mississippi Valley St SWAC -23,Texas 10,3-29
+Western Illinois OVC -23,Texas 10,5-26
+La Salle A10 -13,Troy*** 14,9-22
+San Jose St MWC -13,Troy*** 14,8-23
+Princeton Ivy -14,Troy*** 14,9-20
+Pepperdine WCC -15,Troy*** 14,9-23
+Loyola Chicago A10 -15,Troy*** 14,8-23
+Brown Ivy -14,Troy*** 14,9-18
+IU Indy Horz -20,Troy*** 14,7-25
+Northeastern CAA -19,Troy*** 14,7-24
+Southeastern Louisiana Slnd -16,Troy*** 14,9-22
+Evansville MVC -17,Troy*** 14,7-25
+Cal St Bakersfield BW -18,Troy*** 14,8-24
+North Florida ASun -19,Troy*** 14,7-25
+Niagara MAAC -18,Troy*** 14,8-22
+UTSA (A) Rice Amer -17,Troy*** 14,5-24
+Air Force MWC -19,Troy*** 14,3-28
+North Alabama ASun -17,Troy*** 14,9-21
+Northern Illinois MAC -15,Troy*** 14,9-21
+Chicago St NEC -19,Troy*** 14,7-25
+Southern Indiana OVC -20,Troy*** 14,7-23
+Alcorn St SWAC -15,Troy*** 14,8-22
+Louisiana Monroe SB -23,Troy*** 14,4-28
+New Hampshire AE -16,Troy*** 14,9-21
+Maine AE -20,Troy*** 14,8-24
+Saint Francis NEC -19,Troy*** 14,7-24
+South Carolina St MEAC -16,Troy*** 14,9-21
+Bryant AE -17,Troy*** 14,9-22
+Maryland Eastern Shore MEAC -16,Troy*** 14,9-22
+Rider MAAC -19,Troy*** 14,4-25
+Binghamton AE -20,Troy*** 14,8-23
+UMKC Sum -21,Troy*** 14,4-27
+VMI SC -22,Troy*** 14,6-26
+Gardner Webb BSth -23,Troy*** 14,4-29
+Delaware St MEAC -18,Troy*** 14,7-22
+Coppin St MEAC -19,Troy*** 14,7-24
+Mississippi Valley St SWAC -23,Troy*** 14,3-29
+Western Illinois OVC -23,Troy*** 14,5-26
+La Salle A10 -13,UCF 9,9-22
+San Jose St MWC -13,UCF 9,8-23
+Princeton Ivy -14,UCF 9,9-20
+Pepperdine WCC -15,UCF 9,9-23
+Loyola Chicago A10 -15,UCF 9,8-23
+Brown Ivy -14,UCF 9,9-18
+IU Indy Horz -20,UCF 9,7-25
+Northeastern CAA -19,UCF 9,7-24
+Southeastern Louisiana Slnd -16,UCF 9,9-22
+Evansville MVC -17,UCF 9,7-25
+Cal St Bakersfield BW -18,UCF 9,8-24
+North Florida ASun -19,UCF 9,7-25
+Niagara MAAC -18,UCF 9,8-22
+UTSA (A) Rice Amer -17,UCF 9,5-24
+Air Force MWC -19,UCF 9,3-28
+North Alabama ASun -17,UCF 9,9-21
+Northern Illinois MAC -15,UCF 9,9-21
+Chicago St NEC -19,UCF 9,7-25
+Southern Indiana OVC -20,UCF 9,7-23
+Alcorn St SWAC -15,UCF 9,8-22
+Louisiana Monroe SB -23,UCF 9,4-28
+New Hampshire AE -16,UCF 9,9-21
+Maine AE -20,UCF 9,8-24
+Saint Francis NEC -19,UCF 9,7-24
+South Carolina St MEAC -16,UCF 9,9-21
+Bryant AE -17,UCF 9,9-22
+Maryland Eastern Shore MEAC -16,UCF 9,9-22
+Rider MAAC -19,UCF 9,4-25
+Binghamton AE -20,UCF 9,8-23
+UMKC Sum -21,UCF 9,4-27
+VMI SC -22,UCF 9,6-26
+Gardner Webb BSth -23,UCF 9,4-29
+Delaware St MEAC -18,UCF 9,7-22
+Coppin St MEAC -19,UCF 9,7-24
+Mississippi Valley St SWAC -23,UCF 9,3-29
+Western Illinois OVC -23,UCF 9,5-26
+La Salle A10 -13,UCLA 9,9-22
+San Jose St MWC -13,UCLA 9,8-23
+Princeton Ivy -14,UCLA 9,9-20
+Pepperdine WCC -15,UCLA 9,9-23
+Loyola Chicago A10 -15,UCLA 9,8-23
+Brown Ivy -14,UCLA 9,9-18
+IU Indy Horz -20,UCLA 9,7-25
+Northeastern CAA -19,UCLA 9,7-24
+Southeastern Louisiana Slnd -16,UCLA 9,9-22
+Evansville MVC -17,UCLA 9,7-25
+Cal St Bakersfield BW -18,UCLA 9,8-24
+North Florida ASun -19,UCLA 9,7-25
+Niagara MAAC -18,UCLA 9,8-22
+UTSA (A) Rice Amer -17,UCLA 9,5-24
+Air Force MWC -19,UCLA 9,3-28
+North Alabama ASun -17,UCLA 9,9-21
+Northern Illinois MAC -15,UCLA 9,9-21
+Chicago St NEC -19,UCLA 9,7-25
+Southern Indiana OVC -20,UCLA 9,7-23
+Alcorn St SWAC -15,UCLA 9,8-22
+Louisiana Monroe SB -23,UCLA 9,4-28
+New Hampshire AE -16,UCLA 9,9-21
+Maine AE -20,UCLA 9,8-24
+Saint Francis NEC -19,UCLA 9,7-24
+South Carolina St MEAC -16,UCLA 9,9-21
+Bryant AE -17,UCLA 9,9-22
+Maryland Eastern Shore MEAC -16,UCLA 9,9-22
+Rider MAAC -19,UCLA 9,4-25
+Binghamton AE -20,UCLA 9,8-23
+UMKC Sum -21,UCLA 9,4-27
+VMI SC -22,UCLA 9,6-26
+Gardner Webb BSth -23,UCLA 9,4-29
+Delaware St MEAC -18,UCLA 9,7-22
+Coppin St MEAC -19,UCLA 9,7-24
+Mississippi Valley St SWAC -23,UCLA 9,3-29
+Western Illinois OVC -23,UCLA 9,5-26
+La Salle A10 -13,UMBC*** 16,9-22
+San Jose St MWC -13,UMBC*** 16,8-23
+Princeton Ivy -14,UMBC*** 16,9-20
+Pepperdine WCC -15,UMBC*** 16,9-23
+Loyola Chicago A10 -15,UMBC*** 16,8-23
+Brown Ivy -14,UMBC*** 16,9-18
+IU Indy Horz -20,UMBC*** 16,7-25
+Northeastern CAA -19,UMBC*** 16,7-24
+Southeastern Louisiana Slnd -16,UMBC*** 16,9-22
+Evansville MVC -17,UMBC*** 16,7-25
+Cal St Bakersfield BW -18,UMBC*** 16,8-24
+North Florida ASun -19,UMBC*** 16,7-25
+Niagara MAAC -18,UMBC*** 16,8-22
+UTSA (A) Rice Amer -17,UMBC*** 16,5-24
+Air Force MWC -19,UMBC*** 16,3-28
+North Alabama ASun -17,UMBC*** 16,9-21
+Northern Illinois MAC -15,UMBC*** 16,9-21
+Chicago St NEC -19,UMBC*** 16,7-25
+Southern Indiana OVC -20,UMBC*** 16,7-23
+Alcorn St SWAC -15,UMBC*** 16,8-22
+Louisiana Monroe SB -23,UMBC*** 16,4-28
+New Hampshire AE -16,UMBC*** 16,9-21
+Maine AE -20,UMBC*** 16,8-24
+Saint Francis NEC -19,UMBC*** 16,7-24
+South Carolina St MEAC -16,UMBC*** 16,9-21
+Bryant AE -17,UMBC*** 16,9-22
+Maryland Eastern Shore MEAC -16,UMBC*** 16,9-22
+Rider MAAC -19,UMBC*** 16,4-25
+Binghamton AE -20,UMBC*** 16,8-23
+UMKC Sum -21,UMBC*** 16,4-27
+VMI SC -22,UMBC*** 16,6-26
+Gardner Webb BSth -23,UMBC*** 16,4-29
+Delaware St MEAC -18,UMBC*** 16,7-22
+Coppin St MEAC -19,UMBC*** 16,7-24
+Mississippi Valley St SWAC -23,UMBC*** 16,3-29
+Western Illinois OVC -23,UMBC*** 16,5-26
+La Salle A10 -13,UNC Wilmington*** 13,9-22
+San Jose St MWC -13,UNC Wilmington*** 13,8-23
+Princeton Ivy -14,UNC Wilmington*** 13,9-20
+Pepperdine WCC -15,UNC Wilmington*** 13,9-23
+Loyola Chicago A10 -15,UNC Wilmington*** 13,8-23
+Brown Ivy -14,UNC Wilmington*** 13,9-18
+IU Indy Horz -20,UNC Wilmington*** 13,7-25
+Northeastern CAA -19,UNC Wilmington*** 13,7-24
+Southeastern Louisiana Slnd -16,UNC Wilmington*** 13,9-22
+Evansville MVC -17,UNC Wilmington*** 13,7-25
+Cal St Bakersfield BW -18,UNC Wilmington*** 13,8-24
+North Florida ASun -19,UNC Wilmington*** 13,7-25
+Niagara MAAC -18,UNC Wilmington*** 13,8-22
+UTSA (A) Rice Amer -17,UNC Wilmington*** 13,5-24
+Air Force MWC -19,UNC Wilmington*** 13,3-28
+North Alabama ASun -17,UNC Wilmington*** 13,9-21
+Northern Illinois MAC -15,UNC Wilmington*** 13,9-21
+Chicago St NEC -19,UNC Wilmington*** 13,7-25
+Southern Indiana OVC -20,UNC Wilmington*** 13,7-23
+Alcorn St SWAC -15,UNC Wilmington*** 13,8-22
+Louisiana Monroe SB -23,UNC Wilmington*** 13,4-28
+New Hampshire AE -16,UNC Wilmington*** 13,9-21
+Maine AE -20,UNC Wilmington*** 13,8-24
+Saint Francis NEC -19,UNC Wilmington*** 13,7-24
+South Carolina St MEAC -16,UNC Wilmington*** 13,9-21
+Bryant AE -17,UNC Wilmington*** 13,9-22
+Maryland Eastern Shore MEAC -16,UNC Wilmington*** 13,9-22
+Rider MAAC -19,UNC Wilmington*** 13,4-25
+Binghamton AE -20,UNC Wilmington*** 13,8-23
+UMKC Sum -21,UNC Wilmington*** 13,4-27
+VMI SC -22,UNC Wilmington*** 13,6-26
+Gardner Webb BSth -23,UNC Wilmington*** 13,4-29
+Delaware St MEAC -18,UNC Wilmington*** 13,7-22
+Coppin St MEAC -19,UNC Wilmington*** 13,7-24
+Mississippi Valley St SWAC -23,UNC Wilmington*** 13,3-29
+Western Illinois OVC -23,UNC Wilmington*** 13,5-26
+La Salle A10 -13,Utah St.*** 9,9-22
+San Jose St MWC -13,Utah St.*** 9,8-23
+Princeton Ivy -14,Utah St.*** 9,9-20
+Pepperdine WCC -15,Utah St.*** 9,9-23
+Loyola Chicago A10 -15,Utah St.*** 9,8-23
+Brown Ivy -14,Utah St.*** 9,9-18
+IU Indy Horz -20,Utah St.*** 9,7-25
+Northeastern CAA -19,Utah St.*** 9,7-24
+Southeastern Louisiana Slnd -16,Utah St.*** 9,9-22
+Evansville MVC -17,Utah St.*** 9,7-25
+Cal St Bakersfield BW -18,Utah St.*** 9,8-24
+North Florida ASun -19,Utah St.*** 9,7-25
+Niagara MAAC -18,Utah St.*** 9,8-22
+UTSA (A) Rice Amer -17,Utah St.*** 9,5-24
+Air Force MWC -19,Utah St.*** 9,3-28
+North Alabama ASun -17,Utah St.*** 9,9-21
+Northern Illinois MAC -15,Utah St.*** 9,9-21
+Chicago St NEC -19,Utah St.*** 9,7-25
+Southern Indiana OVC -20,Utah St.*** 9,7-23
+Alcorn St SWAC -15,Utah St.*** 9,8-22
+Louisiana Monroe SB -23,Utah St.*** 9,4-28
+New Hampshire AE -16,Utah St.*** 9,9-21
+Maine AE -20,Utah St.*** 9,8-24
+Saint Francis NEC -19,Utah St.*** 9,7-24
+South Carolina St MEAC -16,Utah St.*** 9,9-21
+Bryant AE -17,Utah St.*** 9,9-22
+Maryland Eastern Shore MEAC -16,Utah St.*** 9,9-22
+Rider MAAC -19,Utah St.*** 9,4-25
+Binghamton AE -20,Utah St.*** 9,8-23
+UMKC Sum -21,Utah St.*** 9,4-27
+VMI SC -22,Utah St.*** 9,6-26
+Gardner Webb BSth -23,Utah St.*** 9,4-29
+Delaware St MEAC -18,Utah St.*** 9,7-22
+Coppin St MEAC -19,Utah St.*** 9,7-24
+Mississippi Valley St SWAC -23,Utah St.*** 9,3-29
+Western Illinois OVC -23,Utah St.*** 9,5-26
+La Salle A10 -13,Utah Valley*** 13,9-22
+San Jose St MWC -13,Utah Valley*** 13,8-23
+Princeton Ivy -14,Utah Valley*** 13,9-20
+Pepperdine WCC -15,Utah Valley*** 13,9-23
+Loyola Chicago A10 -15,Utah Valley*** 13,8-23
+Brown Ivy -14,Utah Valley*** 13,9-18
+IU Indy Horz -20,Utah Valley*** 13,7-25
+Northeastern CAA -19,Utah Valley*** 13,7-24
+Southeastern Louisiana Slnd -16,Utah Valley*** 13,9-22
+Evansville MVC -17,Utah Valley*** 13,7-25
+Cal St Bakersfield BW -18,Utah Valley*** 13,8-24
+North Florida ASun -19,Utah Valley*** 13,7-25
+Niagara MAAC -18,Utah Valley*** 13,8-22
+UTSA (A) Rice Amer -17,Utah Valley*** 13,5-24
+Air Force MWC -19,Utah Valley*** 13,3-28
+North Alabama ASun -17,Utah Valley*** 13,9-21
+Northern Illinois MAC -15,Utah Valley*** 13,9-21
+Chicago St NEC -19,Utah Valley*** 13,7-25
+Southern Indiana OVC -20,Utah Valley*** 13,7-23
+Alcorn St SWAC -15,Utah Valley*** 13,8-22
+Louisiana Monroe SB -23,Utah Valley*** 13,4-28
+New Hampshire AE -16,Utah Valley*** 13,9-21
+Maine AE -20,Utah Valley*** 13,8-24
+Saint Francis NEC -19,Utah Valley*** 13,7-24
+South Carolina St MEAC -16,Utah Valley*** 13,9-21
+Bryant AE -17,Utah Valley*** 13,9-22
+Maryland Eastern Shore MEAC -16,Utah Valley*** 13,9-22
+Rider MAAC -19,Utah Valley*** 13,4-25
+Binghamton AE -20,Utah Valley*** 13,8-23
+UMKC Sum -21,Utah Valley*** 13,4-27
+VMI SC -22,Utah Valley*** 13,6-26
+Gardner Webb BSth -23,Utah Valley*** 13,4-29
+Delaware St MEAC -18,Utah Valley*** 13,7-22
+Coppin St MEAC -19,Utah Valley*** 13,7-24
+Mississippi Valley St SWAC -23,Utah Valley*** 13,3-29
+Western Illinois OVC -23,Utah Valley*** 13,5-26
+La Salle A10 -13,VCU 11,9-22
+San Jose St MWC -13,VCU 11,8-23
+Princeton Ivy -14,VCU 11,9-20
+Pepperdine WCC -15,VCU 11,9-23
+Loyola Chicago A10 -15,VCU 11,8-23
+Brown Ivy -14,VCU 11,9-18
+IU Indy Horz -20,VCU 11,7-25
+Northeastern CAA -19,VCU 11,7-24
+Southeastern Louisiana Slnd -16,VCU 11,9-22
+Evansville MVC -17,VCU 11,7-25
+Cal St Bakersfield BW -18,VCU 11,8-24
+North Florida ASun -19,VCU 11,7-25
+Niagara MAAC -18,VCU 11,8-22
+UTSA (A) Rice Amer -17,VCU 11,5-24
+Air Force MWC -19,VCU 11,3-28
+North Alabama ASun -17,VCU 11,9-21
+Northern Illinois MAC -15,VCU 11,9-21
+Chicago St NEC -19,VCU 11,7-25
+Southern Indiana OVC -20,VCU 11,7-23
+Alcorn St SWAC -15,VCU 11,8-22
+Louisiana Monroe SB -23,VCU 11,4-28
+New Hampshire AE -16,VCU 11,9-21
+Maine AE -20,VCU 11,8-24
+Saint Francis NEC -19,VCU 11,7-24
+South Carolina St MEAC -16,VCU 11,9-21
+Bryant AE -17,VCU 11,9-22
+Maryland Eastern Shore MEAC -16,VCU 11,9-22
+Rider MAAC -19,VCU 11,4-25
+Binghamton AE -20,VCU 11,8-23
+UMKC Sum -21,VCU 11,4-27
+VMI SC -22,VCU 11,6-26
+Gardner Webb BSth -23,VCU 11,4-29
+Delaware St MEAC -18,VCU 11,7-22
+Coppin St MEAC -19,VCU 11,7-24
+Mississippi Valley St SWAC -23,VCU 11,3-29
+Western Illinois OVC -23,VCU 11,5-26
+La Salle A10 -13,Vanderbilt 5,9-22
+San Jose St MWC -13,Vanderbilt 5,8-23
+Princeton Ivy -14,Vanderbilt 5,9-20
+Pepperdine WCC -15,Vanderbilt 5,9-23
+Loyola Chicago A10 -15,Vanderbilt 5,8-23
+Brown Ivy -14,Vanderbilt 5,9-18
+IU Indy Horz -20,Vanderbilt 5,7-25
+Northeastern CAA -19,Vanderbilt 5,7-24
+Southeastern Louisiana Slnd -16,Vanderbilt 5,9-22
+Evansville MVC -17,Vanderbilt 5,7-25
+Cal St Bakersfield BW -18,Vanderbilt 5,8-24
+North Florida ASun -19,Vanderbilt 5,7-25
+Niagara MAAC -18,Vanderbilt 5,8-22
+UTSA (A) Rice Amer -17,Vanderbilt 5,5-24
+Air Force MWC -19,Vanderbilt 5,3-28
+North Alabama ASun -17,Vanderbilt 5,9-21
+Northern Illinois MAC -15,Vanderbilt 5,9-21
+Chicago St NEC -19,Vanderbilt 5,7-25
+Southern Indiana OVC -20,Vanderbilt 5,7-23
+Alcorn St SWAC -15,Vanderbilt 5,8-22
+Louisiana Monroe SB -23,Vanderbilt 5,4-28
+New Hampshire AE -16,Vanderbilt 5,9-21
+Maine AE -20,Vanderbilt 5,8-24
+Saint Francis NEC -19,Vanderbilt 5,7-24
+South Carolina St MEAC -16,Vanderbilt 5,9-21
+Bryant AE -17,Vanderbilt 5,9-22
+Maryland Eastern Shore MEAC -16,Vanderbilt 5,9-22
+Rider MAAC -19,Vanderbilt 5,4-25
+Binghamton AE -20,Vanderbilt 5,8-23
+UMKC Sum -21,Vanderbilt 5,4-27
+VMI SC -22,Vanderbilt 5,6-26
+Gardner Webb BSth -23,Vanderbilt 5,4-29
+Delaware St MEAC -18,Vanderbilt 5,7-22
+Coppin St MEAC -19,Vanderbilt 5,7-24
+Mississippi Valley St SWAC -23,Vanderbilt 5,3-29
+Western Illinois OVC -23,Vanderbilt 5,5-26
+La Salle A10 -13,Villanova 7,9-22
+San Jose St MWC -13,Villanova 7,8-23
+Princeton Ivy -14,Villanova 7,9-20
+Pepperdine WCC -15,Villanova 7,9-23
+Loyola Chicago A10 -15,Villanova 7,8-23
+Brown Ivy -14,Villanova 7,9-18
+IU Indy Horz -20,Villanova 7,7-25
+Northeastern CAA -19,Villanova 7,7-24
+Southeastern Louisiana Slnd -16,Villanova 7,9-22
+Evansville MVC -17,Villanova 7,7-25
+Cal St Bakersfield BW -18,Villanova 7,8-24
+North Florida ASun -19,Villanova 7,7-25
+Niagara MAAC -18,Villanova 7,8-22
+UTSA (A) Rice Amer -17,Villanova 7,5-24
+Air Force MWC -19,Villanova 7,3-28
+North Alabama ASun -17,Villanova 7,9-21
+Northern Illinois MAC -15,Villanova 7,9-21
+Chicago St NEC -19,Villanova 7,7-25
+Southern Indiana OVC -20,Villanova 7,7-23
+Alcorn St SWAC -15,Villanova 7,8-22
+Louisiana Monroe SB -23,Villanova 7,4-28
+New Hampshire AE -16,Villanova 7,9-21
+Maine AE -20,Villanova 7,8-24
+Saint Francis NEC -19,Villanova 7,7-24
+South Carolina St MEAC -16,Villanova 7,9-21
+Bryant AE -17,Villanova 7,9-22
+Maryland Eastern Shore MEAC -16,Villanova 7,9-22
+Rider MAAC -19,Villanova 7,4-25
+Binghamton AE -20,Villanova 7,8-23
+UMKC Sum -21,Villanova 7,4-27
+VMI SC -22,Villanova 7,6-26
+Gardner Webb BSth -23,Villanova 7,4-29
+Delaware St MEAC -18,Villanova 7,7-22
+Coppin St MEAC -19,Villanova 7,7-24
+Mississippi Valley St SWAC -23,Villanova 7,3-29
+Western Illinois OVC -23,Villanova 7,5-26
+La Salle A10 -13,Virginia 4,9-22
+San Jose St MWC -13,Virginia 4,8-23
+Princeton Ivy -14,Virginia 4,9-20
+Pepperdine WCC -15,Virginia 4,9-23
+Loyola Chicago A10 -15,Virginia 4,8-23
+Brown Ivy -14,Virginia 4,9-18
+IU Indy Horz -20,Virginia 4,7-25
+Northeastern CAA -19,Virginia 4,7-24
+Southeastern Louisiana Slnd -16,Virginia 4,9-22
+Evansville MVC -17,Virginia 4,7-25
+Cal St Bakersfield BW -18,Virginia 4,8-24
+North Florida ASun -19,Virginia 4,7-25
+Niagara MAAC -18,Virginia 4,8-22
+UTSA (A) Rice Amer -17,Virginia 4,5-24
+Air Force MWC -19,Virginia 4,3-28
+North Alabama ASun -17,Virginia 4,9-21
+Northern Illinois MAC -15,Virginia 4,9-21
+Chicago St NEC -19,Virginia 4,7-25
+Southern Indiana OVC -20,Virginia 4,7-23
+Alcorn St SWAC -15,Virginia 4,8-22
+Louisiana Monroe SB -23,Virginia 4,4-28
+New Hampshire AE -16,Virginia 4,9-21
+Maine AE -20,Virginia 4,8-24
+Saint Francis NEC -19,Virginia 4,7-24
+South Carolina St MEAC -16,Virginia 4,9-21
+Bryant AE -17,Virginia 4,9-22
+Maryland Eastern Shore MEAC -16,Virginia 4,9-22
+Rider MAAC -19,Virginia 4,4-25
+Binghamton AE -20,Virginia 4,8-23
+UMKC Sum -21,Virginia 4,4-27
+VMI SC -22,Virginia 4,6-26
+Gardner Webb BSth -23,Virginia 4,4-29
+Delaware St MEAC -18,Virginia 4,7-22
+Coppin St MEAC -19,Virginia 4,7-24
+Mississippi Valley St SWAC -23,Virginia 4,3-29
+Western Illinois OVC -23,Virginia 4,5-26
+La Salle A10 -13,Wisconsin 6,9-22
+San Jose St MWC -13,Wisconsin 6,8-23
+Princeton Ivy -14,Wisconsin 6,9-20
+Pepperdine WCC -15,Wisconsin 6,9-23
+Loyola Chicago A10 -15,Wisconsin 6,8-23
+Brown Ivy -14,Wisconsin 6,9-18
+IU Indy Horz -20,Wisconsin 6,7-25
+Northeastern CAA -19,Wisconsin 6,7-24
+Southeastern Louisiana Slnd -16,Wisconsin 6,9-22
+Evansville MVC -17,Wisconsin 6,7-25
+Cal St Bakersfield BW -18,Wisconsin 6,8-24
+North Florida ASun -19,Wisconsin 6,7-25
+Niagara MAAC -18,Wisconsin 6,8-22
+UTSA (A) Rice Amer -17,Wisconsin 6,5-24
+Air Force MWC -19,Wisconsin 6,3-28
+North Alabama ASun -17,Wisconsin 6,9-21
+Northern Illinois MAC -15,Wisconsin 6,9-21
+Chicago St NEC -19,Wisconsin 6,7-25
+Southern Indiana OVC -20,Wisconsin 6,7-23
+Alcorn St SWAC -15,Wisconsin 6,8-22
+Louisiana Monroe SB -23,Wisconsin 6,4-28
+New Hampshire AE -16,Wisconsin 6,9-21
+Maine AE -20,Wisconsin 6,8-24
+Saint Francis NEC -19,Wisconsin 6,7-24
+South Carolina St MEAC -16,Wisconsin 6,9-21
+Bryant AE -17,Wisconsin 6,9-22
+Maryland Eastern Shore MEAC -16,Wisconsin 6,9-22
+Rider MAAC -19,Wisconsin 6,4-25
+Binghamton AE -20,Wisconsin 6,8-23
+UMKC Sum -21,Wisconsin 6,4-27
+VMI SC -22,Wisconsin 6,6-26
+Gardner Webb BSth -23,Wisconsin 6,4-29
+Delaware St MEAC -18,Wisconsin 6,7-22
+Coppin St MEAC -19,Wisconsin 6,7-24
+Mississippi Valley St SWAC -23,Wisconsin 6,3-29
+Western Illinois OVC -23,Wisconsin 6,5-26
+La Salle A10 -13,Yale*** 12,9-22
+San Jose St MWC -13,Yale*** 12,8-23
+Princeton Ivy -14,Yale*** 12,9-20
+Pepperdine WCC -15,Yale*** 12,9-23
+Loyola Chicago A10 -15,Yale*** 12,8-23
+Brown Ivy -14,Yale*** 12,9-18
+IU Indy Horz -20,Yale*** 12,7-25
+Northeastern CAA -19,Yale*** 12,7-24
+Southeastern Louisiana Slnd -16,Yale*** 12,9-22
+Evansville MVC -17,Yale*** 12,7-25
+Cal St Bakersfield BW -18,Yale*** 12,8-24
+North Florida ASun -19,Yale*** 12,7-25
+Niagara MAAC -18,Yale*** 12,8-22
+UTSA (A) Rice Amer -17,Yale*** 12,5-24
+Air Force MWC -19,Yale*** 12,3-28
+North Alabama ASun -17,Yale*** 12,9-21
+Northern Illinois MAC -15,Yale*** 12,9-21
+Chicago St NEC -19,Yale*** 12,7-25
+Southern Indiana OVC -20,Yale*** 12,7-23
+Alcorn St SWAC -15,Yale*** 12,8-22
+Louisiana Monroe SB -23,Yale*** 12,4-28
+New Hampshire AE -16,Yale*** 12,9-21
+Maine AE -20,Yale*** 12,8-24
+Saint Francis NEC -19,Yale*** 12,7-24
+South Carolina St MEAC -16,Yale*** 12,9-21
+Bryant AE -17,Yale*** 12,9-22
+Maryland Eastern Shore MEAC -16,Yale*** 12,9-22
+Rider MAAC -19,Yale*** 12,4-25
+Binghamton AE -20,Yale*** 12,8-23
+UMKC Sum -21,Yale*** 12,4-27
+VMI SC -22,Yale*** 12,6-26
+Gardner Webb BSth -23,Yale*** 12,4-29
+Delaware St MEAC -18,Yale*** 12,7-22
+Coppin St MEAC -19,Yale*** 12,7-24
+Mississippi Valley St SWAC -23,Yale*** 12,3-29
+Western Illinois OVC -23,Yale*** 12,5-26

@@ -34,7 +34,8 @@ Predict how far each tournament team advances (round 0–6) and convert those pr
 | Shooting | 2P%, 2P%D, 3P%, 3P%D, 3PRATE, 3PRATED | Shot selection & accuracy |
 | Physical | BLK%, BLKED%, AVGHGT, EFFHGT | Size/athleticism proxies |
 | Roster | TALENT, EXP., AST%, OPAST% | Recruiting rank & experience |
-| Schedule | ELITESOS, PAKE, PASE | Strength of schedule metrics |
+| Schedule | ELITESOS | Strength of schedule metric |
+| **Outcome-derived, NEVER features** | PAKE, PASE | Wins minus expectation, so they are computed from the result. Filing them under Schedule is what put them in the feature sets. Enforced by `assert_no_target_leakage` in `scripts/run_analysis.py`. |
 | Coach experience | coach_tourn_appearances_5y, coach_tourn_wins_5y, coach_tourn_losses_5y, coach_years_with_program, coach_tourn_games_5y, coach_tourn_win_pct_5y, coach_avg_wins_per_appearance | Rolling 5-year tournament track record |
 | Conference | Power6, B12, B10, SEC, ACC, P12, BE, MWC | One-hot flags |
 | Seed | seed | NCAA committee ranking (1–16) |

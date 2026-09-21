@@ -52,10 +52,17 @@ DEFAULT_SEARCH_DEPTH = "balanced"
 
 RIDGE_ALPHA_GRID = [0.01, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0]
 
-UNUSED_CANDIDATES = ["PAKE", "PASE", "ELITESOS", "FT%", "OPFT%", "PPPOFF", "PPPDEF"]
+# PAKE and PASE are tournament wins MINUS expectation, so they are computed from the
+# result this script predicts. round = E[wins|seed] + PASE reconstructs the target exactly
+# on 100% of rows. They were filed under "Schedule" in docs/modeling_plan.md:37 and so
+# never reached OUTCOME_COLUMNS, which is how they got into the feature sets.
+LEAKY_COLUMNS = {"PAKE", "PASE"}
+UNUSED_CANDIDATES = ["ELITESOS", "FT%", "OPFT%", "PPPOFF", "PPPDEF"]
 ENGINEERED_FEATURES = ["eff_ratio", "seed_barthag", "coach_seed"]
 TARGET_COL = "round"
 OUTCOME_COLUMNS = {"round", "Round2", "S16", "E8", "F4", "Ship", "Champ", "result", "predround"}
+# anything derived from the outcome is excluded from every feature set, not just the target
+EXCLUDE_FROM_FEATURES = OUTCOME_COLUMNS | LEAKY_COLUMNS
 
 # For rank transforms, lower value indicates stronger performance for these columns.
 LOWER_IS_BETTER = {
@@ -193,6 +200,51 @@ def add_rank_features(df: pd.DataFrame, base_cols: list[str]) -> tuple[pd.DataFr
     return out, rank_cols
 
 
+def assert_no_target_leakage(df: pd.DataFrame, features: list[str], target: str,
+                             condition: str = "seed", threshold: float = 0.90,
+                             label: str = "") -> None:
+    """Fail loudly if a feature reconstructs the target once seed is accounted for.
+
+    A plain corr(feature, target) does NOT catch this: PASE against round is only 0.767,
+    because PASE IS wins minus seed expectation, so the identity needs two variables.
+    Residualising the target against seed first separates them cleanly, measured on the
+    1,088-row training set:
+
+        corr(resid_seed(round), PASE)  = 0.9948
+        corr(resid_seed(round), PAKE)  = 0.9553
+        corr(resid_seed(round), AdjOE) = 0.0580   <- clean control
+
+    The PASE leak scored 0.060 MAE on a 0-6 target and read as a great model for months.
+    """
+    y = pd.to_numeric(df[target], errors="coerce")
+    cond = pd.to_numeric(df[condition], errors="coerce") if condition in df.columns else None
+
+    bad = []
+    for col in features:
+        if col not in df.columns or col == condition:
+            continue
+        x = pd.to_numeric(df[col], errors="coerce")
+        ok = x.notna() & y.notna()
+        if cond is not None:
+            ok &= cond.notna()
+        if ok.sum() < 30 or x[ok].nunique() < 3:
+            continue
+        resid = y[ok] - y[ok].groupby(cond[ok]).transform("mean") if cond is not None else y[ok]
+        if resid.std() == 0:
+            continue
+        r = abs(float(np.corrcoef(resid, x[ok])[0, 1]))
+        if r >= threshold:
+            bad.append((col, r))
+
+    if bad:
+        detail = ", ".join(f"{c} r={r:.4f}" for c, r in sorted(bad, key=lambda t: -t[1]))
+        raise ValueError(
+            f"target leakage in feature set {label or '(unnamed)'}: {detail}. "
+            f"Against '{target}' residualised on '{condition}', r>={threshold} means the "
+            f"feature is derived from the outcome, not a predictor of it."
+        )
+
+
 def build_feature_specs(df: pd.DataFrame, rank_cols: list[str]) -> list[FeatureSpec]:
     baseline = [c for c in GEN_FEATURES if c in df.columns]
     baseline_poly = {k: v for k, v in GEN_POLY.items() if k in df.columns}
@@ -209,7 +261,7 @@ def build_feature_specs(df: pd.DataFrame, rank_cols: list[str]) -> list[FeatureS
     rank_only = unique_keep_order(rank_baseline + rank_unused)
     raw_plus_rank = unique_keep_order(baseline + rank_only)
 
-    exclude = OUTCOME_COLUMNS | {"year"}
+    exclude = EXCLUDE_FROM_FEATURES | {"year"}
     numeric_cols = [c for c in df.select_dtypes(include=[np.number]).columns if c not in exclude]
     kitchen_sink = unique_keep_order(numeric_cols)
 
@@ -651,6 +703,7 @@ def evaluate_feature_sets(
     for spec in specs:
         print(f"[FeatureSearch] Evaluating {spec.name}", flush=True)
         X, y, features = prepare_design(train_df, spec)
+        assert_no_target_leakage(train_df, features, TARGET_COL, label=spec.name)
         best_alpha, alpha_grid = tune_ridge_alpha(X, y, RIDGE_ALPHA_GRID, cv_folds=cv_folds, random_state=random_state)
         estimator = build_estimator("ridge", {"alpha": best_alpha}, random_state=random_state)
         cv = run_stratified_cv(estimator=estimator, X=X, y=y, folds=cv_folds, random_state=random_state)
