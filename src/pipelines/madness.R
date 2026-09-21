@@ -16,7 +16,8 @@ library(dplyr)
 regular_season_raw <- data.frame()
 
 # Scrape regular season data from Bart Torvik
-for (year in 2008:2024){
+years <- setdiff(2008:2025, 2020)  # Exclude 2020 (COVID, no tournament)
+for (year in years){
   url2<- as.character(year)
   url1 <- "https://barttorvik.com/trank.php?year="
   url3 <- "&sort=&top=0&conlimit=All&venue=All&type=R#"
@@ -40,7 +41,7 @@ for (year in 2008:2024){
 
 # Scrape postseason (conference tournament) data
 postseason_raw <- data.frame()
-for (year in 2008:2024){
+for (year in years){
   url2<- as.character(year)
   url1 <- "https://barttorvik.com/trank.php?year="
   url3 <- "&sort=&top=0&conlimit=All&venue=All&type=P#"
@@ -63,7 +64,7 @@ for (year in 2008:2024){
 
 # Scrape NCAA tournament data
 ncaa_tournament_raw <- data.frame()
-for (year in 2008:2024){
+for (year in years){
   url2<- as.character(year)
   url1 <- "https://barttorvik.com/trank.php?year="
   url3 <- "&sort=&top=0&conlimit=All&venue=All&type=T#"

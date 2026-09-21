@@ -44,3 +44,10 @@ Consistent, descriptive names for data frames and key variables used across the 
 |--------|-------------|
 | `predround` | General model predicted round |
 | `seedpred` | Seed-model predicted round |
+| `coach_tourn_appearances_5y` | Number of NCAA tournaments head coach was in (prior 5 years) |
+| `coach_tourn_wins_5y` | Coach’s NCAA tournament wins in prior 5 years |
+| `coach_tourn_losses_5y` | Coach’s NCAA tournament losses in prior 5 years |
+| `coach_years_with_program` | Consecutive years head coach has been at this program |
+| `coach_tourn_win_pct_5y` | Coach tournament win rate (prior 5y); 0 when no games |
+| `coach_tourn_games_5y` | Coach tournament games played (prior 5y): wins + losses |
+| `coach_avg_wins_per_appearance` | Avg wins per tournament appearance (prior 5y); 0 when no appearances |

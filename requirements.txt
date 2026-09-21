@@ -6,3 +6,11 @@ scikit-learn>=1.0.0
 PyYAML>=6.0
 lxml>=4.9.0
 html5lib>=1.1
+
+# Optional: for fetch_team_tables.py when site uses bot protection
+# pip install playwright && playwright install chromium
+playwright>=1.40.0
+
+# Dev / testing
+pytest>=8.0.0
+pytest-cov>=5.0.0

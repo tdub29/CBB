@@ -2,8 +2,12 @@ project:
   name: cbb
   seed: 123
 ingestion:
-  year_range: [2008, 2024]
+  year_range: [2008, 2025]
+  exclude_years: [2020]  # COVID year, no NCAA tournament
   bart_torvik_base_url: "https://barttorvik.com/trank.php"
+  team_tables_url: "https://barttorvik.com/team-tables_each.php"
+  team_tables_year_range: [2008, 2025]
+  team_tables_type: "R"  # R=regular season, P=postseason, T=tournament
   user_agent: "Mozilla/5.0"
 paths:
   data_raw: data/raw
@@ -14,3 +18,14 @@ paths:
   reports: reports
   figures: reports/figures
   output_training_csv: "data/processed/cbbtrainingdata"
+  output_training_research: "data/processed/cbbtrainingdata_last2seasons"  # recent slice for feature engineering/research
+  output_training_clean: "data/processed/cbb_training_clean"  # single clean dataset: no duplicate vars/rows, all outcomes
+  bracket_csv: ""
+# Research/feature-engineering cut: last N seasons of data (e.g. 2 = most recent 2 years)
+research_last_n_seasons: 2
+model:
+  k_bradley_terry: 1.0
+  n_sims: 10000
+  ridge_alpha: 1.0
+  optimize_ridge_alpha: true
+  ridge_alpha_grid: [0.0, 0.01, 0.1, 0.3, 1.0, 3.0, 10.0]

@@ -1,5 +1,33 @@
 # Data Sources
 
+## Data collection runtimes (estimated)
+
+| Script / step | Scope | Estimated runtime | Notes |
+|---------------|-------|-------------------|-------|
+| `scripts/fetch_team_tables.py` | Year range (default 2008–2025, ~18 years) | **~2–5 min** (HTTP) or **~5–15 min** (Playwright fallback) | One request per year. Run automatically by `run_pipeline.py` unless `--skip-fetch`. |
+| `scripts/fetch_coach_experience.py --fetch --playwright` | ~367 teams × all years in training | **~1.5–2 hours** | One Playwright page load per team. Torvik blocks plain HTTP; Playwright required. |
+| Main pipeline (`run_pipeline.py` / `madness.py`) | 3 table types × ~18 years | **~3–10 min** | Scrapes R, P, T tables per year. Depends on HTTP vs Playwright. |
+| **Full data refresh** (team tables + coach fetch + pipeline) | All optional + primary data | **~2–2.5 hours** | Run team tables, then coach fetch, then pipeline. Coach fetch dominates. |
+
+---
+
+## Reference: Sacred Data (Bart Torvik data access)
+
+**Forum**: [Adam's WI Sports Blog – Sacred Data](https://adamcwisports.blogspot.com/p/data.html)
+
+Bart Torvik and others document how to access T-Rank data without scraping. Summary of useful patterns:
+
+- **Bulk CSV/JSON**: Add `&csv=1` or `&json=1` to URL parameters (before any `#`). Many pages (T-Rank, team tables, SOS, etc.) support this.
+- **Team results (full season)**: `https://barttorvik.com/YYYY_team_results.csv` (or `.json`) — final/updated team stats by year.
+- **Team tables (height, experience, etc.)**: [team-tables_each.php](https://barttorvik.com/team-tables_each.php) — add `?csv=1` to download.
+- **Pre-tournament / time machine**: `/timemachine/team_results/YYYYMMDD_team_results.json.gz` for ratings as of a given date (e.g. Selection Sunday).
+- **Schedules**: `YYYY_super_sked.csv` / `YYYY_master_sked.csv`; game-level stats in `getgamestats.php?year=YYYY&csv=1`.
+- **Player stats**: `getadvstats.php?year=YYYY&csv=1`; column key: [pstatheaders.xlsx (Dropbox)](https://www.dropbox.com/s/ryugeykvntto5ji/pstatheaders.xlsx?dl=0). 2008–2009 may have different columns (play-by-play stats skipped).
+
+Avoid mass scraping; use these bulk endpoints and reasonable request rates. If blocked unintentionally, contact via the forum or Bart’s channels.
+
+---
+
 ## Primary: Bart Torvik
 
 **URL**: [https://barttorvik.com](https://barttorvik.com)
@@ -27,9 +55,37 @@ Place these in `data/external/`. The pipeline runs without them; they add featur
 ### 1. `trank_team_table_data*.csv`
 
 - **Pattern**: `trank_team_table_data (N).csv` or `trank_team_table_data*.csv`
-- **Source**: Bart Torvik team-tables export (per year or combined).
+- **Source**: Bart Torvik team-tables export from [team-tables_each.php](https://barttorvik.com/team-tables_each.php) (per year or combined). Fetched with `type=R` (regular season) by default; configurable via `ingestion.team_tables_type` in `configs/default.yaml`.
 - **Provides**: WINS, BLK%, BLKED%, AST%, OPAST%, 3PRATE, 3PRATED, EFFHGT, EXP., TALENT, ELITESOS.
 - **Usage**: Joined to master table by Team and Year.
+
+#### Automated ingestion
+
+Run before the pipeline (or use `run_pipeline.py`, which calls it automatically):
+
+```bash
+python scripts/fetch_team_tables.py
+```
+
+The script tries HTTP first, then falls back to Playwright if the site blocks requests (bot protection). Options:
+
+- `--year-start YYYY` / `--year-end YYYY` – limit year range
+- `--no-playwright` – skip Playwright fallback
+- `--out-dir PATH` – output directory (default: `data/external/`)
+
+**Estimated runtime**: ~2–5 min (HTTP) or ~5–15 min (Playwright fallback) for full year range.
+
+Install Playwright for the fallback: `pip install playwright && playwright install chromium`
+
+#### Manual fallback
+
+If automation fails:
+
+1. Open [https://barttorvik.com/team-tables_each.php](https://barttorvik.com/team-tables_each.php)
+2. Select the year(s) if the page supports it
+3. Copy the table or use the site’s export, and save as CSV
+4. Save to `data/external/` as `trank_team_table_data.csv` or `trank_team_table_data_YYYY.csv`
+5. Ensure columns align with: TEAM, ADJOE, ADJDE, BARTHAG, RECORD, WINS, GAMES, EFG, EFGD., FTRATE, FTRATED, TOV%, TOV%D, OREB%, OPOREB%, RAWT, 2P%, 2P%D, 3P%, 3P%D, BLK%, BLKED%, AST%, OPAST%, 3PRATE, 3PRATED, ADJ.T, AVGHGT, EFFHGT, EXP., YEAR, PAKE, PASE, TALENT, blank, FT%, OPFT%, PPPOFF, PPPDEF, ELITESOS
 
 ### 2. `cleanteam.xlsx`
 
@@ -42,6 +98,50 @@ Place these in `data/external/`. The pipeline runs without them; they add featur
 - **Source**: Team-level data for 2023 (aligned with cleanteam.xlsx).
 - **Provides**: Same structure as `trank_team_table_data` for the holdout year.
 - **Usage**: Joined to `cbb2023` for full feature set.
+
+### 4. `coach_tournament_experience*.csv`
+
+- **Pattern**: `coach_tournament_experience.csv` or `coach_tournament_experience_YYYY.csv`
+- **Source**: Optional. Head coach NCAA tournament experience over the **last 5 years** (including the current season). **Easiest:** use the fetch script with `--fetch` (defaults to Bart Torvik [team-history.php](https://www.torvik.dev/reference/bart_team_history.php), same data as toRvik’s `bart_team_history`). Alternatively: [Sports Reference](https://www.sports-reference.com/cbb/coaches/) coach pages, or fill manually.
+- **Columns**: `Team`, `Year`, `coach_tourn_appearances_5y`, `coach_tourn_wins_5y`, `coach_tourn_losses_5y`, `coach_years_with_program`
+  - **Team**: Must match pipeline team names (same as in training data).
+  - **Year**: Season year (e.g. 2024 for 2023–24).
+  - **coach_tourn_appearances_5y**: Number of NCAA tournaments the team’s head coach appeared in over the previous 5 tournament years (e.g. for 2024, count 2019, 2021, 2022, 2023, 2024 — 2020 excluded per project convention).
+  - **coach_tourn_wins_5y** / **coach_tourn_losses_5y**: Tournament W–L for that coach over those same seasons.
+  - **coach_years_with_program**: Number of consecutive years (including current) the head coach has been at this program.
+- **Derived (in pipeline)**: The pipeline computes `coach_tourn_win_pct_5y` (wins/(wins+losses)), `coach_tourn_games_5y` (wins+losses), and `coach_avg_wins_per_appearance` (wins/appearances) from the above.
+- **Usage**: Joined to master table by (Team, year). Missing rows or missing file → features filled with 0.
+
+#### Building the file
+
+```bash
+# Template only (zeros)
+python scripts/fetch_coach_experience.py
+
+# Fetch from Bart Torvik (same source as pipeline; team names must match)
+python scripts/fetch_coach_experience.py --fetch
+
+# Fetch from Sports Reference instead
+python scripts/fetch_coach_experience.py --fetch --source sr
+```
+
+Torvik uses [team-history.php](https://barttorvik.com/team-history.php?team=Team+Name); team name must be an exact match (e.g. 'North Carolina', 'St.' for State). If fetch fails, fill manually from coach pages (e.g. [Sports Reference Coaches](https://www.sports-reference.com/cbb/coaches/)).
+
+**Estimated runtime**: ~1.5–2 hours for full fetch (~367 teams). See [COACH_FETCH_README.md](../data/external/COACH_FETCH_README.md).
+
+---
+
+## Clean training dataset (pipeline output)
+
+**Path**: `data/processed/cbb_training_clean.csv`
+
+Single prepped dataset for training and testing: one row per (Team, year), no duplicate column names, no redundant variables. Built automatically by the pipeline from the full training export.
+
+- **Variables**: All Bart Torvik stats (AdjOE, AdjDE, WAB, Barthag, TOR, ORB, DRB, FTR, 2P%, 3P%, etc.), optional external (WINS, BLK%, EFFHGT, TALENT, …), optional coach experience (coach_tourn_appearances_5y, coach_tourn_wins_5y, coach_tourn_losses_5y, coach_tourn_win_pct_5y, coach_tourn_games_5y, coach_avg_wins_per_appearance, coach_years_with_program), conference flags (Power6, B12, B10, …), seed.
+- **Outcomes**: `result`, `round`, and binary `Round2`, `S16`, `E8`, `F4`, `Ship`, `Champ`.
+- **Redundant columns removed**: Duplicate column names (first kept); year-specific "3P Rate *_3PR" / "3P Rate *_3PRD" columns are dropped (canonical `3P%`, `3PRATE`, `3PRATED` kept).
+
+To regenerate from an existing full export: `python scripts/build_clean_training_data.py [path/to/cbbtrainingdata_YYYYMMDD.csv]`
 
 ---
 
