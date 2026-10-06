@@ -28,6 +28,7 @@ RAW_DIR = project_root / "data" / "raw"
 SOURCES_DIR = RAW_DIR / "sources"  # per-year trank_team_table_dataNN.csv
 
 POSTSEASON_PATH = RAW_DIR / "trank_postseason_final.csv"
+POSTSEASON_2026_PATH = RAW_DIR / "torvik_2026" / "postseason_rec_2026.csv"
 ENRICHED_CACHE_PATH = RAW_DIR / "team_history_cache_enriched.csv"
 ASSEMBLED_DIR = RAW_DIR / "assembled"  # final outputs (sources + postseason + cache flow into these)
 STAGING_DIR = RAW_DIR / "_staging"
@@ -123,6 +124,10 @@ def main() -> int:
         post = pd.read_csv(POSTSEASON_PATH, header=None)
         post_rec = post[[0, 30, 4]].copy()
         post_rec.columns = ["Team", "Year", "Postseason rec"]
+        # 2026 P table was unreachable (Torvik .php pages blocked); record derived by ingest_2026.py
+        # from Torvik's static 2026_super_sked.csv instead.
+        if POSTSEASON_2026_PATH.exists():
+            post_rec = pd.concat([post_rec[post_rec["Year"] != 2026], pd.read_csv(POSTSEASON_2026_PATH)], ignore_index=True)
         combined = combined.merge(post_rec, on=["Team", "Year"], how="left")
         matched = combined["Postseason rec"].notna().sum()
         print(f"Step 2: Joined Postseason rec -> {matched}/{len(combined)} rows matched")

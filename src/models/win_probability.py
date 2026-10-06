@@ -61,6 +61,22 @@ def p_win(strength_a: float, strength_b: float, k: float = 1.0) -> float:
     return float(1.0 / (1.0 + np.exp(scaled)))
 
 
+def fit_bradley_terry_k(winner_minus_loser: np.ndarray, bounds: tuple[float, float] = (1e-3, 20.0)) -> float:
+    """Maximum-likelihood k for P(win) = 1 / (1 + exp(-k * strength_diff)).
+
+    Pass winner-minus-loser strength differences from games the strengths did NOT see
+    (out-of-fold predictions), or k comes out overconfident.
+    """
+    from scipy.optimize import minimize_scalar
+
+    d = np.asarray(winner_minus_loser, dtype=float)
+    d = d[np.isfinite(d)]
+    if d.size == 0:
+        raise ValueError("no games to fit k on")
+    result = minimize_scalar(lambda k: float(np.logaddexp(0.0, -k * d).sum()), bounds=bounds, method="bounded")
+    return float(result.x)
+
+
 def seed_fallback_strength(seed: float | int | None) -> float:
     """Fallback strength when a team is missing from lookup."""
     if seed is None:

@@ -30,3 +30,13 @@ def test_seed_fallback_strength_prefers_better_seeds() -> None:
     one_seed = seed_fallback_strength(1)
     sixteen_seed = seed_fallback_strength(16)
     assert one_seed > sixteen_seed
+
+
+def test_fit_bradley_terry_k_recovers_scale() -> None:
+    from src.models.win_probability import fit_bradley_terry_k
+
+    rng = np.random.default_rng(0)
+    diff = rng.normal(0, 1.5, 4000)
+    a_won = rng.random(4000) < 1 / (1 + np.exp(-0.8 * diff))
+    winner_minus_loser = np.where(a_won, diff, -diff)
+    assert abs(fit_bradley_terry_k(winner_minus_loser) - 0.8) < 0.1

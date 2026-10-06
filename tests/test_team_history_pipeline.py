@@ -160,9 +160,12 @@ def test_compute_coach_stats_skips_2020_and_counts_tournament_only() -> None:
     out = madness.compute_coach_stats_from_history(team_year, history, exclude_years=(2020,))
     row = out.iloc[0]
     assert row["coach"] == "Coach A"
-    assert row["coach_tourn_appearances_5y"] == 4
-    assert row["coach_tourn_wins_5y"] == 4
-    assert row["coach_tourn_losses_5y"] == 4
+    # Window is 2019-2023 minus 2020; the current 2024 R32 must NOT count (it is the outcome being
+    # predicted). Counted: 2023 R64 (0-1), 2021 R64 (0-1), 2019 Elite Eight (3-1). 2020 Final Four
+    # is excluded and the blank 2022 finish is not a tournament appearance.
+    assert row["coach_tourn_appearances_5y"] == 3
+    assert row["coach_tourn_wins_5y"] == 3
+    assert row["coach_tourn_losses_5y"] == 3
     assert row["coach_years_with_program"] == 2
 
 
@@ -274,10 +277,15 @@ def test_run_pipeline_data_only_avoids_trank_scrape(monkeypatch, tmp_path: Path)
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("scrape path should not be used")),
     )
 
+    # Stand-in for the frozen file: the default run must leave it byte-identical and write a
+    # run-tagged clean CSV beside it (it used to overwrite it with the configured years only).
+    frozen = data_processed / "cbb_training_clean.csv"
+    frozen.write_bytes(b"Team,year,frozen-2026")
     madness.run_pipeline(data_only=True)
-    out = data_processed / "cbb_training_clean.csv"
-    assert out.exists()
-    clean = pd.read_csv(out)
+    assert frozen.read_bytes() == b"Team,year,frozen-2026"
+    tagged = sorted(data_processed.glob("cbb_training_clean_*.csv"))
+    assert len(tagged) == 1
+    clean = pd.read_csv(tagged[0])
     assert clean.duplicated(["Team", "year"]).sum() == 0
 
 

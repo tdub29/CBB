@@ -40,3 +40,13 @@ def test_stronger_seed_has_higher_title_probability() -> None:
     champ_probs = dict(zip(out["Team"], out["p_Champ"], strict=False))
 
     assert champ_probs["East_1"] > champ_probs["East_16"]
+
+
+def test_simulation_is_deterministic_given_seed() -> None:
+    bracket = _sample_bracket()
+    lookup = _strength_lookup(bracket)
+    a = simulate_bracket(bracket, lookup, n_sims=200, k=0.3, random_state=123)
+    b = simulate_bracket(bracket, lookup, n_sims=200, k=0.3, random_state=123)
+    c = simulate_bracket(bracket, lookup, n_sims=200, k=0.3, random_state=124)
+    pd.testing.assert_frame_equal(a, b)
+    assert not a.equals(c)

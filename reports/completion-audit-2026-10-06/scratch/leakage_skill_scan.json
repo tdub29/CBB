@@ -1,0 +1,64 @@
+{
+  "n_rows": 6336,
+  "features": [
+    "AdjOE",
+    "AdjDE",
+    "Barthag",
+    "WINS",
+    "GAMES",
+    "seed",
+    "PASE",
+    "PAKE",
+    "W",
+    "G",
+    "ov_rec",
+    "coach_tourn_wins_5y"
+  ],
+  "findings": [
+    {
+      "id": "forbidden_or_target_feature",
+      "status": "PASS",
+      "detail": "none"
+    },
+    {
+      "id": "feature_identical_to_target",
+      "status": "PASS",
+      "detail": "none"
+    },
+    {
+      "id": "duplicate_rows",
+      "status": "PASS",
+      "detail": "duplicate_rate=0.000000"
+    },
+    {
+      "id": "near_perfect_target_correlation",
+      "status": "PASS",
+      "detail": "none"
+    },
+    {
+      "id": "first_event_history_review",
+      "status": "REVIEW",
+      "detail": {
+        "AdjOE": 0.0,
+        "AdjDE": 0.0,
+        "Barthag": 0.0,
+        "WINS": 0.0,
+        "GAMES": 0.0,
+        "seed": 0.8243243243243243,
+        "PASE": 0.0,
+        "PAKE": 0.0,
+        "W": 0.0,
+        "G": 0.0,
+        "ov_rec": 0.002702702702702703,
+        "coach_tourn_wins_5y": 0.0
+      }
+    },
+    {
+      "id": "manual_pipeline_review",
+      "status": "REVIEW",
+      "detail": "Required: verify point-in-time source availability, transform ordering, join direction/cardinality, and fold-local preprocessing from lineage and code."
+    }
+  ],
+  "verdict": "REVIEW REQUIRED",
+  "limitations": "Automated heuristics cannot prove point-in-time availability; verify joins, source timestamps, and feature shifts manually."
+}

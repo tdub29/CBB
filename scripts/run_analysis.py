@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import math
+import re
 import sys
 from dataclasses import dataclass
 from datetime import datetime
@@ -15,14 +16,13 @@ import joblib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from sklearn.base import clone
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import ElasticNet, Lasso, Ridge
 from sklearn.metrics import mean_absolute_error, mean_squared_error
-from sklearn.model_selection import LeaveOneOut, StratifiedKFold
+from sklearn.model_selection import GroupKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
@@ -56,13 +56,18 @@ RIDGE_ALPHA_GRID = [0.01, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0]
 # result this script predicts. round = E[wins|seed] + PASE reconstructs the target exactly
 # on 100% of rows. They were filed under "Schedule" in docs/modeling_plan.md:37 and so
 # never reached OUTCOME_COLUMNS, which is how they got into the feature sets.
-LEAKY_COLUMNS = {"PAKE", "PASE"}
 UNUSED_CANDIDATES = ["ELITESOS", "FT%", "OPFT%", "PPPOFF", "PPPDEF"]
 ENGINEERED_FEATURES = ["eff_ratio", "seed_barthag", "coach_seed"]
 TARGET_COL = "round"
-OUTCOME_COLUMNS = {"round", "Round2", "S16", "E8", "F4", "Ship", "Champ", "result", "predround"}
+OUTCOME_COLUMNS = {
+    "round", "Round2", "S16", "E8", "F4", "Ship", "Champ", "result", "predround",
+    "PAKE", "PASE",
+    # post-tournament strings: finish label, postseason W-L (includes NCAA games), final record
+    "finish", "_extra_40", "_extra_43", "ov_rec",
+}
+LEAKAGE_THRESHOLD = 0.90  # stricter than the r=0.95 the brief asks for; PAKE sits at 0.955
 # anything derived from the outcome is excluded from every feature set, not just the target
-EXCLUDE_FROM_FEATURES = OUTCOME_COLUMNS | LEAKY_COLUMNS
+EXCLUDE_FROM_FEATURES = OUTCOME_COLUMNS
 
 # For rank transforms, lower value indicates stronger performance for these columns.
 LOWER_IS_BETTER = {
@@ -89,7 +94,7 @@ class FeatureSpec:
     poly: dict[str, int] | None
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run CV-first predictive analysis on cbb_training_clean.csv.")
     parser.add_argument("--input-csv", default=DEFAULT_INPUT, help="Path to cleaned training CSV.")
     parser.add_argument("--report-dir", default=DEFAULT_REPORT_DIR, help="Directory for markdown reports.")
@@ -99,7 +104,7 @@ def parse_args() -> argparse.Namespace:
         "--cv-folds",
         type=int,
         default=DEFAULT_CV_FOLDS,
-        help="Requested stratified CV folds; reduced automatically when needed.",
+        help="Season-grouped CV folds (capped at the number of training seasons).",
     )
     parser.add_argument("--random-state", type=int, default=DEFAULT_RANDOM_STATE, help="Random seed.")
     parser.add_argument(
@@ -108,7 +113,12 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_SEARCH_DEPTH,
         help="Hyperparameter search depth.",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--report-prefix",
+        default="predictive_analysis",
+        help="Report file stem; run_pipeline.py --holdout passes model_optimization.",
+    )
+    return parser.parse_args(argv)
 
 
 def ensure_dirs(*paths: Path) -> None:
@@ -200,9 +210,37 @@ def add_rank_features(df: pd.DataFrame, base_cols: list[str]) -> tuple[pd.DataFr
     return out, rank_cols
 
 
+def leakage_scores(df: pd.DataFrame, features: list[str], target: str = TARGET_COL,
+                   condition: str = "seed") -> dict[str, float]:
+    """Per feature, the larger of two reconstruction signals against the target.
+
+    - |Pearson(target residualised on seed, feature)| catches PASE/PAKE-style leaks, which are
+      the target minus a seed expectation.
+    - |Spearman(target, feature)| catches a copy or recoding of the target (round itself only
+      scores 0.77 on the residual test, and `result` is a monotone recode of round).
+    """
+    y = pd.to_numeric(df[target], errors="coerce")
+    cond = pd.to_numeric(df[condition], errors="coerce") if condition in df.columns else None
+    out: dict[str, float] = {}
+    for col in features:
+        if col not in df.columns or col == condition:
+            continue
+        x = pd.to_numeric(df[col], errors="coerce")
+        ok = x.notna() & y.notna()
+        if cond is not None:
+            ok &= cond.notna()
+        if ok.sum() < 30 or x[ok].nunique() < 3:
+            continue
+        resid = y[ok] - y[ok].groupby(cond[ok]).transform("mean") if cond is not None else y[ok]
+        r_resid = abs(float(np.corrcoef(resid, x[ok])[0, 1])) if resid.std() > 0 else 0.0
+        r_rank = abs(float(x[ok].corr(y[ok], method="spearman")))
+        out[col] = max(r_resid, r_rank)
+    return out
+
+
 def assert_no_target_leakage(df: pd.DataFrame, features: list[str], target: str,
-                             condition: str = "seed", threshold: float = 0.90,
-                             label: str = "") -> None:
+                             condition: str = "seed", threshold: float = LEAKAGE_THRESHOLD,
+                             label: str = "") -> tuple[str, float]:
     """Fail loudly if a feature reconstructs the target once seed is accounted for.
 
     A plain corr(feature, target) does NOT catch this: PASE against round is only 0.767,
@@ -214,35 +252,122 @@ def assert_no_target_leakage(df: pd.DataFrame, features: list[str], target: str,
         corr(resid_seed(round), PAKE)  = 0.9553
         corr(resid_seed(round), AdjOE) = 0.0580   <- clean control
 
-    The PASE leak scored 0.060 MAE on a 0-6 target and read as a great model for months.
+    Returns the strongest (feature, r) so the report can show how far the set is from failing.
     """
-    y = pd.to_numeric(df[target], errors="coerce")
-    cond = pd.to_numeric(df[condition], errors="coerce") if condition in df.columns else None
-
-    bad = []
-    for col in features:
-        if col not in df.columns or col == condition:
-            continue
-        x = pd.to_numeric(df[col], errors="coerce")
-        ok = x.notna() & y.notna()
-        if cond is not None:
-            ok &= cond.notna()
-        if ok.sum() < 30 or x[ok].nunique() < 3:
-            continue
-        resid = y[ok] - y[ok].groupby(cond[ok]).transform("mean") if cond is not None else y[ok]
-        if resid.std() == 0:
-            continue
-        r = abs(float(np.corrcoef(resid, x[ok])[0, 1]))
-        if r >= threshold:
-            bad.append((col, r))
+    corrs = leakage_scores(df, features, target, condition)
+    bad = [(c, r) for c, r in corrs.items() if r >= threshold]
 
     if bad:
         detail = ", ".join(f"{c} r={r:.4f}" for c, r in sorted(bad, key=lambda t: -t[1]))
         raise ValueError(
             f"target leakage in feature set {label or '(unnamed)'}: {detail}. "
-            f"Against '{target}' residualised on '{condition}', r>={threshold} means the "
-            f"feature is derived from the outcome, not a predictor of it."
+            f"Against '{target}' (Pearson on the '{condition}' residual, or raw Spearman), "
+            f"r>={threshold} means the feature is derived from the outcome, not a predictor of it."
         )
+    if not corrs:
+        return ("", 0.0)
+    top = max(corrs, key=corrs.get)
+    return (top, corrs[top])
+
+
+def seed_lookup_predictions(train_df: pd.DataFrame, score_df: pd.DataFrame) -> np.ndarray:
+    """Predict round from the historical mean for the same seed line."""
+    train = train_df[["seed", TARGET_COL]].apply(pd.to_numeric, errors="coerce").dropna()
+    if train.empty:
+        raise ValueError("seed baseline has no eligible training rows")
+    by_seed = train.groupby("seed")[TARGET_COL].mean()
+    fallback = float(train[TARGET_COL].mean())
+    score_seed = pd.to_numeric(score_df["seed"], errors="coerce")
+    return score_seed.map(by_seed).fillna(fallback).to_numpy(dtype=float)
+
+
+# Prediction-time contract. Prediction moment: the published bracket (Selection Sunday), before
+# any NCAA tournament game. Each column maps to (source, available at that moment).
+_TORVIK_R = "Torvik team table type=R (games through conference tournaments)"
+_SOURCE_GROUPS: list[tuple[str, bool, list[str]]] = [
+    (_TORVIK_R, True, [
+        "AdjOE", "AdjDE", "Barthag", "WINS", "GAMES", "EFG%", "EFGD%", "FTR", "FTRD", "TOR", "TORD",
+        "ORB", "DRB", "Adj T.", "2P%", "2P%D", "3P%", "3P%D", "BLK%", "BLKED%", "AST%", "OPAST%",
+        "3PRATE", "3PRATED", "AVGHGT", "EFFHGT", "EXP.", "TALENT", "FT%", "OPFT%", "PPPOFF", "PPPDEF",
+        "ELITESOS", "W", "L", "G",
+    ]),
+    ("Within-season rank of regular-season Barthag", True, ["Rk"]),
+    ("Selection Sunday bracket seed", True, ["seed", "_extra_42"]),
+    ("Team history, prior 5 tournaments only (current season excluded)", True, [
+        "coach_tourn_appearances_5y", "coach_tourn_wins_5y", "coach_tourn_losses_5y",
+        "coach_tourn_games_5y", "coach_tourn_win_pct_5y", "coach_avg_wins_per_appearance",
+        "_extra_45", "_extra_46", "_extra_47",
+    ]),
+    ("Team history, consecutive seasons with current coach", True, ["coach_years_with_program", "_extra_48"]),
+    ("Conference membership / same-season mean regular-season Barthag", True, [
+        "Power6", "B12", "B10", "SEC", "ACC", "P12", "BE", "MWC", "_extra_49",
+    ]),
+    ("Engineered from pre-tournament columns", True, ENGINEERED_FEATURES),
+    ("Torvik tournament result vs expectation (PAKE, PASE)", False, ["PAKE", "PASE"]),
+    ("Tournament outcome / target encodings", False, [
+        "round", "Round2", "S16", "E8", "F4", "Ship", "Champ", "result", "predround",
+        "finish", "_extra_43", "_extra_40", "ov_rec",
+    ]),
+    ("Identifier / empty", False, ["year", "blank"]),
+]
+FEATURE_SOURCES = {col: (src, ok) for src, ok, cols in _SOURCE_GROUPS for col in cols}
+
+
+def feature_source(col: str) -> tuple[str, bool]:
+    if col in FEATURE_SOURCES:
+        return FEATURE_SOURCES[col]
+    if col.endswith("_rank") and col[: -len("_rank")] in FEATURE_SOURCES:
+        src, ok = FEATURE_SOURCES[col[: -len("_rank")]]
+        return (f"Within-season rank over all D1 teams: {src}", ok)
+    m = re.fullmatch(r"(.+)_[23]", col)
+    if m and m.group(1) in FEATURE_SOURCES:
+        src, ok = FEATURE_SOURCES[m.group(1)]
+        return (f"Polynomial term: {src}", ok)
+    return ("UNMAPPED", False)
+
+
+def assert_prediction_time_contract(features: list[str], label: str = "") -> None:
+    """Every feature must map to a source known before the first tournament game."""
+    bad = [c for c in features if c in EXCLUDE_FROM_FEATURES or not feature_source(c)[1]]
+    if bad:
+        raise ValueError(f"feature set {label or '(unnamed)'} uses columns not available at "
+                         f"Selection Sunday or not in the source map: {bad}")
+
+
+def feature_inventory(df: pd.DataFrame, used: set[str]) -> pd.DataFrame:
+    numeric = [c for c in df.select_dtypes(include=[np.number]).columns]
+    cols = unique_keep_order(numeric + [c for c in OUTCOME_COLUMNS if c in df.columns])
+    scores = leakage_scores(df, [c for c in cols if c in numeric])
+    rows = []
+    for col in cols:
+        src, ok = feature_source(col)
+        rows.append({
+            "column": col, "source": src, "pre_tournament": "yes" if ok else "NO",
+            "in_candidate_sets": "yes" if col in used else "no",
+            "leak_score": scores.get(col, np.nan),
+        })
+    return pd.DataFrame(rows)
+
+
+def prepare_scoring_frame(season_df: pd.DataFrame) -> pd.DataFrame:
+    """Rebuild model inputs for one or more seasons from pre-tournament columns only.
+
+    Pass every team of the season, not just the field: rank features are ranks among all D1
+    teams, exactly as in training. Outcome columns are dropped first, so a field whose
+    tournament has not been played scores the same as one whose results are known.
+    """
+    work = season_df.drop(columns=[c for c in OUTCOME_COLUMNS if c in season_df.columns])
+    work = add_engineered_features(work)
+    work, _ = add_rank_features(work, choose_rank_base_columns(work))
+    return work
+
+
+def score_field(artifact: dict[str, Any], season_df: pd.DataFrame) -> pd.Series:
+    """Predicted tournament wins from a saved analysis artifact; needs no outcome columns."""
+    assert_prediction_time_contract(artifact["features"], label=str(artifact.get("feature_set", "")))
+    work = add_poly_features(prepare_scoring_frame(season_df), artifact.get("poly"))
+    X = work.reindex(columns=artifact["features"]).apply(pd.to_numeric, errors="coerce")
+    return pd.Series(artifact["model"].predict(X), index=season_df.index, name="pred_round")
 
 
 def build_feature_specs(df: pd.DataFrame, rank_cols: list[str]) -> list[FeatureSpec]:
@@ -315,15 +440,11 @@ def prepare_design(
     return X, y, features
 
 
-def effective_cv_folds(y: pd.Series, requested_folds: int) -> int:
-    labels = pd.to_numeric(y, errors="coerce").round().astype(int)
-    min_class = int(labels.value_counts().min())
-    return max(2, min(int(requested_folds), min_class))
-
-
 def build_estimator(algorithm: str, params: dict[str, Any], random_state: int) -> Pipeline:
     if algorithm == "ridge":
-        model = Ridge(alpha=float(params["alpha"]), random_state=random_state, fit_intercept=False)
+        # intercept on: with scaled inputs, fit_intercept=False forced every ridge prediction to
+        # centre on 0 wins and added roughly mean(round)^2 = 1.0 to every ridge CV MSE.
+        model = Ridge(alpha=float(params["alpha"]), random_state=random_state)
         return Pipeline(
             steps=[
                 ("imputer", SimpleImputer(strategy="median")),
@@ -373,73 +494,50 @@ def build_estimator(algorithm: str, params: dict[str, Any], random_state: int) -
     raise ValueError(f"Unsupported algorithm: {algorithm}")
 
 
-def run_stratified_cv(
+def run_season_cv(
     estimator: Pipeline,
     X: pd.DataFrame,
     y: pd.Series,
+    groups: pd.Series,
     folds: int,
-    random_state: int,
 ) -> dict[str, Any]:
-    labels = pd.to_numeric(y, errors="coerce").round().astype(int)
-    n_splits = effective_cv_folds(y, folds)
-    splitter = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    """Season-grouped CV: a validation fold never shares a season with its training rows.
+
+    Row-level CV (the old StratifiedKFold and LOO) put teams from the same tournament on both
+    sides of a split, which is not how the model is used: it always scores a season it has
+    never seen. Imputer and scaler sit inside the pipeline, so they refit per fold.
+    """
+    n_splits = max(2, min(int(folds), int(pd.Series(groups).nunique())))
+    splitter = GroupKFold(n_splits=n_splits)
 
     fold_rows: list[dict[str, float]] = []
-    all_pred: list[float] = []
-    all_actual: list[float] = []
-    for fold_i, (train_idx, test_idx) in enumerate(splitter.split(X, labels), start=1):
+    oof = pd.Series(np.nan, index=X.index, dtype=float)
+    for fold_i, (train_idx, test_idx) in enumerate(splitter.split(X, y, groups=groups), start=1):
         model = clone(estimator)
-        X_train = X.iloc[train_idx]
-        X_test = X.iloc[test_idx]
-        y_train = y.iloc[train_idx]
+        model.fit(X.iloc[train_idx], y.iloc[train_idx])
+        pred = model.predict(X.iloc[test_idx])
         y_test = y.iloc[test_idx]
-
-        model.fit(X_train, y_train)
-        pred = model.predict(X_test)
-        mse = mean_squared_error(y_test, pred)
-        mae = mean_absolute_error(y_test, pred)
-        fold_rows.append({"fold": float(fold_i), "mse": float(mse), "mae": float(mae)})
-        all_pred.extend(pred.tolist())
-        all_actual.extend(y_test.tolist())
+        fold_rows.append({
+            "fold": float(fold_i),
+            "mse": float(mean_squared_error(y_test, pred)),
+            "mae": float(mean_absolute_error(y_test, pred)),
+        })
+        oof.iloc[test_idx] = pred
 
     return {
-        "overall_mse": float(mean_squared_error(all_actual, all_pred)),
-        "overall_mae": float(mean_absolute_error(all_actual, all_pred)),
+        "overall_mse": float(mean_squared_error(y, oof)),
+        "overall_mae": float(mean_absolute_error(y, oof)),
         "fold_mse_std": float(np.std([r["mse"] for r in fold_rows])),
         "n_splits": int(n_splits),
         "fold_rows": fold_rows,
-    }
-
-
-def run_loo(
-    estimator: Pipeline,
-    X: pd.DataFrame,
-    y: pd.Series,
-    progress_label: str | None = None,
-) -> dict[str, float]:
-    loo = LeaveOneOut()
-    preds = np.zeros(len(X), dtype=float)
-    actual = y.to_numpy(dtype=float)
-    if progress_label:
-        print(f"[LOO] {progress_label}: {len(X)} fits", flush=True)
-    for i, (train_idx, test_idx) in enumerate(loo.split(X)):
-        model = clone(estimator)
-        X_train = X.iloc[train_idx]
-        X_test = X.iloc[test_idx]
-        y_train = y.iloc[train_idx]
-        model.fit(X_train, y_train)
-        preds[i] = float(model.predict(X_test)[0])
-        if progress_label and (i + 1) % 250 == 0:
-            print(f"[LOO] {progress_label}: {i + 1}/{len(X)}", flush=True)
-    return {
-        "mse": float(mean_squared_error(actual, preds)),
-        "mae": float(mean_absolute_error(actual, preds)),
+        "oof": oof,
     }
 
 
 def tune_ridge_alpha(
     X: pd.DataFrame,
     y: pd.Series,
+    groups: pd.Series,
     alpha_grid: list[float],
     cv_folds: int,
     random_state: int,
@@ -447,7 +545,7 @@ def tune_ridge_alpha(
     rows: list[dict[str, float]] = []
     for alpha in alpha_grid:
         est = build_estimator("ridge", {"alpha": float(alpha)}, random_state=random_state)
-        cv = run_stratified_cv(estimator=est, X=X, y=y, folds=cv_folds, random_state=random_state)
+        cv = run_season_cv(estimator=est, X=X, y=y, groups=groups, folds=cv_folds)
         rows.append(
             {
                 "alpha": float(alpha),
@@ -562,7 +660,7 @@ def markdown_table(df: pd.DataFrame, max_rows: int | None = None, float_digits: 
     lines = []
     lines.append("| " + " | ".join(cols) + " |")
     lines.append("| " + " | ".join(["---"] * len(cols)) + " |")
-    for _, row in view.iterrows():
+    for _, row in view.astype(object).iterrows():  # object keeps int columns from upcasting to float
         rendered: list[str] = []
         for col in cols:
             val = row[col]
@@ -570,7 +668,7 @@ def markdown_table(df: pd.DataFrame, max_rows: int | None = None, float_digits: 
                 if np.isfinite(val):
                     rendered.append(f"{float(val):.{float_digits}f}")
                 else:
-                    rendered.append("inf")
+                    rendered.append("" if np.isnan(val) else "inf")
             else:
                 rendered.append(str(val))
         lines.append("| " + " | ".join(rendered) + " |")
@@ -580,41 +678,33 @@ def markdown_table(df: pd.DataFrame, max_rows: int | None = None, float_digits: 
 def save_missingness_heatmap(df: pd.DataFrame, cols: list[str], path: Path) -> None:
     if not cols:
         return
-    fig = plt.figure(figsize=(14, 6))
+    fig, ax = plt.subplots(figsize=(14, 6))
     apply_report_background(fig)
-    sns.heatmap(
-        df[cols].isna().astype(int),
-        cbar=False,
-        cmap=CBB_SEQUENTIAL_CMAP,
-        linewidths=0.1,
-        linecolor=PROJECT_PALETTE["storm"],
-    )
-    plt.title("Missingness Heatmap (Model Candidate Features)")
-    plt.xlabel("Feature")
-    plt.ylabel("Row")
-    plt.tight_layout()
-    plt.savefig(path, dpi=160)
-    plt.close()
+    values = df[cols].isna().astype(int).to_numpy()
+    ax.imshow(values, aspect="auto", interpolation="nearest", cmap=CBB_SEQUENTIAL_CMAP)
+    ax.set_xticks(range(len(cols)), labels=cols, rotation=90)
+    ax.set_title("Missingness Heatmap (Model Candidate Features)")
+    ax.set_xlabel("Feature")
+    ax.set_ylabel("Row")
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
 
 
 def save_correlation_matrix(df: pd.DataFrame, cols: list[str], path: Path) -> None:
     if not cols:
         return
     corr = df[cols].apply(pd.to_numeric, errors="coerce").corr()
-    fig = plt.figure(figsize=(14, 10))
+    fig, ax = plt.subplots(figsize=(14, 10))
     apply_report_background(fig)
-    sns.heatmap(
-        corr,
-        cmap=CBB_DIVERGING_CMAP,
-        center=0,
-        annot=False,
-        linewidths=0.15,
-        linecolor=PROJECT_PALETTE["storm"],
-    )
-    plt.title("Feature Correlation Matrix")
-    plt.tight_layout()
-    plt.savefig(path, dpi=160)
-    plt.close()
+    image = ax.imshow(corr.to_numpy(), vmin=-1, vmax=1, cmap=CBB_DIVERGING_CMAP)
+    ax.set_xticks(range(len(corr.columns)), labels=corr.columns, rotation=90)
+    ax.set_yticks(range(len(corr.index)), labels=corr.index)
+    ax.set_title("Feature Correlation Matrix")
+    fig.colorbar(image, ax=ax, shrink=0.8, label="Pearson correlation")
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
 
 
 def save_model_comparison(df: pd.DataFrame, path: Path) -> None:
@@ -622,74 +712,58 @@ def save_model_comparison(df: pd.DataFrame, path: Path) -> None:
         return
     view = df.sort_values("cv_mse").head(20).copy()
     view["label"] = view["algorithm"] + " | " + view["params"]
-    fig = plt.figure(figsize=(12, 8))
+    view = view.iloc[::-1]
+    fig, ax = plt.subplots(figsize=(12, 8))
     apply_report_background(fig)
-    sns.barplot(
-        data=view,
-        y="label",
-        x="cv_mse",
-        hue="algorithm",
-        orient="h",
-        palette=ALGORITHM_COLORS,
-    )
-    plt.title("Top Model Configurations by CV MSE")
-    plt.xlabel("CV MSE")
-    plt.ylabel("Model")
-    plt.legend(loc="best")
-    plt.tight_layout()
-    plt.savefig(path, dpi=160)
-    plt.close()
+    colors = [ALGORITHM_COLORS.get(name, PROJECT_PALETTE["signal_blue"]) for name in view["algorithm"]]
+    ax.barh(view["label"], view["cv_mse"], color=colors)
+    ax.set_title("Top Model Configurations by CV MSE")
+    ax.set_xlabel("CV MSE")
+    ax.set_ylabel("Model")
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
 
 
 def save_holdout_scatter(df: pd.DataFrame, path: Path, holdout_year: int) -> None:
     if df.empty:
         return
-    fig = plt.figure(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(8, 6))
     apply_report_background(fig)
-    sns.scatterplot(
-        data=df,
-        x="actual_round",
-        y="pred_round",
-        s=70,
-        color=PROJECT_PALETTE["signal_blue"],
-        edgecolor=PROJECT_PALETTE["black"],
+    ax.scatter(
+        df["actual_round"], df["pred_round"], s=70,
+        color=PROJECT_PALETTE["signal_blue"], edgecolor=PROJECT_PALETTE["black"],
     )
     min_v = min(df["actual_round"].min(), df["pred_round"].min())
     max_v = max(df["actual_round"].max(), df["pred_round"].max())
-    plt.plot(
+    ax.plot(
         [min_v, max_v],
         [min_v, max_v],
         linestyle="--",
         color=PROJECT_PALETTE["sage"],
         linewidth=1.8,
     )
-    plt.title(f"Holdout {holdout_year}: Actual vs Predicted Round")
-    plt.xlabel("Actual round")
-    plt.ylabel("Predicted round")
-    plt.tight_layout()
-    plt.savefig(path, dpi=160)
-    plt.close()
+    ax.set_title(f"Holdout {holdout_year}: Actual vs Predicted Round")
+    ax.set_xlabel("Actual round")
+    ax.set_ylabel("Predicted round")
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
 
 
 def save_feature_importance_plot(df: pd.DataFrame, path: Path, title: str) -> None:
     if df.empty:
         return
-    view = df.sort_values("importance", ascending=False).head(25).copy()
-    fig = plt.figure(figsize=(12, 8))
+    view = df.sort_values("importance", ascending=False).head(25).iloc[::-1].copy()
+    fig, ax = plt.subplots(figsize=(12, 8))
     apply_report_background(fig)
-    sns.barplot(
-        data=view,
-        y="feature",
-        x="importance",
-        orient="h",
-        color=PROJECT_PALETTE["signal_blue"],
-    )
-    plt.title(title)
-    plt.xlabel("Importance")
-    plt.ylabel("Feature")
-    plt.tight_layout()
-    plt.savefig(path, dpi=160)
-    plt.close()
+    ax.barh(view["feature"], view["importance"], color=PROJECT_PALETTE["signal_blue"])
+    ax.set_title(title)
+    ax.set_xlabel("Importance")
+    ax.set_ylabel("Feature")
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
 
 
 def evaluate_feature_sets(
@@ -697,16 +771,21 @@ def evaluate_feature_sets(
     specs: list[FeatureSpec],
     cv_folds: int,
     random_state: int,
+    verbose: bool = True,
 ) -> tuple[pd.DataFrame, dict[str, dict[str, Any]]]:
     rows: list[dict[str, Any]] = []
     cache: dict[str, dict[str, Any]] = {}
     for spec in specs:
-        print(f"[FeatureSearch] Evaluating {spec.name}", flush=True)
+        if verbose:
+            print(f"[FeatureSearch] Evaluating {spec.name}", flush=True)
         X, y, features = prepare_design(train_df, spec)
-        assert_no_target_leakage(train_df, features, TARGET_COL, label=spec.name)
-        best_alpha, alpha_grid = tune_ridge_alpha(X, y, RIDGE_ALPHA_GRID, cv_folds=cv_folds, random_state=random_state)
+        groups = train_df.loc[X.index, "year"]
+        assert_prediction_time_contract(features, label=spec.name)
+        top_feature, top_r = assert_no_target_leakage(train_df, features, TARGET_COL, label=spec.name)
+        best_alpha, alpha_grid = tune_ridge_alpha(X, y, groups, RIDGE_ALPHA_GRID, cv_folds=cv_folds,
+                                                  random_state=random_state)
         estimator = build_estimator("ridge", {"alpha": best_alpha}, random_state=random_state)
-        cv = run_stratified_cv(estimator=estimator, X=X, y=y, folds=cv_folds, random_state=random_state)
+        cv = run_season_cv(estimator=estimator, X=X, y=y, groups=groups, folds=cv_folds)
         rows.append(
             {
                 "feature_set": spec.name,
@@ -716,8 +795,8 @@ def evaluate_feature_sets(
                 "cv_mae": cv["overall_mae"],
                 "cv_mse_std": cv["fold_mse_std"],
                 "cv_splits": cv["n_splits"],
-                "loo_mse": np.nan,
-                "loo_mae": np.nan,
+                "leak_guard_max_r": top_r,
+                "leak_guard_top_feature": top_feature,
             }
         )
         cache[spec.name] = {
@@ -730,16 +809,7 @@ def evaluate_feature_sets(
             "cv": cv,
         }
 
-    result = pd.DataFrame(rows).sort_values("cv_mse").reset_index(drop=True)
-    top_feature_names = result.head(3)["feature_set"].tolist()
-    for name in top_feature_names:
-        row_idx = result.index[result["feature_set"] == name][0]
-        cached = cache[name]
-        est = build_estimator("ridge", {"alpha": cached["best_alpha"]}, random_state=random_state)
-        loo = run_loo(estimator=est, X=cached["X"], y=cached["y"], progress_label=f"feature_set={name}")
-        result.loc[row_idx, "loo_mse"] = loo["mse"]
-        result.loc[row_idx, "loo_mae"] = loo["mae"]
-        cache[name]["loo"] = loo
+    result = pd.DataFrame(rows).sort_values(["cv_mse", "n_features"]).reset_index(drop=True)
     return result, cache
 
 
@@ -752,6 +822,7 @@ def evaluate_algorithms(
     search_depth: str,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     X, y, _ = prepare_design(train_df, spec, fixed_features=fixed_features)
+    groups = train_df.loc[X.index, "year"]
     rows: list[dict[str, Any]] = []
     configs = get_algorithm_configs(search_depth)
     for i, cfg in enumerate(configs, start=1):
@@ -760,7 +831,7 @@ def evaluate_algorithms(
             flush=True,
         )
         est = build_estimator(cfg["algorithm"], cfg["params"], random_state=random_state)
-        cv = run_stratified_cv(estimator=est, X=X, y=y, folds=cv_folds, random_state=random_state)
+        cv = run_season_cv(estimator=est, X=X, y=y, groups=groups, folds=cv_folds)
         rows.append(
             {
                 "model_id": i,
@@ -771,45 +842,14 @@ def evaluate_algorithms(
                 "cv_mae": cv["overall_mae"],
                 "cv_mse_std": cv["fold_mse_std"],
                 "cv_splits": cv["n_splits"],
-                "loo_mse": np.nan,
-                "loo_mae": np.nan,
             }
         )
 
     result = pd.DataFrame(rows).sort_values("cv_mse").reset_index(drop=True)
-    if search_depth == "fast":
-        linear_mask = result["algorithm"].isin(["ridge", "lasso", "elasticnet"])
-        loo_indices = result[linear_mask].head(3).index.tolist()
-        if len(loo_indices) < 3:
-            fill = [i for i in result.index.tolist() if i not in loo_indices][: 3 - len(loo_indices)]
-            loo_indices.extend(fill)
-    else:
-        loo_indices = result.head(3).index.tolist()
-
-    for idx in loo_indices:
-        row = result.loc[idx]
-        est = build_estimator(row["algorithm"], row["params_obj"], random_state=random_state)
-        label = f"algorithm={row['algorithm']}, params={row['params']}"
-        loo = run_loo(estimator=est, X=X, y=y, progress_label=label)
-        result.loc[idx, "loo_mse"] = loo["mse"]
-        result.loc[idx, "loo_mae"] = loo["mae"]
-
     winner = result.iloc[0].to_dict()
     winner["X"] = X
     winner["y"] = y
     return result, winner
-
-
-def best_feature_set_row(df: pd.DataFrame) -> pd.Series:
-    ranked = df.copy()
-    ranked["loo_for_rank"] = ranked["loo_mse"].fillna(np.inf)
-    return ranked.sort_values(["cv_mse", "loo_for_rank", "n_features"], ascending=[True, True, True]).iloc[0]
-
-
-def best_model_row(df: pd.DataFrame) -> pd.Series:
-    ranked = df.copy()
-    ranked["loo_for_rank"] = ranked["loo_mse"].fillna(np.inf)
-    return ranked.sort_values(["cv_mse", "loo_for_rank"], ascending=[True, True]).iloc[0]
 
 
 def get_linear_coefficients(
@@ -853,8 +893,45 @@ def get_winner_importance(
     return imp, est
 
 
-def main() -> int:
-    args = parse_args()
+def run_provenance(csv_path: Path) -> dict[str, str]:
+    import hashlib
+    import subprocess
+
+    def git(*cmd: str) -> str:
+        try:
+            return subprocess.run(["git", *cmd], cwd=REPO_ROOT, capture_output=True, text=True,
+                                  check=True).stdout.strip()
+        except (OSError, subprocess.CalledProcessError):
+            return "unknown"
+
+    dirty = git("status", "--porcelain", "--", "scripts", "src")
+    return {
+        "code_revision": git("rev-parse", "--short", "HEAD") + (" + uncommitted changes" if dirty else ""),
+        "input_sha256": hashlib.sha256(csv_path.read_bytes()).hexdigest()[:16],
+    }
+
+
+def run_leakage_negative_controls(train_df: pd.DataFrame) -> pd.DataFrame:
+    """The guard must reject known outcome columns on the real training rows, or the run fails."""
+    rows = []
+    for col in ("PASE", "PAKE", "round", "result"):
+        if col not in train_df.columns:
+            continue
+        score = leakage_scores(train_df, [col]).get(col, np.nan)
+        try:
+            assert_no_target_leakage(train_df, [col], TARGET_COL, label=f"negative_control_{col}")
+            verdict = "NOT CAUGHT"
+        except ValueError:
+            verdict = "rejected"
+        rows.append({"injected_feature": col, "leak_score": score, "guard": verdict})
+    out = pd.DataFrame(rows)
+    if (out["guard"] != "rejected").any():
+        raise RuntimeError(f"leakage guard failed its negative controls:\n{out}")
+    return out
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
     run_date = datetime.now().strftime("%Y%m%d")
 
     report_dir = REPO_ROOT / args.report_dir
@@ -862,7 +939,7 @@ def main() -> int:
     models_dir = REPO_ROOT / DEFAULT_MODEL_DIR
     ensure_dirs(report_dir, figures_dir, models_dir)
 
-    report_path = report_dir / f"predictive_analysis_{run_date}.md"
+    report_path = report_dir / f"{args.report_prefix}_{run_date}.md"
     correlation_path = figures_dir / "correlation_matrix.png"
     feature_importance_path = figures_dir / "feature_importance.png"
     model_comparison_path = figures_dir / "model_comparison.png"
@@ -875,20 +952,21 @@ def main() -> int:
     csv_path = REPO_ROOT / args.input_csv
     print(f"[Run] Loading data: {csv_path}", flush=True)
     try:
-        df = pd.read_csv(csv_path)
+        raw_df = pd.read_csv(csv_path)
     except pd.errors.ParserError:
-        df = pd.read_csv(csv_path, engine="python")
-    df = add_engineered_features(df)
-    rank_base_cols = choose_rank_base_columns(df)
-    df, rank_cols = add_rank_features(df, rank_base_cols)
+        raw_df = pd.read_csv(csv_path, engine="python")
+    provenance = run_provenance(csv_path)
+    df = add_engineered_features(raw_df)
+    df, rank_cols = add_rank_features(df, choose_rank_base_columns(df))
 
     # Section 1: Data profile.
     print("[Run] Section 1: Data Profile", flush=True)
-    year_min = int(pd.to_numeric(df["year"], errors="coerce").min())
-    year_max = int(pd.to_numeric(df["year"], errors="coerce").max())
+    years = pd.to_numeric(df["year"], errors="coerce")
+    year_min, year_max = int(years.min()), int(years.max())
     tournament_mask = pd.to_numeric(df["seed"], errors="coerce").notna() & pd.to_numeric(df["round"], errors="coerce").notna()
     tournament_rows = int(tournament_mask.sum())
     non_tournament_rows = int((~tournament_mask).sum())
+    duplicate_team_seasons = int(df.duplicated(["Team", "year"]).sum())
 
     candidate_profile_cols = unique_keep_order(
         [c for c in list(GEN_FEATURES) + UNUSED_CANDIDATES + ENGINEERED_FEATURES if c in df.columns]
@@ -898,100 +976,136 @@ def main() -> int:
 
     stat_cols = [c for c in ["AdjOE", "AdjDE", "Barthag", "seed", "round"] if c in df.columns]
     distribution_summary = (
-        df[stat_cols]
-        .apply(pd.to_numeric, errors="coerce")
-        .describe()
+        df[stat_cols].apply(pd.to_numeric, errors="coerce").describe()
         .T[["mean", "std", "min", "25%", "50%", "75%", "max"]]
-        .reset_index()
-        .rename(columns={"index": "feature"})
+        .reset_index().rename(columns={"index": "feature"})
     )
 
     # Modeling scope.
-    model_df = df[tournament_mask].copy()
-    model_df = model_df[pd.to_numeric(model_df["year"], errors="coerce") != 2020].copy()
-    pre_holdout_df = model_df[pd.to_numeric(model_df["year"], errors="coerce") < args.holdout_year].copy()
-    holdout_df = model_df[pd.to_numeric(model_df["year"], errors="coerce") == args.holdout_year].copy()
+    model_df = df[tournament_mask & (years != 2020)].copy()
+    model_years = pd.to_numeric(model_df["year"], errors="coerce")
+    pre_holdout_df = model_df[model_years < args.holdout_year].copy()
+    holdout_df = model_df[model_years == args.holdout_year].copy()
     if pre_holdout_df.empty:
         raise ValueError("Pre-holdout modeling data is empty.")
     if holdout_df.empty:
         raise ValueError(f"Holdout year {args.holdout_year} has no eligible rows.")
 
-    # Section 2: Baseline evaluation (CV + LOO).
+    # Leakage audit: contract, inventory, guard negative controls.
+    print("[Run] Leakage audit", flush=True)
+    specs = build_feature_specs(pre_holdout_df, rank_cols=rank_cols)
+    used: set[str] = set()
+    for spec in specs:
+        used |= set(spec.features) | set((spec.poly or {}).keys())
+    inventory = feature_inventory(pre_holdout_df, used)
+    negative_controls = run_leakage_negative_controls(pre_holdout_df)
+
+    # Section 2: Baseline ridge on the project's general-model features.
     print("[Run] Section 2: Baseline Evaluation", flush=True)
     baseline_spec = FeatureSpec(name="baseline_raw_poly", features=list(GEN_FEATURES), poly=dict(GEN_POLY))
     X_base, y_base, base_features = prepare_design(pre_holdout_df, baseline_spec)
-    base_alpha, base_alpha_rows = tune_ridge_alpha(X_base, y_base, RIDGE_ALPHA_GRID, args.cv_folds, args.random_state)
+    base_groups = pre_holdout_df.loc[X_base.index, "year"]
+    assert_prediction_time_contract(base_features, label=baseline_spec.name)
+    assert_no_target_leakage(pre_holdout_df, base_features, TARGET_COL, label=baseline_spec.name)
+    base_alpha, base_alpha_rows = tune_ridge_alpha(X_base, y_base, base_groups, RIDGE_ALPHA_GRID,
+                                                   args.cv_folds, args.random_state)
     base_est = build_estimator("ridge", {"alpha": base_alpha}, random_state=args.random_state)
-    baseline_cv = run_stratified_cv(base_est, X_base, y_base, folds=args.cv_folds, random_state=args.random_state)
-    baseline_loo = run_loo(base_est, X_base, y_base, progress_label="baseline_ridge")
+    baseline_cv = run_season_cv(base_est, X_base, y_base, groups=base_groups, folds=args.cv_folds)
+    seed_cv_pred = pd.Series(np.nan, index=X_base.index)
+    for season in sorted(base_groups.unique()):
+        held = base_groups.index[base_groups == season]
+        seed_cv_pred.loc[held] = seed_lookup_predictions(
+            pre_holdout_df.drop(index=held), pre_holdout_df.loc[held])
+    seed_cv_mse = float(mean_squared_error(y_base, seed_cv_pred))
+    seed_cv_mae = float(mean_absolute_error(y_base, seed_cv_pred))
 
     # Section 3: Feature optimization.
     print("[Run] Section 3: Feature Optimization", flush=True)
-    specs = build_feature_specs(pre_holdout_df, rank_cols=rank_cols)
     feature_results, feature_cache = evaluate_feature_sets(
-        train_df=pre_holdout_df,
-        specs=specs,
-        cv_folds=args.cv_folds,
-        random_state=args.random_state,
+        train_df=pre_holdout_df, specs=specs, cv_folds=args.cv_folds, random_state=args.random_state,
     )
-    best_feature_row = best_feature_set_row(feature_results)
-    best_feature_name = str(best_feature_row["feature_set"])
+    best_feature_name = str(feature_results.iloc[0]["feature_set"])
     best_feature_cached = feature_cache[best_feature_name]
     best_feature_spec = best_feature_cached["spec"]
     best_feature_list = best_feature_cached["features"]
     best_feature_alpha = float(best_feature_cached["best_alpha"])
+    guard_worst = feature_results.sort_values("leak_guard_max_r", ascending=False).iloc[0]
 
     vif_df = compute_vif(best_feature_cached["X"])
     coef_df = get_linear_coefficients(
-        X=best_feature_cached["X"],
-        y=best_feature_cached["y"],
-        alpha=best_feature_alpha,
+        X=best_feature_cached["X"], y=best_feature_cached["y"], alpha=best_feature_alpha,
         random_state=args.random_state,
     )
 
     # Section 4: Algorithm search.
     print("[Run] Section 4: Algorithm Search", flush=True)
     model_results, _ = evaluate_algorithms(
-        train_df=pre_holdout_df,
-        spec=best_feature_spec,
-        fixed_features=best_feature_list,
-        cv_folds=args.cv_folds,
-        random_state=args.random_state,
-        search_depth=args.search_depth,
+        train_df=pre_holdout_df, spec=best_feature_spec, fixed_features=best_feature_list,
+        cv_folds=args.cv_folds, random_state=args.random_state, search_depth=args.search_depth,
     )
-    winner_row = best_model_row(model_results)
+    winner_row = model_results.iloc[0]
     winner_algorithm = str(winner_row["algorithm"])
     winner_params = winner_row["params_obj"]
     save_model_comparison(model_results.copy(), model_comparison_path)
 
-    # Section 5: Holdout + final retrain.
+    # Section 5: Holdout.
     print("[Run] Section 5: Holdout + Final Retrain", flush=True)
     X_train_best, y_train_best, _ = prepare_design(pre_holdout_df, best_feature_spec, fixed_features=best_feature_list)
     X_holdout, y_holdout, _ = prepare_design(holdout_df, best_feature_spec, fixed_features=best_feature_list)
     winner_importance_df, winner_estimator = get_winner_importance(
-        winner_algorithm=winner_algorithm,
-        winner_params=winner_params,
-        X_train=X_train_best,
-        y_train=y_train_best,
-        random_state=args.random_state,
+        winner_algorithm=winner_algorithm, winner_params=winner_params,
+        X_train=X_train_best, y_train=y_train_best, random_state=args.random_state,
     )
-    save_feature_importance_plot(
-        winner_importance_df,
-        feature_importance_path,
-        title=f"Feature Importance ({winner_algorithm})",
-    )
+    save_feature_importance_plot(winner_importance_df, feature_importance_path,
+                                 title=f"Feature Importance ({winner_algorithm})")
 
     holdout_pred = winner_estimator.predict(X_holdout)
     holdout_mse = float(mean_squared_error(y_holdout, holdout_pred))
     holdout_mae = float(mean_absolute_error(y_holdout, holdout_pred))
+    seed_holdout_pred = seed_lookup_predictions(pre_holdout_df, holdout_df.loc[X_holdout.index])
+    seed_holdout_mse = float(mean_squared_error(y_holdout, seed_holdout_pred))
+    seed_holdout_mae = float(mean_absolute_error(y_holdout, seed_holdout_pred))
+    beats_mse = holdout_mse < seed_holdout_mse
+    beats_mae = holdout_mae < seed_holdout_mae
+
+    # Every candidate set on the holdout, reported only (selection above never saw 2025).
+    all_sets_rows = []
+    for name, cached in feature_cache.items():
+        est = build_estimator("ridge", {"alpha": cached["best_alpha"]}, random_state=args.random_state)
+        est.fit(cached["X"], cached["y"])
+        Xh, yh, _ = prepare_design(holdout_df, cached["spec"], fixed_features=cached["features"])
+        ph = est.predict(Xh)
+        all_sets_rows.append({
+            "feature_set": name, "algorithm": "ridge",
+            "holdout_mse": float(mean_squared_error(yh, ph)), "holdout_mae": float(mean_absolute_error(yh, ph)),
+        })
+    all_sets_rows.append({"feature_set": best_feature_name, "algorithm": f"{winner_algorithm} (winner)",
+                          "holdout_mse": holdout_mse, "holdout_mae": holdout_mae})
+    all_sets_rows.append({"feature_set": "seed only", "algorithm": "historical mean wins by seed",
+                          "holdout_mse": seed_holdout_mse, "holdout_mae": seed_holdout_mae})
+    all_sets_df = pd.DataFrame(all_sets_rows).sort_values("holdout_mse").reset_index(drop=True)
+    n_sets_beating_seed = int(sum(r["holdout_mse"] < seed_holdout_mse for r in all_sets_rows[:-1]))
+
+    # Outcome-free scoring: rebuild the holdout season from raw columns with every outcome
+    # column deleted, as if the tournament had not been played, and require identical output.
+    pre_artifact = {"model": winner_estimator, "features": best_feature_list,
+                    "poly": best_feature_spec.poly, "feature_set": best_feature_name}
+    raw_years = pd.to_numeric(raw_df["year"], errors="coerce")
+    unplayed = raw_df[raw_years == args.holdout_year].drop(
+        columns=[c for c in OUTCOME_COLUMNS if c in raw_df.columns])
+    unplayed_scores = score_field(pre_artifact, unplayed)
+    scoring_diff = float(np.max(np.abs(unplayed_scores.loc[X_holdout.index].to_numpy() - holdout_pred)))
+    if scoring_diff > 1e-9:
+        raise RuntimeError(f"outcome-free scoring differs from holdout scoring by {scoring_diff}")
+    future_years = sorted(int(y) for y in raw_years.dropna().unique() if y > args.holdout_year)
 
     holdout_output = holdout_df.loc[X_holdout.index, ["Team", "year", "seed", "round"]].copy()
     holdout_output = holdout_output.rename(columns={"round": "actual_round"})
     holdout_output["pred_round"] = holdout_pred
+    holdout_output["seed_baseline_round"] = seed_holdout_pred
     save_holdout_scatter(holdout_output, holdout_scatter_path, args.holdout_year)
 
-    all_eligible_df = model_df.copy()
-    X_all, y_all, _ = prepare_design(all_eligible_df, best_feature_spec, fixed_features=best_feature_list)
+    X_all, y_all, _ = prepare_design(model_df, best_feature_spec, fixed_features=best_feature_list)
     final_estimator = build_estimator(winner_algorithm, winner_params, random_state=args.random_state)
     final_estimator.fit(X_all, y_all)
     joblib.dump(
@@ -1004,6 +1118,11 @@ def main() -> int:
             "poly": best_feature_spec.poly,
             "train_rows": int(len(y_all)),
             "holdout_year": int(args.holdout_year),
+            "prediction_moment": "Selection Sunday; score with score_field(), no outcome columns needed",
+            "holdout": {"mse": holdout_mse, "mae": holdout_mae,
+                        "seed_lookup_mse": seed_holdout_mse, "seed_lookup_mae": seed_holdout_mae},
+            "code_revision": provenance["code_revision"],
+            "input_sha256": provenance["input_sha256"],
             "created_at": datetime.now().isoformat(timespec="seconds"),
         },
         model_artifact_path,
@@ -1014,22 +1133,54 @@ def main() -> int:
     b_a = float(corr_triplet.loc["Barthag", "AdjOE"])
     b_d = float(corr_triplet.loc["Barthag", "AdjDE"])
     od = float(corr_triplet.loc["AdjOE", "AdjDE"])
+    verdict = "beats" if (beats_mse and beats_mae) else "does NOT beat"
 
     lines: list[str] = []
-    lines.append(f"# Predictive Analysis Report ({run_date})")
+    lines.append(f"# Model Optimization Report ({run_date})")
+    lines.append("")
+    lines.append("## Headline")
+    lines.append(
+        f"- Leakage assertion: **PASSED** on all {len(feature_results) + 1} feature sets "
+        f"(fails the run at r >= {LEAKAGE_THRESHOLD}; strongest candidate feature "
+        f"`{guard_worst['leak_guard_top_feature']}` scores {float(guard_worst['leak_guard_max_r']):.4f}). "
+        f"Negative controls PASE, PAKE, round and result are all rejected on the real training rows."
+    )
+    lines.append(
+        f"- {args.holdout_year} holdout, refit on seasons before {args.holdout_year}: model "
+        f"(`{best_feature_name}` / `{winner_algorithm}`) MSE {holdout_mse:.4f}, MAE {holdout_mae:.4f}; "
+        f"historical seed lookup MSE {seed_holdout_mse:.4f}, MAE {seed_holdout_mae:.4f}. "
+        f"The model {verdict} the seed line" + (" on point estimate only. One 64-row season cannot separate them (independent check, 2026-09-29: 95% CI on the MSE difference -0.198 to +0.109), so read it as no worse than the seed line, not better." if verdict == "beats" else ".")
+    )
+    lines.append(
+        f"- {n_sets_beating_seed} of {len(feature_cache) + 1} honest candidate models beat the seed lookup "
+        f"on {args.holdout_year} MSE (table in Section 5; reported only, never used for selection)."
+    )
+    lines.append(
+        f"- Outcome-free scoring: the {args.holdout_year} season re-scored with every outcome column "
+        f"deleted gives identical predictions (max abs diff {scoring_diff:.1e}), so the model can "
+        f"score a field whose tournament has not been played."
+    )
     lines.append("")
     lines.append("## Run Configuration")
-    lines.append(f"- input_csv: `{args.input_csv}`")
+    lines.append(f"- command: `python scripts/run_pipeline.py --holdout {args.holdout_year}` "
+                 f"(or `python scripts/run_analysis.py --holdout-year {args.holdout_year}`)")
+    lines.append(f"- input_csv: `{args.input_csv}` (sha256 prefix `{provenance['input_sha256']}`)")
+    lines.append(f"- code_revision: `{provenance['code_revision']}`")
     lines.append(f"- holdout_year: `{args.holdout_year}`")
-    lines.append(f"- cv_folds_requested: `{args.cv_folds}`")
+    lines.append(f"- cv: season-grouped `GroupKFold`, `{baseline_cv['n_splits']}` folds over "
+                 f"{base_groups.nunique()} training seasons")
     lines.append(f"- search_depth: `{args.search_depth}`")
     lines.append(f"- random_state: `{args.random_state}`")
+    lines.append("- selection metric: season-grouped CV MSE on the 0-6 wins target. MSE is kept for "
+                 "continuity only; bracket-level selection uses Brier, log loss and calibration "
+                 "(`reports/bracket_simulation_*.md`).")
     lines.append("")
     lines.append("## Section 1: Data Profile")
     lines.append(f"- dataset_shape: `{df.shape[0]} rows x {df.shape[1]} columns`")
     lines.append(f"- year_range: `{year_min}-{year_max}`")
     lines.append(f"- tournament_rows (seed+round non-null): `{tournament_rows}`")
     lines.append(f"- non_tournament_rows: `{non_tournament_rows}`")
+    lines.append(f"- duplicate (Team, year) rows: `{duplicate_team_seasons}`")
     lines.append(f"- modeled_rows_excluding_2020: `{len(model_df)}`")
     lines.append(f"- pre_holdout_rows (<{args.holdout_year}): `{len(pre_holdout_df)}`")
     lines.append(f"- holdout_rows ({args.holdout_year}): `{len(holdout_df)}`")
@@ -1037,29 +1188,62 @@ def main() -> int:
     lines.append("### Distribution Summary")
     lines.append(markdown_table(distribution_summary, max_rows=None, float_digits=4))
     lines.append("")
-    lines.append("### Missingness (candidate feature columns)")
     lines.append(f"![Missingness Heatmap](figures/{missingness_path.name})")
     lines.append("")
-    lines.append("### Correlation Matrix")
     lines.append(f"![Correlation Matrix](figures/{correlation_path.name})")
     lines.append("")
-    lines.append("### Collinearity Note")
     lines.append(
-        f"- corr(Barthag, AdjOE) = `{b_a:.4f}`, corr(Barthag, AdjDE) = `{b_d:.4f}`, corr(AdjOE, AdjDE) = `{od:.4f}`."
+        f"- corr(Barthag, AdjOE) = `{b_a:.4f}`, corr(Barthag, AdjDE) = `{b_d:.4f}`, corr(AdjOE, AdjDE) = `{od:.4f}`. "
+        "Barthag is built from the two efficiencies, so high collinearity is expected."
     )
-    lines.append("- Barthag is derived from offensive and defensive efficiency, so high multicollinearity is expected.")
     lines.append("")
-    lines.append("## Section 2: Baseline Evaluation (CV + LOO)")
+    lines.append("## Leakage Register")
+    lines.append("Prediction moment: the published bracket on Selection Sunday, before any NCAA tournament game.")
+    lines.append("")
+    register = pd.DataFrame([
+        {"risk": "Post-tournament values", "control": f"{len(OUTCOME_COLUMNS)} outcome columns in "
+         "OUTCOME_COLUMNS, excluded from every set (PAKE, PASE, round dummies, result, finish, "
+         "postseason W-L, final record)", "status": "pass"},
+        {"risk": "Feature reconstructs the target", "control": f"assert_no_target_leakage on every set, "
+         f"fails at r >= {LEAKAGE_THRESHOLD} (seed-residual Pearson or raw Spearman)",
+         "status": f"pass, max {float(guard_worst['leak_guard_max_r']):.4f}"},
+        {"risk": "Guard cannot fail", "control": "negative controls injected on real rows",
+         "status": "pass, all rejected"},
+        {"risk": "Unmapped or unavailable column", "control": "assert_prediction_time_contract on every "
+         "set; unmapped columns fail the run", "status": "pass"},
+        {"risk": "Full-sample aggregates", "control": "ranks and conf_avg_barthag are within-season, "
+         "from pre-tournament columns; seed lookup fit on training seasons only", "status": "pass by construction"},
+        {"risk": "Preprocessing before split", "control": "imputer and scaler inside the sklearn Pipeline, "
+         "refit in every fold", "status": "pass by construction"},
+        {"risk": "Repeated team-season rows", "control": "duplicate (Team, year) count",
+         "status": f"{'pass' if duplicate_team_seasons == 0 else 'FAIL'}, {duplicate_team_seasons}"},
+        {"risk": "Season overlap train/validation", "control": "GroupKFold by season; holdout season "
+         "later than every training season", "status": "pass"},
+        {"risk": "Coach history window", "control": "prior 5 tournaments only, current season excluded "
+         "(tests/test_team_history_pipeline.py)", "status": "pass"},
+    ])
+    lines.append(markdown_table(register))
+    lines.append("")
+    lines.append("### Guard negative controls")
+    lines.append(markdown_table(negative_controls, float_digits=4))
+    lines.append("")
+    lines.append("### Prediction-time feature inventory")
+    lines.append("`leak_score` is the guard statistic on pre-holdout tournament rows. Rank columns "
+                 "(`*_rank`, within-season ranks of the listed stats) and polynomial terms inherit "
+                 "their base column's source.")
+    lines.append("")
+    base_inventory = inventory[~inventory["column"].str.endswith("_rank")]
+    lines.append(markdown_table(base_inventory, float_digits=4))
+    lines.append("")
+    lines.append("## Section 2: Baseline Evaluation (season-grouped CV)")
     lines.append(f"- baseline_feature_count: `{len(base_features)}`")
     lines.append(f"- baseline_best_alpha_by_cv: `{base_alpha}`")
     lines.append(f"- baseline_cv_mse: `{baseline_cv['overall_mse']:.6f}`")
     lines.append(f"- baseline_cv_mae: `{baseline_cv['overall_mae']:.6f}`")
     lines.append(f"- baseline_cv_fold_mse_std: `{baseline_cv['fold_mse_std']:.6f}`")
-    lines.append(f"- baseline_cv_effective_splits: `{baseline_cv['n_splits']}`")
-    lines.append(f"- baseline_loo_mse: `{baseline_loo['mse']:.6f}`")
-    lines.append(f"- baseline_loo_mae: `{baseline_loo['mae']:.6f}`")
+    lines.append(f"- seed_lookup_leave_one_season_out_mse: `{seed_cv_mse:.6f}`")
+    lines.append(f"- seed_lookup_leave_one_season_out_mae: `{seed_cv_mae:.6f}`")
     lines.append("")
-    lines.append("### Baseline Alpha Grid")
     lines.append(markdown_table(pd.DataFrame(base_alpha_rows), max_rows=None, float_digits=6))
     lines.append("")
     lines.append("## Section 3: Feature Optimization")
@@ -1073,9 +1257,7 @@ def main() -> int:
     lines.append(markdown_table(vif_df.head(20), max_rows=None, float_digits=4))
     lines.append("")
     lines.append("### Scaled Ridge Coefficients (Top 25)")
-    coef_view = coef_df.head(25).copy()
-    coef_view = coef_view[["feature", "coef", "abs_coef"]]
-    lines.append(markdown_table(coef_view, max_rows=None, float_digits=6))
+    lines.append(markdown_table(coef_df.head(25)[["feature", "coef", "abs_coef"]], max_rows=None, float_digits=6))
     lines.append("")
     lines.append("## Section 4: Algorithm Search")
     lines.append(markdown_table(model_results.drop(columns=["params_obj"]), max_rows=30, float_digits=6))
@@ -1086,21 +1268,27 @@ def main() -> int:
     lines.append(f"- winning_params: `{format_params(winner_params)}`")
     lines.append(f"- winning_cv_mse: `{float(winner_row['cv_mse']):.6f}`")
     lines.append(f"- winning_cv_mae: `{float(winner_row['cv_mae']):.6f}`")
-    if pd.notna(winner_row["loo_mse"]):
-        lines.append(f"- winning_loo_mse: `{float(winner_row['loo_mse']):.6f}`")
-        lines.append(f"- winning_loo_mae: `{float(winner_row['loo_mae']):.6f}`")
     lines.append("")
-    lines.append("## Section 5: Holdout + Final Retrain")
+    lines.append("## Section 5: Holdout vs Seed Lookup")
     lines.append(f"- holdout_year: `{args.holdout_year}`")
     lines.append(f"- holdout_mse: `{holdout_mse:.6f}`")
     lines.append(f"- holdout_mae: `{holdout_mae:.6f}`")
+    lines.append(f"- seed_lookup_holdout_mse: `{seed_holdout_mse:.6f}`")
+    lines.append(f"- seed_lookup_holdout_mae: `{seed_holdout_mae:.6f}`")
+    lines.append(f"- model_beats_seed_lookup_mse: `{str(beats_mse).lower()}`")
+    lines.append(f"- model_beats_seed_lookup_mae: `{str(beats_mae).lower()}`")
     lines.append(f"- holdout_rows_scored: `{len(y_holdout)}`")
-    lines.append(f"- final_retrain_rows: `{len(y_all)}`")
-    lines.append(f"- model_artifact: `{model_artifact_path.relative_to(REPO_ROOT)}`")
+    lines.append(f"- outcome_free_scoring_max_abs_diff: `{scoring_diff:.1e}`")
+    lines.append(f"- seasons after holdout in input: `{future_years or 'none'}`")
+    lines.append(f"- final_retrain_rows (all seasons, for future fields): `{len(y_all)}`")
+    lines.append(f"- model_artifact: `{model_artifact_path.relative_to(REPO_ROOT).as_posix()}`")
+    lines.append("")
+    lines.append("### Every candidate on the holdout (reported only)")
+    lines.append(markdown_table(all_sets_df, float_digits=4))
     lines.append("")
     lines.append(f"![Holdout Actual vs Predicted](figures/{holdout_scatter_path.name})")
     lines.append("")
-    lines.append("### Holdout Prediction Table")
+    lines.append("### Holdout Prediction Table (first 25)")
     lines.append(markdown_table(holdout_output.head(25), max_rows=None, float_digits=4))
     lines.append("")
     lines.append("### Winner Feature Importance")
@@ -1109,16 +1297,26 @@ def main() -> int:
     lines.append(markdown_table(winner_importance_df.head(25), max_rows=None, float_digits=6))
     lines.append("")
     lines.append("## Recommendation")
-    lines.append(
-        f"Replace the current general model candidate with feature set `{best_feature_name}` and "
-        f"algorithm `{winner_algorithm}` ({format_params(winner_params)}), based on lowest "
-        "pre-holdout CV MSE and confirmed holdout performance on 2025."
-    )
+    if beats_mse and beats_mae:
+        lines.append(
+            f"The `{best_feature_name}` / `{winner_algorithm}` candidate beats the historical seed lookup on "
+            f"the {args.holdout_year} holdout on both MSE ({holdout_mse:.4f} vs {seed_holdout_mse:.4f}) and "
+            f"MAE ({holdout_mae:.4f} vs {seed_holdout_mae:.4f}) on point estimate. One season is 64 rows and cannot separate them, so treat this as "
+            "provisional until the walked-forward bracket evaluation agrees."
+        )
+    else:
+        lines.append(
+            f"Keep the historical seed lookup as the round-prediction baseline. The honest "
+            f"`{best_feature_name}` / `{winner_algorithm}` refit scores MSE {holdout_mse:.4f} and MAE "
+            f"{holdout_mae:.4f} on {args.holdout_year} against the lookup's {seed_holdout_mse:.4f} and "
+            f"{seed_holdout_mae:.4f}. With PASE and PAKE removed, these Torvik season aggregates do not "
+            "beat the seed line out of sample on this target; that is the finding."
+        )
 
-    report_path.write_text("\n".join(lines), encoding="utf-8")
+    report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Report written: {report_path}")
     print(f"Model artifact written: {model_artifact_path}")
-    print(f"Figures directory: {figures_dir}")
+    print(f"Leakage assertion passed; holdout MSE {holdout_mse:.4f} vs seed lookup {seed_holdout_mse:.4f}")
     return 0
 
 

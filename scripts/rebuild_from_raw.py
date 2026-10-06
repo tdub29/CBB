@@ -48,6 +48,7 @@ def main() -> int:
         print(f"Using run tag: {run_tag}")
 
     import pandas as pd
+    from src.frozen_inputs import write_csv
     from src.pipelines.madness import build_features, build_clean_training_dataset
 
     master_path = run_dir / f"trank_regular_{run_tag}.csv"
@@ -77,12 +78,12 @@ def main() -> int:
     processed_dir.mkdir(parents=True, exist_ok=True)
 
     full_path = processed_dir / f"cbbtrainingdata_{run_tag}.csv"
-    training_data_full.to_csv(full_path, index=False)
+    write_csv(training_data_full, full_path)
     print(f"Wrote {full_path} ({len(training_data_full)} rows)")
 
     clean_df = build_clean_training_dataset(training_data_full)
-    clean_path = processed_dir / "cbb_training_clean.csv"
-    clean_df.to_csv(clean_path, index=False)
+    # Run-tagged: data/processed/cbb_training_clean.csv is frozen (src/frozen_inputs.py).
+    clean_path = write_csv(clean_df, processed_dir / f"cbb_training_clean_{run_tag}.csv")
     print(f"Wrote {clean_path} ({len(clean_df)} rows, {len(clean_df.columns)} columns)")
 
     return 0
