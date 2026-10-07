@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import importlib
 import json
 import os
@@ -40,3 +41,14 @@ def test_refetch_scripts_never_target_frozen_files(module) -> None:
     mod = importlib.import_module(module)
     assert not is_frozen(mod.OUT_CSV) and not is_frozen(mod.OUT_MANIFEST)
     assert "refetch" in mod.OUT_CSV.parts
+
+
+def test_select_refuses_before_loading_any_data(monkeypatch) -> None:
+    rpc = importlib.import_module("scripts.run_powered_comparison")
+
+    def load_inputs(_args):
+        raise AssertionError("select reached load_inputs: the frozen-path guard is missing or moved")
+
+    monkeypatch.setattr(rpc, "load_inputs", load_inputs)
+    with pytest.raises(FrozenInputError):
+        rpc.run_select(argparse.Namespace())

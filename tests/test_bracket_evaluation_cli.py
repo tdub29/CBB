@@ -2,7 +2,7 @@
 
 walk_forward_year used to raise NameError (`hist` lived in fit_year_model after the extraction).
 This drives it on the committed 2021 inputs: the model probabilities must equal the powered
-comparison's saved p_ridge, and a rerun must write tagged files, never the 2026-03 evidence.
+comparison's saved p_ridge, and a rerun must write tagged files, never the 2026-09-29 evidence.
 """
 
 from __future__ import annotations

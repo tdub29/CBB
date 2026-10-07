@@ -12,7 +12,8 @@ tested against historical seed-pair win rates under a pre-registered charter.
 - **Test, 2021-2026 (6 tournaments, 377 games).** Brier minus seed-pair -0.0059, year-block 95% CI
   [-0.0123, +0.0004]. Power against the pre-set 0.005 edge was 15%; the minimum detectable edge is 0.0126.
   **No detectable edge.** 2008-2026 data cannot sharpen this; only future tournaments can.
-- **Use.** A calibrated probability sheet about as good as seeds. Not a betting edge, no pool-win evidence.
+- **Use.** A probability sheet about as good as seeds. Calibration: no detectable miscalibration at this
+  sample size, which is not proof of calibration. Not a betting edge, no pool-win evidence.
 - Full write-up: [reports/model_vs_seeds_powered.md](reports/model_vs_seeds_powered.md). Limits of the
   test (2021-2026 is not blind: a Barthag-heavy ridge model was scored on 2021-2025 before the charter):
   [reports/completion-audit-2026-10-06/decision_matrix.md](reports/completion-audit-2026-10-06/decision_matrix.md).
@@ -36,7 +37,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt 
 - `--check` must print `CHECK PASS`: the outcome-free bracket math reproduces the saved 2026 `p_frozen`
   game rows and round probabilities to 1e-12.
 - **Never run `run_powered_comparison.py select`.** The selection is frozen; rerunning it would be a
-  second look at the data. It refuses to overwrite the frozen file without `--force`.
+  second look at the data. It refuses to run: the frozen JSON is a protected path in `src/frozen_inputs.py`.
 
 ## Supported run paths
 
@@ -76,8 +77,8 @@ tournaments, so 2026 teams sit a few games short of other years (sensitivity in 
 Historical rows come from Torvik's tables as served when they were pulled, years after each season, so
 they may carry rating revisions a forecaster in that March did not have. `reports/model_optimization_20260929.md` and
 `reports/bracket_simulation_2025.md` were run on 2026-09-29 against an earlier training CSV (sha256 prefix
-`8565be043d11155d`, not kept); their numbers stand as recorded. The 2021 walk-forward reproduces its saved
-probabilities on the frozen CSV (`tests/test_bracket_evaluation_cli.py`); other years are untested.
+`8565be043d11155d`, not kept); their numbers stand as recorded. The 2021 walk-forward matches the powered
+comparison's saved `p_ridge` on the frozen CSV (`tests/test_bracket_evaluation_cli.py`); other years are untested.
 
 ## Legacy pipeline
 

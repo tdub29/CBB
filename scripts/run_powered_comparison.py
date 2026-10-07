@@ -51,6 +51,7 @@ from scripts.run_bracket_evaluation import (  # noqa: E402
     prepare_model_frame,
     save_calibration_plot,
 )
+from src.frozen_inputs import assert_writable  # noqa: E402
 from src.models.tournament import BRACKET_ORDER, ROUND_NAMES, bracket_from_games, oriented_games, seed_pair_rates  # noqa: E402
 from src.models.win_probability import fit_bradley_terry_k, p_win  # noqa: E402
 from src.pipelines import madness as mad  # noqa: E402
@@ -526,8 +527,7 @@ def madness_as_implemented_zero_share(raw: pd.DataFrame, year: int) -> float:
 # ---------------------------------------------------------------- stage 1: select
 
 def run_select(args: argparse.Namespace) -> int:
-    if FROZEN_PATH.exists() and not args.force:
-        raise SystemExit(f"{FROZEN_PATH} exists; the selection is frozen. Delete it deliberately to re-select.")
+    assert_writable(FROZEN_PATH)  # the selection is frozen; re-selecting starts with src/frozen_inputs.py
     charter_locked_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     data = load_inputs(args)
     gl, results = data["gl"], data["results"]
@@ -1152,7 +1152,6 @@ def main() -> int:
     parser.add_argument("--history-csv", default="data/raw/seed_history_games.csv")
     parser.add_argument("--cv-folds", type=int, default=10)
     parser.add_argument("--random-state", type=int, default=42)
-    parser.add_argument("--force", action="store_true", help="select only: overwrite a frozen selection")
     args = parser.parse_args()
     if set(TEAM_COLS) & OUTCOME_COLUMNS:
         raise SystemExit("outcome column in team inputs")
