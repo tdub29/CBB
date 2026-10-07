@@ -1,0 +1,29 @@
+Clean-clone score reproduction (task boassf2ta). Fresh clone of the shared repo, HEAD 284d1ff; started 2026-10-07 01:04 PDT.
+Command: .venv python -u scripts/run_powered_comparison.py score
+--- log: first and last lines
+[strength fits] 2010
+[strength fits] 2011
+Report written: C:\Users\TrevorWhite\.claude\jobs\aafe185e\tmp\clean_clone\reports\model_vs_seeds_powered.md
+model-seed Brier -0.0020 [-0.0087, +0.0059]; frozen-seed 2021-2026 Brier -0.0059 [-0.0123, +0.0004]
+score exit 0
+--- git status --short --untracked-files=all (minus __pycache__)
+ M reports/model_vs_seeds_powered.md
+--- sha256sum -c frozen_baseline (7 files)
+data/processed/cbb_training_clean.csv: OK
+data/raw/tournament_games.csv: OK
+data/raw/seed_history_games.csv: OK
+reports/model_selection_frozen.json: OK
+reports/model_vs_seeds_powered.md: FAILED
+data/processed/powered_game_predictions_2010_2026.csv: OK
+data/processed/powered_round_probabilities_2010_2026.csv: OK
+sha256sum: WARNING: 1 computed checksum did NOT match
+--- report diff vs committed evidence
+diff --git a/reports/model_vs_seeds_powered.md b/reports/model_vs_seeds_powered.md
+index d1cbe6f..02d2c6c 100644
+--- a/reports/model_vs_seeds_powered.md
++++ b/reports/model_vs_seeds_powered.md
+@@ -307,2 +307,2 @@ Expected-wins squared error, 2025 field: trevor_2025 (pred_round) 0.653, frozen
+-- `python scripts/run_powered_comparison.py select` (charter locked 2026-09-29T16:11:27+00:00, frozen 2026-09-29T16:22:27+00:00), then `python scripts/run_powered_comparison.py score` (run 2026-10-01T02:50:18+00:00); data refresh: `scripts/fetch_tournament_games.py`, `scripts/fetch_seed_history.py`.
+-- Frozen selection sha256 `624bcd737db6f3d0`; code at selection `2ce8199 + uncommitted changes`, at scoring `2ce8199 + uncommitted changes`.
++- `python scripts/run_powered_comparison.py select` (charter locked 2026-09-29T16:11:27+00:00, frozen 2026-09-29T16:22:27+00:00), then `python scripts/run_powered_comparison.py score` (run 2026-10-07T14:06:40+00:00); data refresh: `scripts/fetch_tournament_games.py`, `scripts/fetch_seed_history.py`.
++- Frozen selection sha256 `624bcd737db6f3d0`; code at selection `2ce8199 + uncommitted changes`, at scoring `284d1ff`.

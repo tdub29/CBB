@@ -1,0 +1,10 @@
+HEAD 687d3ca fix: make select refuse at the frozen-path guard and match README claims to the report
+........................................                                 [100%]
+40 passed in 1393.16s (0:23:13)
+ "max_abs_fixed_first_four_vs_post_first_four": 5.551115123125783e-17
+}
+CHECK PASS
+--- hashes
+7
+--- status
+status done

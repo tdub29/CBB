@@ -1,0 +1,11 @@
+{
+ "round_rows_saved": 384,
+ "round_rows_joined": 384,
+ "max_abs_round_vs_saved_p_frozen": 1.1102230246251565e-16,
+ "game_rows_saved": 63,
+ "max_abs_game_vs_saved_p_frozen": 1.1102230246251565e-16,
+ "selection_sunday_teams": 68,
+ "first_four_slots": 4,
+ "max_abs_fixed_first_four_vs_post_first_four": 5.551115123125783e-17
+}
+CHECK PASS
