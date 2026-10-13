@@ -1,127 +1,71 @@
 # March Madness (Men's) Analysis and Prediction
 
-Predict NCAA Men's March Madness tournament advancement (round reached) using Bart Torvik team stats and seed-stratified linear models.
+Predicts how far each NCAA Men's tournament team advances (round 0 to 6) from [Bart Torvik](https://barttorvik.com) team stats, 2008-2025 (2020 excluded, no tournament). Seed is the dominant signal, so the models and the analyses are built around separating what seed already explains from what it does not.
 
-## Project goals
+## What it found
 
-- **Ingest** a precompiled regular-season base from `data/raw/all_trank_team_tables.csv` and enrich with [Bart Torvik](https://barttorvik.com) `team-history.php` (2008–2025, excluding 2020).
-- **Engineer features** including conference tournament W/L, round encoding (0–6), Power 6 conference flags, and seed-stratified indicators.
-- **Model** tournament round advancement with a general linear model plus 14 seed-specific models, selected via jackknife leave-one-out cross-validation.
-- **Output** training CSVs, model artifacts, and optional 2023 holdout validation.
+- **Strength of schedule adds little once seed is known.** Centering each team against its seed line's average finish and average Elite SOS leaves a within-seed Spearman correlation of 0.061 ([report](reports/sos_vs_finish_pooled_summary.md)). The broad pooled gradient is mostly seed structure.
+- **Where a stat matters depends on the seed band.** Effective height correlates with finish by +0.108 for seeds 1-2 and -0.077 for seeds 7-8 ([report](reports/size_vs_finish_by_seed_group_summary.md)). The same seed-band split is run for experience, three-point shooting, turnovers, rebounding, tempo and free-throw rate (see `reports/`).
+- **Conference context beats raw SOS for finding seed-relative overperformers.** Mean overperformance against seed expectation runs from +0.420 (Horz) to -0.342 (MWC) ([report](reports/sos_conf_vs_overperformance_summary.md)).
 
-## Modeling approach
+## How it validates, and a leak it caught
 
-- **Target**: `round` (0 = Round of 64, 6 = Champion).
-- **Features**: AdjOE, AdjDE, Barthag, seed, conference flags (B12, B10, SEC, etc.), optional team depth (EFFHGT, TALENT, AST%, etc.) when external data is available.
-- **Models**: One general LM + 14 seed-stratified LMs for finer prediction by seed tier.
-- **Validation**: Jackknife LOO cross-validation; Metrics package for bias and RMSE.
+The modeling table is 5,971 team-seasons by 122 columns, of which 1,088 are tournament teams with a seed and a result. `scripts/run_analysis.py` compares feature sets and algorithms with cross-validation and leave-one-out, then scores a blind 2025 holdout (64 teams).
 
-## Setup
+Commit b117223 fixes a target leak found in that script. `PAKE` and `PASE` are tournament wins minus expectation, so they are computed from the result being predicted. After residualizing the target against seed, `PASE` correlates 0.9948 and `PAKE` 0.9553 with it, against 0.0580 for `AdjOE` as a clean control. They are now excluded from every feature set, and `assert_no_target_leakage()` checks each set before it is fitted.
 
-Pipelines are available in **R** and **Python**. Use either language.
+**Every metric in the earlier reports is void**, including `reports/predictive_analysis_20260304.md` and `reports/predictive_analysis_20260306.md` (the 0.060 holdout MAE on a 0-6 target) and the two `models/analysis_best_model_*.joblib` files. They are kept as history. A re-run after the fix has not been committed yet, so there is no valid headline accuracy number here. Details: commit b117223 and `docs/modeling_plan.md`.
 
-### R
+## Models
 
-- R (4.0+ recommended)
-- Required packages: `rvest`, `httr`, `dplyr`, `sqldf`, `readxl`, `stringr`, `Metrics`, `ggplot2`, `yaml`
-- Optional: `toRvik` (for exploratory injury-impact analysis)
+- **General model**: ridge regression on `round` using efficiency (AdjOE, AdjDE, Barthag), seed, roster and coach-experience features. Its output, `predround`, feeds the seed models.
+- **14 seed-stratified models**: each trains on a 2-3 seed band and takes `predround` as a feature.
+- **Bracket simulation**: a Bradley-Terry model turns `predround` into pairwise win probabilities, and a Monte Carlo run (10,000 simulations by default) gives per-team odds for each round. See `src/models/`.
+- **Analysis script**: `scripts/run_analysis.py` adds gradient boosting, random forest, lasso and elastic net, plus VIF and holdout reports.
 
-```r
-Rscript scripts/install_deps.R
-```
+Full design and roadmap: [docs/modeling_plan.md](docs/modeling_plan.md). Walk-forward validation by year is on the roadmap, not built.
 
-### Python
+## Run it
 
-- Python 3.9+
-- Install: `pip install -r requirements.txt`
-
-```
-pandas, numpy, requests, scikit-learn, PyYAML, lxml, html5lib
-```
-
-## How to run
-
-From the project root:
-
-**R:**
 ```bash
-Rscript scripts/run_pipeline.R
+pip install -r requirements.txt
+python scripts/run_pipeline.py                   # ingest, features, models, training CSV
+python scripts/run_pipeline.py --data-only       # skip modeling
+python scripts/run_pipeline.py --bracket data/external/templates/bracket_template.csv --n-sims 20000 --k 1.0
+python scripts/run_analysis.py --holdout-year 2025
+pytest
 ```
 
-**Python:**
-```bash
-python scripts/run_pipeline.py
-```
+An R version of the pipeline is also here: `Rscript scripts/install_deps.R`, then `Rscript scripts/run_pipeline.R`.
 
-Or `python -m src.pipelines.madness`
+Per-topic analyses (SOS, size, experience, three-point, turnovers, rebounding, tempo, free-throw rate) are scripts named `scripts/<topic>_analysis_*.py` and `scripts/build_<topic>_sample.py`. They write tables and summaries to `reports/`.
 
-### Outputs
+## Data
 
-| Output | Location |
-|--------|----------|
-| Training data | `data/processed/cbbtrainingdata_YYYYMMDD.csv` |
-| Model artifacts | In-memory (general model, seed1–14 models); extend to save in `models/` as needed |
-| Figures | Plots rendered during run; extend to `reports/figures/` as needed |
+| Source | Notes |
+|--------|-------|
+| Bart Torvik | Per-year team tables, postseason tables, and `team-history.php` (coach, seed, finish, conference, coach 5-year stats). Assembled into `data/raw/assembled/all_trank_team_tables.csv`. |
+| Clean training set | `data/processed/cbb_training_clean.csv`, written by the pipeline. |
+| Optional external files | `data/external/`, see [docs/data_sources.md](docs/data_sources.md). Missing optional columns are filled with 0. |
 
-## Data sources
-
-| Source | Description |
-|--------|-------------|
-| **Bart Torvik** | [barttorvik.com](https://barttorvik.com) – precompiled `all_trank_team_tables.csv` base plus `team-history.php` enrichment (coach, seed, finish, conference, coach 5y stats). |
-| **Optional external files** | Placed in `data/external/` when available: `trank_team_table_data*.csv`, `cleanteam.xlsx`, `teamdata23.csv`. See [docs/data_sources.md](docs/data_sources.md). |
+Lineage: [docs/data_lineage.md](docs/data_lineage.md). Paths, year range and model settings live in `configs/default.yaml`.
 
 ## Known limitations
 
-- **Optional external data**: Richer features (EFFHGT, TALENT, etc.) require external CSVs. Pipeline runs without them; optional columns are filled with 0.
-- **2023 holdout**: Needs `cleanteam.xlsx` and `teamdata23.csv` in `data/external/`, or falls back to 2023 teams from training data.
-- **`bart_injuryimpact`**: Exploratory only; requires optional `toRvik` package. Does not affect main pipeline.
+- No post-fix accuracy number is committed yet (see above).
+- `src/ingestion/`, `src/features/`, `src/modeling/` and `src/evaluation/` are empty placeholders; the logic lives in `src/pipelines/madness.py` and `scripts/`.
+- Seed-band analyses split about 136 teams per band, so single-band correlations of 0.1 or less are weak evidence.
+- `bart_injuryimpact` is exploratory and needs the optional `toRvik` R package.
 
-## Project structure
+## Layout
 
 ```
-.
-├── configs/                 # Configuration (paths, year range, etc.)
-├── data/
-│   ├── external/            # Optional third-party data (see docs)
-│   ├── raw/                 # Raw ingested data
-│   ├── interim/             # Intermediate cleaned/joined data
-│   └── processed/           # Final training tables
-├── docs/                    # Data dictionaries, design notes
-├── models/                  # Serialized models (to be populated)
-├── notebooks/               # Exploratory notebooks
-├── reports/figures/         # Plots and figures
-├── scripts/                 # install_deps.R, run_pipeline.R, run_pipeline.py
-├── src/
-│   ├── pipelines/           # madness.R, madness.py – end-to-end pipelines
-│   ├── ingestion/           # (Planned) Scrapers
-│   ├── features/            # (Planned) Feature engineering
-│   ├── modeling/            # (Planned) Model training
-│   └── ...
-└── tests/
+configs/      pipeline settings
+data/         raw, processed and external data
+docs/         modeling plan, lineage, data sources, naming conventions
+models/       joblib artifacts (pre-fix, see above)
+reports/      analysis summaries and tables
+scripts/      pipeline entry points, per-topic analyses, run_analysis.py
+src/          pipelines/madness.py (and .R), models/ (bracket, win probability, simulation)
+tests/        pytest suite
 ```
-
-## Current implementation
-
-- **`src/pipelines/madness.R`**: R end-to-end pipeline (ingestion → features → models → outputs).
-- **`src/pipelines/madness.py`**: Python equivalent; vectorized pandas, config-driven seed models, sklearn LOO.
-
-## Configuration
-
-- Default config: `configs/default.yaml` (paths, year range, Bart Torvik base URL).
-- Keep local overrides in `configs/local.yaml` (gitignored) if needed.
-
-### Reproducible dependencies
-
-**R (renv):**
-```r
-renv::init(); renv::snapshot()  # Commit renv.lock
-```
-
-**Python:** `pip freeze > requirements.txt` or use `uv` / `poetry`.
-
-## Naming conventions
-
-- **Data frames**: Descriptive snake_case (e.g., `training_data`, `holdout_2023`, `regular_season_raw`). See [docs/naming_conventions.md](docs/naming_conventions.md).
-- **Directories**: lowercase, hyphenated (e.g., `data/raw`, `reports/figures`).
-- **Scripts**: snake_case (e.g., `run_pipeline.R`).
-- **Data files**: source + date (e.g., `cbbtrainingdata_20240131.csv`).
