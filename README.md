@@ -75,3 +75,5 @@ scripts/      pipeline entry points, per-topic analyses, run_analysis.py
 src/          pipelines/madness.py (and .R), models/ (bracket, win probability, simulation)
 tests/        pytest suite
 ```
+
+Illustrated topic analyses: [analysis briefs](reports/briefs/README.md).

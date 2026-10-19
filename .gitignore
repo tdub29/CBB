@@ -28,3 +28,18 @@ Thumbs.db
 
 # Raw data staging (recompile fallbacks, merge temps)
 data/raw/_staging/
+
+# Local workspace state is not public project source.
+/.agents/
+/.claude/
+/.codex/
+/.cursor/
+/.impeccable/
+/.vscode/
+/.mcp.json
+/skills-lock.json
+**/AGENTS.md
+**/CLAUDE.md
+*.bak
+*.err
+tmp_*
