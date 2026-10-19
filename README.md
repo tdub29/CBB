@@ -8,11 +8,17 @@ Predicts how far each NCAA Men's tournament team advances (round 0 to 6) from [B
 - **Where a stat matters depends on the seed band.** Effective height correlates with finish by +0.108 for seeds 1-2 and -0.077 for seeds 7-8 ([report](reports/size_vs_finish_by_seed_group_summary.md)). The same seed-band split is run for experience, three-point shooting, turnovers, rebounding, tempo and free-throw rate (see `reports/`).
 - **Conference context beats raw SOS for finding seed-relative overperformers.** Mean overperformance against seed expectation runs from +0.420 (Horz) to -0.342 (MWC) ([report](reports/sos_conf_vs_overperformance_summary.md)).
 
-## How it validates, and a leak it caught
+## Analysis examples
+
+![NCAA tournament statistics compared before and after accounting for seed](docs/images/sports-modeling-02.webp)
+
+Descriptive analysis of tournament results, showing how statistical relationships change within seed lines. The model-validation status is documented below.
+
+## Validation
 
 The modeling table is 5,971 team-seasons by 122 columns, of which 1,088 are tournament teams with a seed and a result. `scripts/run_analysis.py` compares feature sets and algorithms with cross-validation and leave-one-out, then scores a blind 2025 holdout (64 teams).
 
-Commit b117223 fixes a target leak found in that script. `PAKE` and `PASE` are tournament wins minus expectation, so they are computed from the result being predicted. After residualizing the target against seed, `PASE` correlates 0.9948 and `PAKE` 0.9553 with it, against 0.0580 for `AdjOE` as a clean control. They are now excluded from every feature set, and `assert_no_target_leakage()` checks each set before it is fitted.
+The validation pipeline excludes result-derived features, including `PAKE` and `PASE`. `PAKE` and `PASE` are tournament wins minus expectation, so they are computed from the result being predicted. After residualizing the target against seed, `PASE` correlates 0.9948 and `PAKE` 0.9553 with it, against 0.0580 for `AdjOE` as a clean control. They are now excluded from every feature set, and `assert_no_target_leakage()` checks each set before it is fitted.
 
 **Every metric in the earlier reports is void**, including `reports/predictive_analysis_20260304.md` and `reports/predictive_analysis_20260306.md` (the 0.060 holdout MAE on a 0-6 target) and the two `models/analysis_best_model_*.joblib` files. They are kept as history. A re-run after the fix has not been committed yet, so there is no valid headline accuracy number here. Details: commit b117223 and `docs/modeling_plan.md`.
 
