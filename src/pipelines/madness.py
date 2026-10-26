@@ -1585,7 +1585,9 @@ def _finalize_training_frame(
             sort_col = col
             break
     if sort_col is not None:
-        final = final.sort_values(sort_col, ascending=False).reset_index(drop=True)
+        # Stable sort: ties keep their input order. The default quicksort may order ties
+        # differently across numpy versions and CPUs, so the written CSV would not reproduce.
+        final = final.sort_values(sort_col, ascending=False, kind="mergesort").reset_index(drop=True)
 
     # Seed from Team (if not already present from team-table + tourn merge)
     if "seed" not in final.columns or final["seed"].isna().all():
