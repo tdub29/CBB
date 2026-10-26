@@ -11,10 +11,10 @@ Source inputs and assembled tables for the data-prep pipeline. See [docs/data_li
 | **Derived — concat** | `trank_postseason_final.csv` | Single file of all postseason rows (no header), built by [append_postseason_final.py](../../scripts/append_postseason_final.py). Input to recompile script. |
 | **Source — team history** | `team_history_cache.csv` | Scraped coach/seed/finish/conf per team-year from [populate_team_history_cache.py](../../scripts/populate_team_history_cache.py). |
 | **Derived — enriched cache** | `team_history_cache_enriched.csv` | Cache + 4 coach-experience columns from [enrich_team_history_cache.py](../../scripts/enrich_team_history_cache.py). Input to recompile. |
-| **Output — assembled** | `assembled/all_trank_team_tables.csv` | **Final** master table: base + Postseason rec + history + experience (49 cols). All sources flow into this; primary input for the modeling pipeline. |
+| **Output — assembled** | `assembled/all_trank_team_tables.csv` | **Final** master table: base + Postseason rec + history + experience + `conf_avg_barthag` (50 cols). All sources flow into this; primary input for the modeling pipeline. |
 | **Output — tournament only** | `assembled/all_trank_team_tables_tournament.csv` | Same table filtered to rows where `finish` is not null (NCAA tournament teams only). |
 | **Output — 2026 slice** | `assembled/trank_team_table_data2026_enriched.csv` | `Year == 2026` rows of the assembled table (current season; no postseason or tournament results). |
-| **Output (fallback)** | `_staging/all_trank_team_tables_recompiled.csv` | When the main file is locked, recompile writes here instead. Same content as the primary table. |
+| **Output (fallback)** | `_staging/all_trank_team_tables_recompiled.csv` | When the main file is locked, recompile writes here instead. Same content as the primary table. Gitignored; nothing reads it. |
 | **Validation** | `validation/finish_counts.txt`, `year_counts.txt`, `missing_seeds_by_year.txt` | Check/seed-count outputs (manual or from validation scripts). |
 | **Samples** | `samples/trank_page_sample.html`, `samples/trank_table_sample.csv` | Written by [inspect_trank_page.py](../../scripts/inspect_trank_page.py) for manual T-Rank inspection. |
 | **Staging** | `_staging/` | Recompile fallbacks (when `assembled/` is locked), merge temps, test outputs. Gitignored. |

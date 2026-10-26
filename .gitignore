@@ -24,30 +24,18 @@ Thumbs.db
 
 # Project-specific
 *.log
-.claude/
 
 # Raw data staging (recompile fallbacks, merge temps)
 data/raw/_staging/
 
-# Browser-download duplicates; rename raw exports to the season they hold
+# Browser-download duplicates; rename exports to the season they hold
 # (e.g. trank_postseason/trank_postseason_YYYY.csv) before committing.
 data/raw/**/* ([0-9]*).csv
-
-# Social-post drafts, thread viewers, preview renders and agent-loop tooling
-# are not project source.
-docs/twitter_plans/
-docs/workflows/
-reports/*_viewer.html
-reports/*_viewer.pdf
-reports/pdf_previews/
-reports/figures/*_viewer/
-reports/figures/*_viewer_exports/
-reports/figures/*_check.png
-scripts/*ralph*.ps1
+data/external/**/* ([0-9]*).csv
 
 # Local workspace state is not public project source.
 /.agents/
-/.claude/
+.claude/
 /.codex/
 /.cursor/
 /.impeccable/
