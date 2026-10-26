@@ -968,7 +968,10 @@ def _finish_to_wl(finish: Any) -> tuple[int, int]:
 
 
 def _years_last_5_tournaments(season_year: int, exclude_years: tuple[int, ...]) -> list[int]:
-    """Five tournament years prior to season_year, excluding the current year (e.g., for 2024: 2019,2021,2022,2023)."""
+    """Seasons in the 5-year look-back before season_year, minus exclude_years (not backfilled).
+
+    The current season is never included: its finish is the prediction target. E.g. 2024 -> 2019,2021,2022,2023.
+    """
     skip = set(exclude_years)
     return [y for y in range(season_year - 5, season_year) if y not in skip]
 
@@ -978,7 +981,11 @@ def compute_coach_stats_from_history(
     history: pd.DataFrame,
     exclude_years: tuple[int, ...] = (2020,),
 ) -> pd.DataFrame:
-    """Compute coach tournament experience features from team history."""
+    """Compute coach tournament experience features from team history.
+
+    Appearances and W-L count the season's head coach at any program over _years_last_5_tournaments(year),
+    so only pre-tournament information is used. coach_years_with_program includes the current season.
+    """
     if team_year.empty:
         return pd.DataFrame(
             columns=[
