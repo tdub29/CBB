@@ -1,6 +1,6 @@
 # SOS Analysis 7: 2026 Field Application
 
-Projected seeds from `data/raw/2026 expected seeds.xlsx` are joined to the `2026` SOS sample. The scatter is contextual: logos to the right of their seed markers faced a tougher schedule than that seed line usually carries. Full-sample trends drive the read; recent trends only raise or lower confidence.
+Projected seeds from `data/raw/2026_expected_seeds_update.csv` are joined to the `2026` SOS sample. The scatter is contextual: logos to the right of their seed markers faced a tougher schedule than that seed line usually carries. Full-sample trends drive the read; recent trends only raise or lower confidence.
 
 ## What tends to carry over most reliably
 
