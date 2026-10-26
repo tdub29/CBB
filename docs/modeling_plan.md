@@ -52,7 +52,7 @@ Predict how far each tournament team advances (round 0–6) and convert those pr
   - Base: TOR, Barthag, AdjOE, ORB, EFGD%, 3P%, AdjDE, seed, TALENT, AST%
   - Coach: coach_tourn_appearances_5y, coach_tourn_wins_5y, coach_years_with_program, coach_tourn_win_pct_5y, coach_tourn_games_5y, coach_avg_wins_per_appearance
   - Polynomial: Barthag², AdjDE², seed², seed³
-- **Provenance:** without the coach features this is the `predround` model in `madness.R` at commit 21a1e96 (2025-01-16) minus `WAB`, which the current data does not have. The coach features came later (absent at commit 0f6eb0c, 2026-01-31; see the Decision Log), after the 2025 tournament, and walk-forward does not show that they help (see Results).
+- **Provenance:** without the coach features this is the feature list of the `predround` model in `madness.R` at commit 21a1e96 (2025-01-16) minus `WAB`, which the current data does not have. That list was searched by hand on the 2008–2024 tournaments: `madness.R` kept a formula only if its row-level jackknife (leave-one-team-out) MSE beat the best so far. Those seasons include all 11 walk-forward test seasons. Only the list carries over; the R model was OLS without an intercept. The coach features came later (absent at commit 0f6eb0c, 2026-01-31; see the Decision Log), after the 2025 tournament, and walk-forward does not show that they help (see Results).
 - **Output:** `predround`, a continuous predicted-round value. It is the team strength for bracket simulation and an input to the seed models.
 - **Intercept fix (2026-10):** the Python port used `fit_intercept=False` after `StandardScaler`. `madness.R` fits `lm(... + 0)` on raw columns, where the level can ride on the uncentred features, but once the scaler centres them every prediction averages 0. Measured on the 1,088 rows (ridge, alpha = 1): general model mean prediction 0.00 vs mean round 0.98; the seeds 1–2 band 0.00 vs 2.75. Both pipelines now fit an intercept.
 
@@ -62,7 +62,7 @@ Each model trains on a 2–3 seed band. All include the general model's `predrou
 - **Known second-order leak (disclosed, not fixed):** the out-of-fold column is built once over all training seasons. When a seed model's own leave-one-season-out CV holds out season s, its training rows' `predround` came from general models that saw s. So a seed model's `season_cv_mse` is for picking alpha only, and the optimism figure above may be understated. Walk-forward and holdout scores rebuild the column inside each training window and are not affected.
 - **New-season prediction:** the general model fit on every training season produces `predround`; when the stack is enabled, the seed models then overwrite it for seeds 1–15.
 - **Which band scores which seed:** bands overlap and are applied in order, so the last band holding a seed wins. Seed s (1–13) is scored by the 3-seed band that starts at s, seeds 14–15 by [13, 14, 15], and seed 16 by the general model. Band 1 ([1, 2]) never scores anything.
-- **Provenance:** the lists were hand-picked in `madness.R`, not selected out of sample. 13 of 14 match the file as committed on 2025-01-16 (commit 21a1e96) once `WAB` terms are removed; band 9 has since dropped `W`. So they predate the 2025 tournament but not the 2013–2024 walk-forward seasons.
+- **Provenance:** the lists were hand-picked in `madness.R`, not selected out of sample: each was kept only if its row-level jackknife MSE over the band's 2008–2024 tournament rows beat the best so far, with the in-sample `predround` as an input. 13 of 14 match the file as committed on 2025-01-16 (commit 21a1e96) once `WAB` terms are removed; band 9 has since dropped `W`. So they predate the 2025 tournament but not the 2013–2024 walk-forward seasons.
 - **Switch:** `model.use_seed_models` in `configs/default.yaml`. Default `false`: on walk-forward MSE the stack is not distinguishable from the general model alone (see Results).
 
 | # | Train seeds | Features (besides predround) |
@@ -90,7 +90,7 @@ Each model trains on a 2–3 seed band. All include the general model's `predrou
 ### Regularization
 - Ridge `alpha` selected per model via CV grid search: `[0.0, 0.01, 0.1, 0.3, 1.0, 3.0, 10.0]`
 - CV scheme: leave-one-season-out (`LeaveOneGroupOut` on `year`). The old scheme (shuffled KFold(5), or row-level LOO for n ≤ 50) put teams from the same bracket in train and test.
-- Training metric: leave-one-season-out MSE per model (`reports/model_optimization_YYYYMMDD.md`). This is model selection inside the training years, not an accuracy claim.
+- Reported in-pipeline MSE: leave-one-season-out MSE at the selected `alpha` (`reports/model_optimization_YYYYMMDD.md`). It reuses the splits that picked `alpha`, so it is the grid minimum and optimistic. This is model selection inside the training years, not an accuracy claim.
 
 ---
 
@@ -100,12 +100,16 @@ All of this is in `scripts/run_analysis.py`, with the splitters, baseline and st
 
 - **The season is the unit.** One season is one 64-team bracket of 63 games: the rounds in a season always sum to 63, and a team's finish depends on who is in its path. No split ever puts a season on both sides (`season_group_splits()`, `walk_forward_splits()`; unit-tested in `tests/test_validation_and_stacking.py`).
 - **Grouped CV:** `GroupKFold(10)` on year over the 16 seasons before the holdout. Used to pick ridge alphas, the feature set, and the algorithm.
-- **Walk-forward (expanding window):** for each test season Y in 2013–2024 (11 seasons; 2020 had no tournament), fit on every season before Y and predict Y. Ridge alphas are re-tuned inside each window. The feature set and the search winner's hyperparameters were picked by grouped CV over seasons that include these test seasons, so those two candidates' walk-forward scores are mildly optimistic.
+- **Walk-forward (expanding window):** for each test season Y in 2013–2024 (11 seasons; 2020 had no tournament), fit on every season before Y and predict Y. Ridge alphas are re-tuned inside each window; feature lists are not. Only the seed baselines are free of selection on these seasons:
+  - `GEN_FEATURES` (less the coach features) and the 14 seed-band lists were hand-tuned in `madness.R` (commit 21a1e96) by row-level jackknife MSE on the 2008–2024 tournaments (see Provenance above).
+  - The coach features were added in 2026-03, with every season through 2025 available.
+  - The feature set behind `ridge_baseline_raw_poly` and the search winner, and the search winner's algorithm and hyperparameters, were picked by grouped CV over 2008–2024.
+  - So every model-vs-seed walk-forward gap is optimistic by an unknown amount, and so is every gap between models. The 2025 holdout is the least-biased comparison, and `general_ridge_no_coach` is the only candidate whose whole feature list predates 2025.
 - **Holdout:** 2025, fit on 2008–2024, scored once. Nothing in `run_analysis.py` is selected on it, but it is not blind to feature design: the coach features were added to the general model after the 2025 tournament. The report therefore also scores the general model without them (`general_ridge_no_coach`).
 - **Seed-only baselines, one per metric:** every model is fit by least squares, so RMSE is compared with the per-seed **mean** round (the best seed-only predictor under squared error). MAE is minimised by the median, and most seeds 9–16 win 0 games, so MAE is compared with the per-seed **median**. Both are fit on the training seasons only and scored on identical folds.
 - **Metrics:** RMSE (headline) and MAE on round (0–6), plus mean within-season Spearman between predicted and actual round. Predictions are clipped to [0, 6] for every model.
 - **Uncertainty:** every gap is the mean of 11 per-season differences, with a 95% Student-t interval (10 df), a t-test p-value, a Holm adjustment within its family, and a two-sided sign test on the season count. Primary family (7 tests): each model's MSE vs the seed mean, stack vs general, and general with vs without the coach features. Secondary family: the same on MAE vs the seed median. This replaced a percentile bootstrap over seasons, which gives intervals that are too narrow with 11 seasons.
-- **Winner's curse:** the lowest walk-forward MSE is the best of 5 candidates on the same 11 seasons, so it is optimistic. The 2025 holdout is the clean number for whichever model is picked.
+- **Winner's curse:** the lowest walk-forward MSE is the best of 5 candidates on the same 11 seasons, so it is optimistic on top of the selection above. The 2025 holdout is the less biased number for whichever model is picked (see Holdout for what it is not blind to).
 - **Leakage guard:** `assert_no_target_leakage()` (now in `madness.py`) runs on every feature set in both pipelines. Table-parse artifacts (`blank`, `_extra_*`) are excluded from the kitchen-sink set.
 
 ## Results (reports/predictive_analysis_20261025.md)
@@ -121,14 +125,14 @@ Training data: `data/processed/cbb_training_clean.csv` after the coach-tenure fi
 | Seed-stratified stack (`use_seed_models: true`) | 1.0579 | 0.7197 | 0.7105 | 0.5159 |
 | Search winner (ridge, alpha=0.3, `baseline_raw_poly`) | 1.0640 | 0.7444 | 0.7431 | 0.5537 |
 
-- **Against seed alone, on RMSE (headline):** the 5 candidates are 2.2% to 3.1% better than the per-seed mean in walk-forward. The 95% interval on the per-season MSE gap excludes zero for two of them: the stack (−0.0721, interval −0.1308 to −0.0133) and the general model without coach features (−0.0693, −0.1212 to −0.0173). For the pipeline default it includes zero (−0.0518, −0.1098 to +0.0062; lower in 8 of 11 seasons). After Holm adjustment over the 7 primary comparisons, none has adjusted p < 0.05 (smallest: 0.098).
+- **Against seed alone, on RMSE (headline):** the 5 candidates are 2.2% to 3.1% better than the per-seed mean in walk-forward. The 95% interval on the per-season MSE gap excludes zero for two of them: the stack (−0.0721, interval −0.1308 to −0.0133) and the general model without coach features (−0.0693, −0.1212 to −0.0173). For the pipeline default it includes zero (−0.0518, −0.1098 to +0.0062; lower in 8 of 11 seasons). After Holm adjustment over the 7 primary comparisons, none has adjusted p < 0.05 (smallest: 0.098). Every one of these gaps is also optimistic by an unknown amount, because the feature lists were chosen on these seasons (see Validation); the 2025 holdout is the least-biased comparison.
 - **Against seed alone, on MAE:** no model beats the per-seed median with an interval below zero. The stack is level with it (+0.5%, gap −0.0033, −0.0419 to +0.0352). The general ridge is worse (−3.4%, gap +0.0247, −0.0160 to +0.0653; better in only 4 of 11 seasons). Scoring MAE against the per-seed mean instead, as an earlier version of this report did, makes the same models look 2.0% (general ridge) to 5.6% (stack) better than seed.
 - **Do the seed models help? Not shown.** Stack minus general ridge, walk-forward MSE gap −0.0203 (−0.0644 to +0.0238), lower in 6 of 11 seasons. Its MAE edge, −0.0280 (−0.0519 to −0.0042; Holm p 0.180), comes 63% from seeds 13–16. There the stack predicts exactly 0 for 30% of teams (general: 23%), which helps MAE because 87% of those teams win 0 games; the per-seed median predicts 0 for all of them and has lower MAE there (0.1648 vs 0.2326). The stack is worse than the general model on seeds 5–8 MSE (1.3431 vs 1.2870). So `model.use_seed_models` now defaults to `false`.
 - **Rule used:** keep the stack only if its walk-forward MSE is lower than the general model's and the 95% interval on the per-season MSE gap lies below zero. MSE is the loss every model is fit with and the metric candidates are ranked by. This rule was written after the walk-forward results had been seen; an earlier MAE-based rule kept the stack.
-- **Winner's curse:** the stack has the lowest walk-forward MSE of the 5 candidates, so its walk-forward RMSE (1.0579) is optimistic. Its clean number is the 2025 holdout: RMSE 0.7105, 7.0% better than the per-seed mean (general ridge: 0.7365, 3.6%).
-- **Do the coach features help? Not shown.** General ridge minus the no-coach version, walk-forward MSE gap +0.0175 (−0.0041 to +0.0391); the coach features lower the MSE in only 2 of 11 seasons. On the 2025 holdout, RMSE is 0.7365 with them and 0.7389 without. `GEN_FEATURES` is unchanged; see roadmap item 5c.
+- **Winner's curse:** the stack has the lowest walk-forward MSE of the 5 candidates, so its walk-forward RMSE (1.0579) is optimistic. Its less biased number is the 2025 holdout: RMSE 0.7105, 7.0% better than the per-seed mean (general ridge: 0.7365, 3.6%). The stack's `predround` uses the post-2025 coach features, so even that number is not blind.
+- **Do the coach features help? Not shown.** General ridge minus the no-coach version, walk-forward MSE gap +0.0175 (−0.0041 to +0.0391); the coach features lower the MSE in only 2 of 11 seasons. On the 2025 holdout, RMSE is 0.7365 with them and 0.7389 without. `GEN_FEATURES` is unchanged. Applied evenly, the MSE rule that turned the seed stack off would drop them; the Decision Log's reason for adding them is a prior, not a measured gain. See roadmap item 5c.
 - **Feature engineering and other algorithms did not help.** Under grouped CV no feature set improved on the plain `baseline_raw_poly` set (CV MSE 1.0858; engineered interactions 1.0894, kitchen sink 1.1562, rank-only 1.1927), and ridge beat the other algorithms (best of each: elastic net 1.1028, lasso 1.1119, random forest 1.1238, gradient boosting 1.1551).
-- **Scale of the effect:** the stats-based models improve on seed alone by a few percent of RMSE, not by multiples, and on MAE not at all against the right baseline.
+- **Scale of the effect:** the stats-based models improve on seed alone by a few percent of RMSE, not by multiples (walk-forward 2.2% to 3.1%, overstated by an unknown amount by the selection described under Validation; 2025 holdout 2.8% to 7.0%), and on MAE not at all against the right baseline.
 - The 2025 holdout is one bracket of 64 teams, so it is a single noisy draw; read it next to the walk-forward numbers.
 
 ---
@@ -137,9 +141,9 @@ Training data: `data/processed/cbb_training_clean.csv` after the coach-tenure fi
 
 | Metric | Scope | Purpose |
 |--------|-------|---------|
-| Walk-forward RMSE vs per-seed mean; MAE vs per-seed median; Spearman | Each model, 2013–2024 | Primary out-of-sample comparison |
+| Walk-forward RMSE vs per-seed mean; MAE vs per-seed median; Spearman | Each model, 2013–2024 | Primary out-of-sample comparison; optimistic for every model, whose feature lists were chosen on these seasons |
 | Student-t interval and Holm-adjusted p on per-season gaps | Each model, stack vs general, coach ablation | Whether a gap is distinguishable from season noise |
-| Holdout RMSE / MAE | 2025 season | Clean check for the picked model; not blind to post-2025 feature design (coach features) |
+| Holdout RMSE / MAE | 2025 season | Least-biased check for the picked model; not blind to post-2025 feature design (coach features) |
 | Grouped-CV MSE | Each model, seasons < 2025 | Alpha, feature set and algorithm selection |
 | Leave-one-season-out MSE | Each pipeline model | In-pipeline alpha selection evidence |
 | Bracket accuracy | Full simulation | Downstream validation against actual outcomes (not built yet) |
@@ -180,11 +184,11 @@ Reports: `reports/predictive_analysis_YYYYMMDD.md` (out-of-sample, from `scripts
    - In a 2008–2025 fit of the seed models, 13 of 14 bands picked alpha = 10, the top of the grid; extend the grid before trusting those fits.
    - Nest the out-of-fold `predround` inside each seed-model CV fold, to remove the second-order leak described under Phase 2.
 
-5c. **Coach features**
-   - Walk-forward does not show that the 6 coach features help the general model (see Results). Decide whether to drop them by the same rule as the seed models, or to keep them on prior grounds and say so.
+5b. **Nested selection**
+   - Every feature list and the algorithm search were chosen on seasons that include the walk-forward test seasons, so every walk-forward gap against seed is optimistic (see Validation). Re-run feature-list and algorithm selection inside each walk-forward window to get a gap free of that selection.
 
-5b. **Search-winner nesting**
-   - The algorithm search's hyperparameters are picked on all pre-holdout seasons, so its walk-forward score is mildly optimistic. Nest the search inside each walk-forward window if a non-ridge model ever comes close.
+5c. **Coach features**
+   - Walk-forward does not show that the 6 coach features help the general model (see Results). Decide whether to drop them by the same rule as the seed models, or to keep them on prior grounds and say so. The Decision Log's 2026-03 entry gives a prior ("a known predictor"), not a measured gain.
 
 ### Medium-term (requires some new work)
 
@@ -260,3 +264,4 @@ Model artifacts are saved to `models/` (joblib, not committed). Reports go to `r
 | 2026-10 | Score RMSE against the per-seed mean and MAE against the per-seed median; Student-t intervals over seasons with Holm adjustment | Least-squares models against a mean baseline overstate MAE gains; a percentile bootstrap over 11 seasons is too narrow |
 | 2026-10 | Seed stack off by default (`model.use_seed_models: false`) | On walk-forward MSE, the selection metric, the stack is not distinguishable from the general model; its MAE edge is mostly seeds 13–16 pushed to 0. Replaces an earlier MAE-based decision to keep it |
 | 2026-10 | Regenerate `cbb_training_clean.csv` after the coach-tenure fix | `coach_years_with_program` had reset across 2020; only that column changed (1,044 rows, 2021–2025) |
+| 2026-10 | Treat every model-vs-seed walk-forward gap as optimistic | `GEN_FEATURES` and the 14 seed-band lists were hand-tuned in `madness.R` by row-level jackknife MSE on 2008–2024, and the coach features were added in 2026-03; only the seed baselines are free of selection on the walk-forward seasons |

@@ -1830,7 +1830,9 @@ def build_clean_training_dataset(full: pd.DataFrame) -> pd.DataFrame:
 # Modeling
 # -----------------------------------------------------------------------------
 
-# General model features (R: round ~ ... + optional coach experience when present)
+# General model features. Without the coach columns this is the feature list of the predround
+# model in madness.R (commit 21a1e96) minus WAB, hand-tuned there by row-level jackknife MSE on
+# the 2008-2024 tournaments; the coach columns were added later (see docs/modeling_plan.md).
 GEN_FEATURES = [
     "TOR", "Barthag", "AdjOE", "ORB", "EFGD%", "3P%", "AdjDE",
     "seed", "TALENT", "AST%",
@@ -1841,9 +1843,10 @@ GEN_POLY = {"Barthag": 2, "AdjDE": 2, "seed": 3}
 
 # Seed model config: (hist_seeds, holdout_seeds, features)
 #
-# These 14 per-band feature lists were hand-picked in madness.R (fit1..fit14), not
-# selected out of sample, so on their own they are 14 forking paths. They are off by
-# default (model.use_seed_models: false). In walk-forward the stack's MSE edge over the
+# These 14 per-band feature lists were hand-picked in madness.R (fit1..fit14), each kept if
+# its row-level jackknife MSE on the 2008-2024 tournaments improved, not selected out of
+# sample, so on their own they are 14 forking paths. They are off by default
+# (model.use_seed_models: false). In walk-forward the stack's MSE edge over the
 # general model alone is not distinguishable from zero, and its MAE edge comes mostly
 # from pulling seeds 13-16 toward 0; overall its MAE is level with a per-seed median.
 # The numbers are in Section 5 of the latest reports/predictive_analysis_*.md.
@@ -2514,7 +2517,8 @@ def _write_optimization_report(
     lines.append("- Folds keep each season whole (leave-one-season-out): one season is one bracket, so")
     lines.append("  teams from the same tournament never sit on both sides of a split.")
     lines.append("- The report shows baseline vs best CV MSE (lower is better) per model.")
-    lines.append("- Final training metric is leave-one-season-out MSE for the selected `alpha`.")
+    lines.append("- With tuning on, the reported MSE is leave-one-season-out MSE at the selected `alpha` on the")
+    lines.append("  same splits that picked it, so it is the grid minimum and optimistic by that selection.")
     lines.append("- Seed models train on out-of-fold `predround` (general model fit without that season).")
     lines.append("- These numbers are for model selection inside the training years. Out-of-sample accuracy")
     lines.append("  against seed-only baselines (walk-forward + a held-out season) is in")
@@ -2534,9 +2538,10 @@ def _write_optimization_report(
 
     lines.append("## General Model")
     lines.append(f"- Selected `alpha`: {gen_meta.get('ridge_alpha')}")
-    lines.append(f"- Leave-one-season-out MSE: {gen_meta.get('mse'):.6f}")
-    lines.append(f"- Features ({len(gen_feats)}): {', '.join(gen_feats)}")
     tuning = gen_meta.get("tuning", {}) or {}
+    mse_note = " at the selected `alpha` (grid minimum)" if tuning.get("tuned") else ""
+    lines.append(f"- Leave-one-season-out MSE{mse_note}: {gen_meta.get('mse'):.6f}")
+    lines.append(f"- Features ({len(gen_feats)}): {', '.join(gen_feats)}")
     if tuning.get("tuned") and tuning.get("results"):
         cv_label = tuning.get("cv") or "CV"
         rows = []
@@ -2606,7 +2611,7 @@ def _write_optimization_report(
     lines.append("")
     lines.append("## Notes")
     lines.append("- `cv_mse_alpha0` is the baseline (OLS) mean CV MSE when `alpha=0` is in the grid.")
-    lines.append("- `season_cv_mse` is leave-one-season-out MSE using the selected `alpha`. It is for picking")
+    lines.append("- `season_cv_mse` is leave-one-season-out MSE at the selected `alpha`. It is for picking")
     lines.append("  `alpha`, not an accuracy claim: the out-of-fold `predround` column is built once over all")
     lines.append("  seasons, so when season s is held out here, the training rows' `predround` came from general")
     lines.append("  models that saw s. Walk-forward scores in `reports/predictive_analysis_*.md` do not have this.")

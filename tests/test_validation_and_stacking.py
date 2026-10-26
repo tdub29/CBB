@@ -279,6 +279,47 @@ def test_train_pipeline_models_fits_on_tournament_rows(use_seed_models: bool, mo
         assert seed_models == {} and seed_meta == {}
 
 
+def test_run_pipeline_end_to_end_writes_models_and_report(monkeypatch, tmp_path: Path) -> None:
+    # run_pipeline from training data to model artifacts and the optimization report, with the
+    # seed models off (the default). Data loading is replaced by a synthetic frame, so nothing
+    # is read from data/ or fetched; the report write sits in a try/except, so check the file.
+    full = _synthetic_seasons(n_seasons=5)
+    full = pd.concat([full, full.head(4).assign(seed=np.nan, round=np.nan)], ignore_index=True)
+    processed = tmp_path / "processed"
+
+    def _mock_cfg():
+        cfg = madness._deep_merge(madness.DEFAULT_CONFIG, {"model": {"use_seed_models": False}})
+        cfg["ingestion"] = {"year_range": [2010, 2014], "exclude_years": [2020]}
+        cfg["paths"] = {
+            "data_raw": str(tmp_path / "raw"),
+            "data_external": str(tmp_path / "external"),
+            "data_processed": str(processed),
+            "output_training_csv": str(processed / "cbbtrainingdata"),
+            "output_training_clean": str(processed / "cbb_training_clean"),
+            "output_training_research": str(processed / "cbbtrainingdata_last2seasons"),
+            "models": str(tmp_path / "models"),
+            "reports": str(tmp_path / "reports"),
+            "bracket_csv": "",
+        }
+        return cfg
+
+    def _mock_build(**kwargs):
+        return full.copy(), full.copy()
+
+    monkeypatch.setattr(madness, "load_config", _mock_cfg)
+    monkeypatch.setattr(madness, "build_training_from_all_tables", _mock_build)
+    madness.run_pipeline()
+
+    assert (processed / "cbb_training_clean.csv").exists()
+    assert len(list((tmp_path / "models").glob("general_model_*.joblib"))) == 1
+    reports = list((tmp_path / "reports").glob("model_optimization_*.md"))
+    assert len(reports) == 1
+    text = reports[0].read_text(encoding="utf-8")
+    assert "Disabled (`model.use_seed_models: false`)" in text
+    assert "Leave-one-season-out MSE at the selected `alpha` (grid minimum)" in text
+    assert "(selected)" in text  # the alpha tuning table was written
+
+
 def test_general_model_features_override_drops_columns() -> None:
     df = _synthetic_seasons(n_seasons=4)
     no_coach = [f for f in madness.GEN_FEATURES if not f.startswith("coach_")]

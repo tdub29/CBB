@@ -154,7 +154,7 @@
 - holdout_mae: `0.060167`
 - holdout_rows_scored: `64`
 - final_retrain_rows: `1088`
-- model_artifact: `models\analysis_best_model_20260306.joblib`
+- model_artifact: `models\analysis_best_model_20260306.joblib` (deleted in commit 8ae9537; its features included `PAKE`/`PASE`)
 
 ![Holdout Actual vs Predicted](figures/holdout_2025_actual_vs_pred.png)
 
