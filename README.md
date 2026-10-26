@@ -77,3 +77,7 @@ tests/        pytest suite
 ```
 
 Illustrated topic analyses: [analysis briefs](reports/briefs/README.md).
+
+## More projects
+
+More of my work and contact details are at [twhite.dev](https://twhite.dev).
