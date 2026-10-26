@@ -968,7 +968,10 @@ def _finish_to_wl(finish: Any) -> tuple[int, int]:
 
 
 def _years_last_5_tournaments(season_year: int, exclude_years: tuple[int, ...]) -> list[int]:
-    """Five tournament years prior to season_year, excluding the current year (e.g., for 2024: 2019,2021,2022,2023)."""
+    """Seasons in the 5-year look-back before season_year, minus exclude_years (not backfilled).
+
+    The current season is never included: its finish is the prediction target. E.g. 2024 -> 2019,2021,2022,2023.
+    """
     skip = set(exclude_years)
     return [y for y in range(season_year - 5, season_year) if y not in skip]
 
@@ -978,7 +981,13 @@ def compute_coach_stats_from_history(
     history: pd.DataFrame,
     exclude_years: tuple[int, ...] = (2020,),
 ) -> pd.DataFrame:
-    """Compute coach tournament experience features from team history."""
+    """Compute coach tournament experience features from team history.
+
+    Appearances and W-L count the season's head coach at any program over _years_last_5_tournaments(year),
+    so only pre-tournament information is used. coach_years_with_program counts consecutive seasons with this
+    coach at this team, current included. Excluded years (2020) lost only the tournament, so they still count
+    toward tenure; if history has no row for one, the streak bridges it when the same coach is on both sides.
+    """
     if team_year.empty:
         return pd.DataFrame(
             columns=[
@@ -1013,6 +1022,7 @@ def compute_coach_stats_from_history(
     hist["is_tournament"] = (hist["tourn_w"] + hist["tourn_l"]) > 0
 
     rows = []
+    skip = set(exclude_years)
     min_year = int(hist["year"].min()) if not hist.empty else 2008
     for _, r in team_year.iterrows():
         team = str(r["Team"]).strip()
@@ -1041,11 +1051,16 @@ def compute_coach_stats_from_history(
         losses = int(coach_prior["tourn_l"].sum())
 
         years_with = 0
+        bridged = 0
         for y in range(year, min_year - 1, -1):
             one = hist[(hist["team"] == team) & (hist["year"] == y)]
+            if one.empty and y in skip:
+                bridged += 1
+                continue
             if one.empty or str(one.iloc[0]["coach"]).strip() != coach:
                 break
-            years_with += 1
+            years_with += 1 + bridged
+            bridged = 0
 
         rows.append(
             {
@@ -1105,10 +1120,14 @@ def build_training_from_all_tables(
 
     skip = set(exclude_years)
     history_all = history_all.copy()
+    # Coach stats only look back from each season, so they get the untrimmed history: excluded seasons (2020)
+    # still count toward tenure, and _years_last_5_tournaments drops them from the tournament window.
+    coach_history = history_all
     if not history_all.empty:
         history_all["year"] = pd.to_numeric(history_all["year"], errors="coerce")
         history_all = history_all.dropna(subset=["year"])
         history_all["year"] = history_all["year"].astype(int)
+        coach_history = history_all
         history_all = history_all[
             (history_all["year"] >= year_start)
             & (history_all["year"] <= year_end)
@@ -1130,7 +1149,7 @@ def build_training_from_all_tables(
 
     coach_stats = compute_coach_stats_from_history(
         merged[["Team", "year"]].drop_duplicates(),
-        history_all,
+        coach_history,
         exclude_years=exclude_years,
     )
     merged = merged.merge(
