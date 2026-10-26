@@ -8,9 +8,12 @@ a) SOS within-seed Spearman (reports/sos_vs_finish_seed_controlled_summary.md)
 b) every seed-band Spearman in reports/*_vs_finish_by_seed_group_table.csv
 c) conference overperformance vs exact-seed expectation (reports/sos_conf_vs_overperformance_summary.md)
 
-For every estimate: n, point estimate, bootstrap 95% CI (teams resampled within their seed line,
-plus a season-cluster variant), and a permutation p-value that shuffles the stat within seed line
-so seed structure is preserved. Family (b) and the conference table get Benjamini-Hochberg q-values.
+For every estimate: n, point estimate, bootstrap 95% CI, and a permutation p-value that shuffles the
+stat within seed line so seed structure is preserved. For (a) and (b) the bootstrap resamples teams
+within their seed line (plus a season-cluster variant). For (c) it resamples the conference's own
+team-seasons with seed baselines fixed (plus season and program clusters), and each conference also
+gets the 95% band of its within-seed permutation null. Family (b) and the conference table get
+Benjamini-Hochberg q-values.
 """
 from __future__ import annotations
 
@@ -18,6 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import argparse
 import importlib
+import re
 import sys
 import zlib
 
@@ -57,6 +61,11 @@ SEED_GROUP_MAP = {
 # Focus conferences for the detailed (c) breakdown, and the program the review asked about.
 FOCUS_CONFERENCES = ["Horz", "MWC"]
 HORIZON_DROP_PROGRAM = "Butler"
+# Conference bootstrap diagnostics: a team-resampled CI whose spread is under this share of the
+# seed-line spread, or a cluster CI with fewer clusters than MIN_CLUSTERS, is flagged in `ci_note`.
+BOOT_SPREAD_FLOOR = 0.75
+MIN_CLUSTERS = 10
+SOS_PUBLISHED_PATTERN = r"within-seed Spearman relationship is `([-+]?\d*\.\d+)`"
 
 
 def get_paths() -> dict[str, Path]:
@@ -64,6 +73,9 @@ def get_paths() -> dict[str, Path]:
     return {
         "reports": reports,
         "sos_sample": REPO_ROOT / "data" / "processed" / "sos_sample.csv",
+        "published_sos_md": reports / "sos_vs_finish_seed_controlled_summary.md",
+        "published_sos_pooled_md": reports / "sos_vs_finish_pooled_summary.md",
+        "published_conf_csv": reports / "sos_conf_vs_overperformance_table.csv",
         "md": reports / "robustness_summary.md",
         "csv_sos": reports / "robustness_sos_within_seed.csv",
         "csv_bands": reports / "robustness_seed_band_correlations.csv",
@@ -220,6 +232,17 @@ def benjamini_hochberg(pvalues: np.ndarray | list[float]) -> np.ndarray:
     return q
 
 
+def benjamini_hochberg_within(pvalues: np.ndarray | list[float], groups: np.ndarray | list[str]) -> np.ndarray:
+    """BH q-values computed separately inside each group (a narrower family than pooling every test)."""
+    p = np.asarray(pvalues, dtype=float)
+    groups = np.asarray(groups)
+    q = np.full(p.shape, np.nan)
+    for group in pd.unique(groups):
+        mask = groups == group
+        q[mask] = benjamini_hochberg(p[mask])
+    return q
+
+
 def cluster_bootstrap_means(
     values: np.ndarray,
     clusters: np.ndarray,
@@ -289,6 +312,37 @@ def cochran_q(means: np.ndarray, variances: np.ndarray) -> np.ndarray:
     return ((means - fixed) ** 2 * weights).sum(axis=1)
 
 
+def conference_ci_note(share_positive: float, boot_sd_ratio: float, seasons: int, programs: int) -> str:
+    """Why a conference's bootstrap CIs should not be read at face value ("" when no rule fires).
+
+    The team bootstrap only sees the conference's own team-seasons. If none (or few) of them beat
+    their seed line it cannot draw the rare deep run its seed lines produce, so it is too narrow.
+    """
+    notes = []
+    if share_positive == 0:
+        notes.append("no team beat its seed line, so the bootstrap cannot draw an upset")
+    elif boot_sd_ratio < BOOT_SPREAD_FLOOR:
+        notes.append(f"bootstrap SD < {BOOT_SPREAD_FLOOR:g} x seed-line SD")
+    if seasons < MIN_CLUSTERS:
+        notes.append(f"season CI: < {MIN_CLUSTERS} seasons")
+    if programs < MIN_CLUSTERS:
+        notes.append(f"program CI: < {MIN_CLUSTERS} programs")
+    return "; ".join(notes)
+
+
+def read_published_md_value(path: Path, pattern: str = SOS_PUBLISHED_PATTERN) -> tuple[float, float]:
+    """Number captured by `pattern` in a published markdown report, and half a unit of its last
+    printed decimal (the tolerance a match is held to). (NaN, NaN) if the file or number is absent."""
+    if not path.exists():
+        return np.nan, np.nan
+    match = re.search(pattern, path.read_text(encoding="utf-8"))
+    if not match:
+        return np.nan, np.nan
+    text = match.group(1)
+    decimals = len(text.split(".")[1]) if "." in text else 0
+    return float(text), 0.5 * 10.0**-decimals
+
+
 # ---------------------------------------------------------------------------
 # Claim (a) and family (b): Spearman estimates
 # ---------------------------------------------------------------------------
@@ -323,6 +377,8 @@ class CorrelationCell:
     estimator: str
     note: str = ""
     published_n: float = np.nan
+    # Published CSVs carry 6 decimals; a value parsed from a markdown report carries fewer.
+    published_tolerance: float = 5e-6
 
     @property
     def key(self) -> str:
@@ -365,7 +421,9 @@ def evaluate_cell(cell: CorrelationCell, n_resamples: int) -> dict[str, object]:
         "published_rho": cell.published,
         "published_team_count": cell.published_n,
         "rho": rho,
-        "matches_published": bool(abs(rho - cell.published) < 5e-6) if np.isfinite(cell.published) else False,
+        "matches_published": bool(abs(rho - cell.published) <= cell.published_tolerance)
+        if np.isfinite(cell.published)
+        else False,
         "rho_exact_seed_centered": rho_seed_centered,
         "ci_lo": team_lo,
         "ci_hi": team_hi,
@@ -391,18 +449,19 @@ def _published_value(table: pd.DataFrame, column: str, seed_group: str) -> tuple
     return float(row[column].iloc[0]), float(row[count_column].iloc[0])
 
 
-def build_sos_within_seed_cell(sample_path: Path) -> CorrelationCell:
+def build_sos_within_seed_cell(sample_path: Path, published_md: Path) -> CorrelationCell:
     sos = importlib.import_module("sos_analysis_02_04")
     df = sos.load_tournament_data(sample_path).reset_index(drop=True)
     adjusted, _ = sos.build_analysis_02_seed_controlled(df, "Elite SOS")
-    published = float(adjusted["metric_vs_seed"].corr(adjusted["finish_vs_seed"], method="spearman"))
+    # The published value is the 3-decimal number printed in the report, not a recomputation.
+    published, tolerance = read_published_md_value(published_md)
     return CorrelationCell(
         family="a_sos_within_seed",
         topic="sos",
         statistic="within_seed_rho",
         metric="Elite SOS",
         seed_group="all (seed-centered)",
-        source="reports/sos_vs_finish_seed_controlled_summary.md",
+        source=f"reports/{published_md.name}",
         published=published,
         x_est=adjusted["metric_vs_seed"].to_numpy(float),
         y_est=adjusted["finish_vs_seed"].to_numpy(float),
@@ -413,6 +472,7 @@ def build_sos_within_seed_cell(sample_path: Path) -> CorrelationCell:
         recenter=True,
         estimator="exact-seed centered x and y",
         published_n=float(len(df)),
+        published_tolerance=tolerance,
     )
 
 
@@ -727,13 +787,17 @@ def build_band_cells(paths: dict[str, Path]) -> tuple[list[CorrelationCell], pd.
 
 def run_band_family(cells: list[CorrelationCell], n_resamples: int) -> pd.DataFrame:
     table = pd.DataFrame([evaluate_cell(cell, n_resamples) for cell in cells])
+    # Primary family: every published band cell pooled (the conservative choice). The narrower
+    # per-table and per-statistic families are reported so the dependence on that choice is visible.
     table["q_bh"] = benjamini_hochberg(table["p_perm"].to_numpy())
-    table["ci_excludes_zero"] = (table["ci_lo"] > 0) | (table["ci_hi"] < 0)
-    table["verdict"] = np.select(
-        [table["q_bh"] < ALPHA, table["p_perm"] < ALPHA],
-        ["survives BH", "nominal only (fails BH)"],
-        default="not distinguishable from noise",
+    table["q_bh_within_table"] = benjamini_hochberg_within(table["p_perm"].to_numpy(), table["source"].to_numpy())
+    table["q_bh_within_statistic"] = benjamini_hochberg_within(
+        table["p_perm"].to_numpy(), (table["source"] + "|" + table["statistic"]).to_numpy()
     )
+    table["ci_excludes_zero"] = (table["ci_lo"] > 0) | (table["ci_hi"] < 0)
+    table["verdict"] = [
+        family_verdict(p, q, q_table) for p, q, q_table in zip(table["p_perm"], table["q_bh"], table["q_bh_within_table"])
+    ]
     return table
 
 
@@ -785,23 +849,32 @@ def run_conference_checks(
     q_null = cochran_q(null_seed[:, :n_conf], null_var[:n_conf])
     max_null = null_seed[:, :n_conf].max(axis=1)
     min_null = null_seed[:, :n_conf].min(axis=1)
+    # Where each group's mean lands 95% of the time if its teams were random draws from their seed lines.
+    null_lo, null_hi = np.percentile(null_seed, [2.5, 97.5], axis=0)
 
     rows = []
     for k, label in enumerate(labels):
         mask = group_masks[label]
         values = y[mask]
         rng = rng_for(f"c|boot|{label}")
+        # iid bootstrap of this conference's own team-seasons; seed baselines stay fixed.
         team_boot = cluster_bootstrap_means(values, np.arange(len(values)), n_resamples, rng)
         season_boot = cluster_bootstrap_means(values, year[mask], n_resamples, rng)
         program_boot = cluster_bootstrap_means(values, team[mask], n_resamples, rng)
+        seasons = int(len(np.unique(year[mask])))
+        programs = int(len(np.unique(team[mask])))
+        share_positive = float(np.mean(values > 0))
+        boot_sd_ratio = float(np.std(team_boot) / np.sqrt(null_var[k]))
         row = {
             "Conf": label,
             "n": int(mask.sum()),
-            "seasons": int(len(np.unique(year[mask]))),
-            "programs": int(len(np.unique(team[mask]))),
+            "seasons": seasons,
+            "programs": programs,
             "mean_overperformance": float(observed[k]),
             "median_overperformance": float(np.median(values)),
-            "share_positive": float(np.mean(values > 0)),
+            "share_positive": share_positive,
+            "null_lo": float(null_lo[k]),
+            "null_hi": float(null_hi[k]),
             "ci_lo": percentile_ci(team_boot)[0],
             "ci_hi": percentile_ci(team_boot)[1],
             "season_ci_lo": percentile_ci(season_boot)[0],
@@ -809,6 +882,8 @@ def run_conference_checks(
             "program_ci_lo": percentile_ci(program_boot)[0],
             "program_ci_hi": percentile_ci(program_boot)[1],
             "null_sd": float(np.sqrt(null_var[k])),
+            "boot_sd_ratio": boot_sd_ratio,
+            "ci_note": conference_ci_note(share_positive, boot_sd_ratio, seasons, programs),
             "p_perm": permutation_pvalue(observed[k], null_seed[:, k]),
             "p_perm_seed_season": permutation_pvalue(observed[k], null_seed_season[:, k]),
         }
@@ -944,9 +1019,11 @@ def single_test_verdict(p_value: float, lo: float, hi: float) -> str:
     return "not distinguishable from zero"
 
 
-def family_verdict(p_value: float, q_value: float) -> str:
+def family_verdict(p_value: float, q_value: float, q_within_table: float = np.nan) -> str:
     if np.isfinite(q_value) and q_value < ALPHA:
         return "survives BH"
+    if np.isfinite(q_within_table) and q_within_table < ALPHA:
+        return "survives per-table BH only (fails pooled BH)"
     if p_value < ALPHA:
         return "nominal only (fails BH)" if np.isfinite(q_value) else "nominal only"
     return "not distinguishable from noise"
@@ -972,9 +1049,30 @@ def topic_rollup(bands: pd.DataFrame) -> pd.DataFrame:
                 "nominal_p_lt_05": int((group["p_perm"] < ALPHA).sum()),
                 "min_p": float(group["p_perm"].min()),
                 "min_q": float(group["q_bh"].min()),
+                "min_q_within_table": float(group["q_bh_within_table"].min()),
             }
         )
     return pd.DataFrame(rows)
+
+
+def describe_years(years: np.ndarray) -> str:
+    """e.g. '17 tournaments (2008-2025, no 2020)'."""
+    years = np.sort(np.unique(np.asarray(years, dtype=int)))
+    missing = sorted(set(range(int(years[0]), int(years[-1]) + 1)) - set(years.tolist()))
+    gap = f", no {', '.join(str(year) for year in missing)}" if missing else ""
+    return f"{len(years)} tournaments ({years[0]}-{years[-1]}{gap})"
+
+
+def describe_seed_season_strata(sizes: pd.Series) -> str:
+    """How many teams the seed-and-season permutation shuffles among, e.g. 'the 4 same-seed teams of one season'."""
+    low, high = int(sizes.min()), int(sizes.max())
+    if low == high:
+        return f"the {low} same-seed teams of one season"
+    return f"the same-seed teams of one season ({low}-{high} per seed line and season)"
+
+
+def band_cell_label(row: pd.Series) -> str:
+    return f"{row['topic']} {row['metric']} seeds {row['seed_group']}"
 
 
 def write_summary(
@@ -984,6 +1082,7 @@ def write_summary(
     experience_audit: pd.DataFrame,
     conf: dict[str, object],
     n_resamples: int,
+    sample: dict[str, object],
 ) -> None:
     conf_table: pd.DataFrame = conf["table"]
     omnibus: dict[str, object] = conf["omnibus"]
@@ -993,6 +1092,8 @@ def write_summary(
     def p(value: float) -> str:
         return fmt_p(value, n_resamples)
 
+    years_text = describe_years(sample["years"])
+    strata_text = describe_seed_season_strata(sample["seed_season_sizes"])
     lead_conf, trail_conf = FOCUS_CONFERENCES
     horizon = conf_table.loc[conf_table["Conf"] == lead_conf].iloc[0]
     mwc = conf_table.loc[conf_table["Conf"] == trail_conf].iloc[0]
@@ -1008,6 +1109,8 @@ def write_summary(
     nominal = int((bands["p_perm"] < ALPHA).sum())
     bh_05 = bands.loc[bands["q_bh"] < ALPHA]
     bh_10 = bands.loc[bands["q_bh"] < 0.10]
+    table_05 = bands.loc[bands["q_bh_within_table"] < ALPHA].sort_values("q_bh_within_table", kind="stable")
+    statistic_05 = bands.loc[bands["q_bh_within_statistic"] < ALPHA].sort_values("q_bh_within_statistic", kind="stable")
     best_cell = bands.loc[bands["q_bh"].idxmin()]
     in_family = conf_table["q_bh"].notna()
     conf_bh = conf_table.loc[in_family & (conf_table["q_bh"] < ALPHA), "Conf"].tolist()
@@ -1018,12 +1121,24 @@ def write_summary(
     mwc_loo = loo.loc[loo["Conf"] == trail_conf].sort_values("abs_shift", ascending=False).iloc[0]
     verdict_a = single_test_verdict(sos_row["p_perm"], sos_row["ci_lo"], sos_row["ci_hi"])
     season_share = sos_row["null_mean_seed_season"] / sos_row["rho"] if sos_row["rho"] else np.nan
+    team_width = sos_row["ci_hi"] - sos_row["ci_lo"]
+    season_width = sos_row["season_ci_hi"] - sos_row["season_ci_lo"]
     low_seed = bands.loc[bands["seed_group"] == SEED_GROUP_ORDER[-1]]
     # The low-seed cell whose estimate sits furthest off-centre in its own bootstrap interval.
     off_centre = (low_seed["rho"] - (low_seed["ci_lo"] + low_seed["ci_hi"]) / 2).abs() / (
         low_seed["ci_hi"] - low_seed["ci_lo"]
     )
     lopsided = low_seed.loc[off_centre.idxmax()]
+    # Conferences whose bootstrap CIs should not be read at face value (rules in conference_ci_note).
+    family_rows = conf_table.loc[in_family]
+    no_upset = family_rows.loc[family_rows["share_positive"] == 0, "Conf"].tolist()
+    narrow = family_rows.loc[
+        (family_rows["share_positive"] > 0) & (family_rows["boot_sd_ratio"] < BOOT_SPREAD_FLOOR), "Conf"
+    ].tolist()
+    few_programs = family_rows.loc[family_rows["programs"] < MIN_CLUSTERS, "Conf"].tolist()
+    few_seasons = family_rows.loc[family_rows["seasons"] < MIN_CLUSTERS, "Conf"].tolist()
+    band_seasons = bands.groupby(["topic", "statistic"], sort=False)["seasons"].max().reset_index()
+    subset_bands = band_seasons.loc[band_seasons["seasons"] < len(sample["years"])]
 
     if butler["program_overperformance_sum"] >= horizon_total:
         butler_text = (
@@ -1040,58 +1155,102 @@ def write_summary(
         if omnibus["q_p_perm"] >= ALPHA
         else "some conference heterogeneity beyond seed"
     )
+    if season_width <= team_width * 1.05:
+        season_ci_text = (
+            f"The season-cluster CI {fmt_ci(sos_row['season_ci_lo'], sos_row['season_ci_hi'])} is no wider than the team CI,"
+            " so resampling whole tournaments adds no visible uncertainty."
+        )
+    else:
+        season_ci_text = (
+            f"The season-cluster CI {fmt_ci(sos_row['season_ci_lo'], sos_row['season_ci_hi'])} is wider than the team CI;"
+            " quote that one."
+        )
+    if len(table_05):
+        table_cells_text = "; ".join(
+            f"{band_cell_label(row)} (rho `{row['rho']:+.3f}`, per-table q = {row['q_bh_within_table']:.3f}, "
+            f"seed-and-season p = {p(row['p_perm_seed_season'])}, within-seed null mean `{row['null_mean_within_seed']:+.3f}`, "
+            f"exact-seed-centered rho `{row['rho_exact_seed_centered']:+.3f}`)"
+            for _, row in table_05.iterrows()
+        )
+        family_text = (
+            f"  The count depends on the family. With BH applied within each published table, {len(table_05)} survive: "
+            f"{table_cells_text}. Within each statistic's bands, {len(statistic_05)} survive"
+            + (f" ({', '.join(band_cell_label(row) for _, row in statistic_05.iterrows())})" if len(statistic_05) else "")
+            + "."
+        )
+    else:
+        family_text = "  Applying BH within each published table instead of across all cells leaves none surviving either."
 
     lines = [
         "# Robustness Checks: Uncertainty on the Headline Descriptive Claims",
         "",
         f"Generated by `scripts/robustness_checks.py` ({n_resamples:,} resamples per test, fixed seeds). Every point",
-        "estimate was first re-derived with the same loaders and table builders that wrote the original reports;",
-        "the `matches_published` column in each CSV records whether it agreed to 6 decimals.",
+        "estimate was first re-derived with the same loaders and table builders that wrote the original reports, then",
+        "compared with the published file: (b) band values and (c) conference means and medians against the published",
+        "CSVs to 6 decimals, (a) against the 3-decimal value printed in",
+        f"`{sos_row['source']}`. The `matches_published` column in each CSV records the result.",
         "",
         "## Bottom line",
         "",
         f"- **(a) SOS within seed line:** rho `{sos_row['rho']:+.3f}` (n = {sos_row['n']}), 95% CI "
-        f"{fmt_ci(sos_row['ci_lo'], sos_row['ci_hi'])}, permutation p = {p(sos_row['p_perm'])}: {verdict_a}. Shuffling only among",
-        f"  same-seed teams in the same season gives a null centred at `{sos_row['null_mean_seed_season']:+.3f}` "
-        f"(~{season_share:.0%} of the estimate) and p = {p(sos_row['p_perm_seed_season'])}, so much of it is season-level",
-        "  co-movement that 17 tournaments cannot pin down.",
-        f"- **(b) Seed-band correlations:** {len(bh_05)} of {n_cells} survive Benjamini-Hochberg at q < {ALPHA} "
-        f"({len(bh_10)} at q < 0.10). {nominal} have nominal p < {ALPHA}, against ~{ALPHA * n_cells:.1f} expected by chance. "
-        f"Smallest q = {best_cell['q_bh']:.3f} ({best_cell['topic']} {best_cell['metric']}, seeds {best_cell['seed_group']}).",
+        f"{fmt_ci(sos_row['ci_lo'], sos_row['ci_hi'])}, permutation p = {p(sos_row['p_perm'])}: {verdict_a}.",
+        f"  About {season_share:.0%} of the estimate sits at the seed-line x season level: a null that shuffles only among",
+        f"  {strata_text} has mean `{sos_row['null_mean_seed_season']:+.3f}`, and against it the association is not",
+        f"  detectable (p = {p(sos_row['p_perm_seed_season'])}). That is a narrower, lower-power test, so it does not show the",
+        f"  estimate is spurious. {season_ci_text}",
+        f"- **(b) Seed-band correlations:** pooled across all {n_cells} cells (the conservative family), {len(bh_05)} survive "
+        f"Benjamini-Hochberg at q < {ALPHA} ({len(bh_10)} at q < 0.10). {nominal} have nominal p < {ALPHA}, against "
+        f"~{ALPHA * n_cells:.1f} expected by chance. Smallest pooled q = {best_cell['q_bh']:.3f} ({band_cell_label(best_cell)}).",
+        family_text,
         f"  The quoted size numbers (EFFHGT `{size_top['rho']:+.3f}` seeds 1-2, `{size_78['rho']:+.3f}` seeds 7-8) have "
-        f"q = {size_top['q_bh']:.3f} / {size_78['q_bh']:.3f}.",
+        f"p = {p(size_top['p_perm'])} / {p(size_78['p_perm'])} and pooled q = {size_top['q_bh']:.3f} / {size_78['q_bh']:.3f}.",
         f"  The published player-experience band values (e.g. `{exp_top['published_rho']:+.3f}` for seeds 1-2) come from a",
         f"  row-misalignment bug; with rows aligned the largest |rho| is `{exp_player['rho'].abs().max():.3f}`.",
         f"- **(c) Conference overperformance:** {lead_conf} `{horizon['mean_overperformance']:+.3f}` has median "
         f"`{horizon['median_overperformance']:+.3f}`; {butler_text}. Without {HORIZON_DROP_PROGRAM} the mean is "
         f"`{horizon_drop['mean_overperformance']:+.3f}` (p = {p(horizon_drop['p_perm'])}).",
-        f"  {lead_conf} (p = {p(horizon['p_perm'])}, q = {horizon['q_bh']:.3f}) and {trail_conf} "
-        f"(`{mwc['mean_overperformance']:+.3f}`, p = {p(mwc['p_perm'])}, q = {mwc['q_bh']:.3f}) are "
-        f"{'not ' if not conf_bh else ''}significant after BH across {omnibus['conferences']} conferences, and as the most",
-        f"  extreme of {omnibus['conferences']} means they are unremarkable (P = {p(omnibus['p_best_is_extreme'])} / "
+        f"  A conference with {lead_conf}'s seed mix lands in {fmt_ci(horizon['null_lo'], horizon['null_hi'])} 95% of the time "
+        f"under the within-seed null. {lead_conf} (p = {p(horizon['p_perm'])}, seed-and-season p = "
+        f"{p(horizon['p_perm_seed_season'])}, q = {horizon['q_bh']:.3f}) and {trail_conf} "
+        f"(`{mwc['mean_overperformance']:+.3f}`, null band {fmt_ci(mwc['null_lo'], mwc['null_hi'])}, p = {p(mwc['p_perm'])}, "
+        f"q = {mwc['q_bh']:.3f}) are {'not ' if not conf_bh else ''}significant after BH across {omnibus['conferences']} "
+        "conferences,",
+        f"  and as the most extreme of {omnibus['conferences']} means they are unremarkable (P = {p(omnibus['p_best_is_extreme'])} / "
         f"{p(omnibus['p_worst_is_extreme'])}). Cochran's Q permutation p = {p(omnibus['q_p_perm'])}: {conference_signal}.",
         f"  Empirical-Bayes shrinkage puts every conference within `{max_abs_eb:.3f}` of zero.",
         "",
         "## Method",
         "",
-        "- **Bootstrap CI (teams):** 95% percentile interval, resampling team-seasons with replacement *within their exact",
-        "  seed line* (seed lines keep their size), re-estimating any seed-line centering inside each resample.",
+        "- **Bootstrap CI (teams), claims (a) and (b):** 95% percentile interval, resampling team-seasons with replacement",
+        "  *within their exact seed line* (seed lines keep their size), re-estimating any seed-line centering inside each",
+        "  resample.",
+        "- **Bootstrap CI (teams), claim (c):** 95% percentile interval from an iid bootstrap of that conference's own",
+        "  team-seasons, with each team's seed baseline (its seed line's full-sample mean finish) held fixed. It only sees the",
+        "  spread the conference's own sample shows, so when its teams rarely or never beat their seed line it cannot draw",
+        "  an upset and comes out too narrow. `boot_sd_ratio` (bootstrap SD / seed-line SD of the mean) and `ci_note`",
+        f"  flag this: no team above its seed line, or a ratio below {BOOT_SPREAD_FLOOR:g}.",
         "- **Bootstrap CI (seasons):** same estimator, resampling whole tournaments. Outcomes inside one bracket are coupled,",
-        "  so prefer this interval when it is wider. For conferences a third variant resamples programs.",
+        "  so prefer this interval when it is wider. For conferences a third variant resamples programs. Cluster intervals",
+        f"  with fewer than {MIN_CLUSTERS} clusters are too narrow and are flagged in `ci_note`.",
+        "- **Within-seed null band (c):** the 2.5%-97.5% range of the conference mean under the permutation null below, i.e.",
+        "  where the mean lands 95% of the time if the conference's teams were random draws from their seed lines. Compare a",
+        "  conference's mean with this band, not with 0.",
         "- **Permutation p:** the stat is shuffled *within exact seed line* (outcomes and seeds fixed), so the null keeps all",
-        "  seed structure. Two-sided (`2 x` smaller tail, +1 correction). `p_perm_seed_season` shuffles only among the four",
-        "  same-seed teams of one season, which also holds season-level shifts fixed.",
-        f"- **Multiple comparisons:** Benjamini-Hochberg across all {n_cells} seed-band cells in (b), and across the "
-        f"{omnibus['conferences']} conferences in (c).",
+        f"  seed structure. Two-sided (`2 x` smaller tail, +1 correction). `p_perm_seed_season` shuffles only among {strata_text},",
+        "  which also holds seed-line x season shifts fixed; it is a narrower, lower-power test.",
+        f"- **Multiple comparisons:** Benjamini-Hochberg across all {n_cells} seed-band cells in (b) (`q_bh`, primary), and across "
+        f"the {omnibus['conferences']} conferences in (c). For (b) the CSV also gives BH within each published table",
+        "  (`q_bh_within_table`) and within each statistic's bands (`q_bh_within_statistic`).",
         "- **Conference shrinkage:** normal-normal empirical Bayes (DerSimonian-Laird). A conference mean's sampling variance is",
         "  the sum of its teams' seed-line finish variances over n^2, i.e. its variance under the within-seed null.",
         "",
         "## Verdicts",
         "",
-        "| Claim | n | Estimate | 95% CI (teams) | 95% CI (seasons) | p (perm) | q (BH) | Verdict |",
-        "|:--|--:|--:|:--|:--|--:|--:|:--|",
+        "| Claim | n | Estimate | 95% CI (teams) | 95% CI (seasons) | p (perm) | q (pooled BH) | q (per-table BH) | Verdict |",
+        "|:--|--:|--:|:--|:--|--:|--:|--:|:--|",
         f"| (a) SOS within-seed Spearman | {sos_row['n']} | {sos_row['rho']:+.3f} | {fmt_ci(sos_row['ci_lo'], sos_row['ci_hi'])} "
-        f"| {fmt_ci(sos_row['season_ci_lo'], sos_row['season_ci_hi'])} | {p(sos_row['p_perm'])} | single test | {verdict_a} |",
+        f"| {fmt_ci(sos_row['season_ci_lo'], sos_row['season_ci_hi'])} | {p(sos_row['p_perm'])} | single test | single test "
+        f"| {verdict_a} |",
     ]
     band_claims = [
         ("(b) Size EFFHGT, seeds 1-2", size_top),
@@ -1103,7 +1262,7 @@ def write_summary(
         lines.append(
             f"| {label} | {row['n']} | {row['rho']:+.3f} | {fmt_ci(row['ci_lo'], row['ci_hi'])} "
             f"| {fmt_ci(row['season_ci_lo'], row['season_ci_hi'])} | {p(row['p_perm'])} | {row['q_bh']:.3f} "
-            f"| {family_verdict(row['p_perm'], row['q_bh'])} |"
+            f"| {row['q_bh_within_table']:.3f} | {row['verdict']} |"
         )
     for label, row in [
         (f"(c) {lead_conf} mean overperformance", horizon),
@@ -1111,13 +1270,24 @@ def write_summary(
         (f"(c) {trail_conf} mean overperformance", mwc),
     ]:
         q_value = float(row["q_bh"]) if pd.notna(row["q_bh"]) else np.nan
+        q_text = "n/a" if np.isnan(q_value) else f"{q_value:.3f}"
         lines.append(
             f"| {label} | {row['n']} | {row['mean_overperformance']:+.3f} | {fmt_ci(row['ci_lo'], row['ci_hi'])} "
             f"| {fmt_ci(row['season_ci_lo'], row['season_ci_hi'])} | {p(row['p_perm'])} "
-            f"| {'n/a' if np.isnan(q_value) else f'{q_value:.3f}'} | {family_verdict(row['p_perm'], q_value)} |"
+            f"| {q_text} | {q_text} | {family_verdict(row['p_perm'], q_value)} |"
         )
-
+    focus_notes = [
+        f"{row['Conf']}: {row['ci_note']}" for row in (horizon, horizon_drop, mwc) if isinstance(row["ci_note"], str) and row["ci_note"]
+    ]
     lines += [
+        "",
+        "For (c) the CIs are iid bootstraps of the conference's own team-seasons (see Method), and the conference table is a",
+        "single published table, so its pooled and per-table q are the same. Within-seed null 95% bands: "
+        + "; ".join(
+            f"{row['Conf']} {fmt_ci(row['null_lo'], row['null_hi'])}" for row in (horizon, horizon_drop, mwc)
+        )
+        + "."
+        + (f" Flags: {'; '.join(focus_notes)}." if focus_notes else ""),
         "",
         "## (a) SOS within seed line",
         "",
@@ -1126,14 +1296,31 @@ def write_summary(
         f"- 95% CI {fmt_ci(sos_row['ci_lo'], sos_row['ci_hi'])} (teams), {fmt_ci(sos_row['season_ci_lo'], sos_row['season_ci_hi'])} "
         f"(seasons). Permutation p = {p(sos_row['p_perm'])} within seed line (null mean `{sos_row['null_mean_within_seed']:+.3f}`);",
         f"  p = {p(sos_row['p_perm_seed_season'])} within seed line and season (null mean `{sos_row['null_mean_seed_season']:+.3f}`).",
-        f"- Read: {verdict_a}. Quote it with its interval, and not as evidence of an SOS effect inside a season.",
+        f"- Read: {verdict_a}. About {season_share:.0%} of the estimate sits at the seed-line x season level, and within a",
+        "  seed line and season the association is not detectable. Quote it with its interval, and not as evidence of an SOS",
+        "  effect inside a season.",
         "",
         "## (b) Seed-band correlations (all topics)",
         "",
         f"- Family: {n_cells} band-level Spearman estimates from {bands['source'].nunique()} published tables "
         f"({', '.join(sorted(bands['topic'].unique()))}).",
         f"- {nominal} of {n_cells} have permutation p < {ALPHA} (about {ALPHA * n_cells:.1f} expected by chance); "
-        f"{len(bh_05)} have q < {ALPHA}; {len(bh_10)} have q < 0.10.",
+        f"{len(bh_05)} have pooled q < {ALPHA}; {len(bh_10)} have pooled q < 0.10.",
+        "- **Family definition matters.** Pooling every published band cell into one family is the conservative choice, and",
+        "  the one the verdicts use. A reader who treats each published table as its own family gets "
+        f"{len(table_05)} survivor{'s' if len(table_05) != 1 else ''} at q < {ALPHA}"
+        + (f" ({', '.join(band_cell_label(row) for _, row in table_05.iterrows())})" if len(table_05) else "")
+        + "; treating each statistic's bands as a family gives "
+        f"{len(statistic_05)}"
+        + (f" ({', '.join(band_cell_label(row) for _, row in statistic_05.iterrows())})" if len(statistic_05) else "")
+        + ". "
+        + (
+            "None of them is significant under the seed-and-season null (p = "
+            + ", ".join(p(value) for value in table_05["p_perm_seed_season"])
+            + "), and each is a raw-within-band estimator, part of which is seed mix (see below)."
+            if len(table_05) and bool((table_05["p_perm_seed_season"] >= ALPHA).all())
+            else ""
+        ),
         "",
         "Per topic and statistic (`max_abs_rho` uses aligned experience values):",
         "",
@@ -1144,7 +1331,21 @@ def write_summary(
         markdown_table(
             bands.loc[
                 bands["p_perm"] < ALPHA,
-                ["topic", "metric", "seed_group", "n", "rho", "ci_lo", "ci_hi", "season_ci_lo", "season_ci_hi", "p_perm", "p_perm_seed_season", "q_bh"],
+                [
+                    "topic",
+                    "metric",
+                    "seed_group",
+                    "n",
+                    "rho",
+                    "ci_lo",
+                    "ci_hi",
+                    "season_ci_lo",
+                    "season_ci_hi",
+                    "p_perm",
+                    "p_perm_seed_season",
+                    "q_bh",
+                    "q_bh_within_table",
+                ],
             ]
         ),
         "",
@@ -1160,7 +1361,9 @@ def write_summary(
         "  2-3 seed lines, so part of the number is just \"the better seed in the band also has more of the metric and goes",
         "  further\". The within-seed null keeps that part, so its mean shows how much is seed mix. SOS Elite SOS, seeds 11-13:",
         f"  published `{sos_1113['published_rho']:+.3f}`, within-seed null mean `{sos_1113['null_mean_within_seed']:+.3f}`, "
-        f"exact-seed-centered rho `{sos_1113['rho_exact_seed_centered']:+.3f}` (p = {p(sos_1113['p_perm'])}, q = {sos_1113['q_bh']:.3f}).",
+        f"exact-seed-centered rho `{sos_1113['rho_exact_seed_centered']:+.3f}` (p = {p(sos_1113['p_perm'])}, pooled q = "
+        f"{sos_1113['q_bh']:.3f}, per-table q = {sos_1113['q_bh_within_table']:.3f}, seed-and-season p = "
+        f"{p(sos_1113['p_perm_seed_season'])}).",
         "",
         "### Bug: the published player-experience correlations pair the wrong rows",
         "",
@@ -1180,21 +1383,26 @@ def write_summary(
         "",
         f"- **{lead_conf}:** mean `{horizon['mean_overperformance']:+.3f}`, median `{horizon['median_overperformance']:+.3f}` "
         f"(n = {horizon['n']}, {horizon['programs']} programs; {horizon['share_positive']:.0%} of team-seasons beat their seed line).",
-        f"  CI {fmt_ci(horizon['ci_lo'], horizon['ci_hi'])} teams, {fmt_ci(horizon['season_ci_lo'], horizon['season_ci_hi'])} seasons, "
-        f"{fmt_ci(horizon['program_ci_lo'], horizon['program_ci_hi'])} programs; p = {p(horizon['p_perm'])}, q = {horizon['q_bh']:.3f}; "
-        f"shrunken `{horizon['eb_mean']:+.3f}` [{horizon['eb_lo']:+.3f}, {horizon['eb_hi']:+.3f}].",
+        f"  Within-seed null band {fmt_ci(horizon['null_lo'], horizon['null_hi'])}; p = {p(horizon['p_perm'])} within seed line, "
+        f"p = {p(horizon['p_perm_seed_season'])} within seed line and season; q = {horizon['q_bh']:.3f}.",
+        f"  Bootstrap CI {fmt_ci(horizon['ci_lo'], horizon['ci_hi'])} teams, {fmt_ci(horizon['season_ci_lo'], horizon['season_ci_hi'])} "
+        f"seasons, {fmt_ci(horizon['program_ci_lo'], horizon['program_ci_hi'])} programs; shrunken "
+        f"`{horizon['eb_mean']:+.3f}` [{horizon['eb_lo']:+.3f}, {horizon['eb_hi']:+.3f}].",
         f"- Top team-seasons (conference total `{horizon_total:+.3f}`):",
     ]
     for row in horizon_top.itertuples(index=False):
         lines.append(f"  - {row.Team} {row.year} ({row.seed_int}-seed, {row.finish}): `{row.overperformance:+.3f}`")
     lines += [
         f"- **Leave one program out:** without {HORIZON_DROP_PROGRAM} the mean is `{horizon_drop['mean_overperformance']:+.3f}` "
-        f"(n = {horizon_drop['n']}, CI {fmt_ci(horizon_drop['ci_lo'], horizon_drop['ci_hi'])}, p = {p(horizon_drop['p_perm'])}). "
+        f"(n = {horizon_drop['n']}, CI {fmt_ci(horizon_drop['ci_lo'], horizon_drop['ci_hi'])}, null band "
+        f"{fmt_ci(horizon_drop['null_lo'], horizon_drop['null_hi'])}, p = {p(horizon_drop['p_perm'])}). "
         f"Across all programs the {lead_conf} mean ranges `{horizon['loo_min_mean']:+.3f}` to `{horizon['loo_max_mean']:+.3f}`.",
-        f"- **{trail_conf}:** mean `{mwc['mean_overperformance']:+.3f}`, median `{mwc['median_overperformance']:+.3f}` (n = {mwc['n']}). "
-        f"CI {fmt_ci(mwc['ci_lo'], mwc['ci_hi'])} teams, {fmt_ci(mwc['season_ci_lo'], mwc['season_ci_hi'])} seasons, "
-        f"{fmt_ci(mwc['program_ci_lo'], mwc['program_ci_hi'])} programs; p = {p(mwc['p_perm'])}, q = {mwc['q_bh']:.3f}; "
-        f"shrunken `{mwc['eb_mean']:+.3f}` [{mwc['eb_lo']:+.3f}, {mwc['eb_hi']:+.3f}].",
+        f"- **{trail_conf}:** mean `{mwc['mean_overperformance']:+.3f}`, median `{mwc['median_overperformance']:+.3f}` (n = {mwc['n']}, "
+        f"{mwc['programs']} programs). Within-seed null band {fmt_ci(mwc['null_lo'], mwc['null_hi'])}; p = {p(mwc['p_perm'])} "
+        f"within seed line, p = {p(mwc['p_perm_seed_season'])} within seed line and season; q = {mwc['q_bh']:.3f}.",
+        f"  Bootstrap CI {fmt_ci(mwc['ci_lo'], mwc['ci_hi'])} teams, {fmt_ci(mwc['season_ci_lo'], mwc['season_ci_hi'])} seasons, "
+        f"{fmt_ci(mwc['program_ci_lo'], mwc['program_ci_hi'])} programs; shrunken "
+        f"`{mwc['eb_mean']:+.3f}` [{mwc['eb_lo']:+.3f}, {mwc['eb_hi']:+.3f}].",
         f"  Most influential program: {mwc_loo['program']} (dropping it moves the mean to `{mwc_loo['mean_without']:+.3f}`); "
         f"leave-one-program-out range `{mwc['loo_min_mean']:+.3f}` to `{mwc['loo_max_mean']:+.3f}`. Worst team-seasons: "
         + "; ".join(f"{r.Team} {r.year} ({r.seed_int}-seed, {r.finish}, `{r.overperformance:+.3f}`)" for r in mwc_top.itertuples(index=False))
@@ -1209,22 +1417,26 @@ def write_summary(
         f"- BH across conferences: {len(conf_bh)} with q < {ALPHA}" + (f" ({', '.join(conf_bh)})" if conf_bh else "")
         + f"; nominal p < {ALPHA}: {', '.join(conf_nominal) if conf_nominal else 'none'}.",
         "",
-        "Conference table (sorted by raw mean; `eb_mean` = shrunken estimate; `loo_*` = leave-one-program-out range):",
+        "Conference table, sorted by raw mean. `null_lo`/`null_hi` = within-seed null 95% band (compare the mean with this,",
+        "not with 0); `eb_*` = shrunken estimate and interval; `loo_*` = leave-one-program-out range. Bootstrap CIs per",
+        "conference are in `reports/robustness_conference_overperformance.csv` only, because for many conferences they",
+        "are not trustworthy (see `ci_note` and Caveats).",
         "",
         markdown_table(
             conf_table[
                 [
                     "Conf",
                     "n",
+                    "programs",
                     "mean_overperformance",
                     "median_overperformance",
-                    "ci_lo",
-                    "ci_hi",
-                    "season_ci_lo",
-                    "season_ci_hi",
+                    "null_lo",
+                    "null_hi",
                     "p_perm",
                     "q_bh",
                     "eb_mean",
+                    "eb_lo",
+                    "eb_hi",
                     "loo_min_mean",
                     "loo_max_mean",
                 ]
@@ -1233,10 +1445,27 @@ def write_summary(
         "",
         "## Caveats",
         "",
-        "- These are descriptive checks on 17 tournaments (2008-2025, no 2020). They ask whether a published number stands",
+        f"- These are descriptive checks on {years_text}"
+        + (
+            "; some band cells use a subset ("
+            + ", ".join(f"{row.topic} {row.statistic}: {row.seasons} seasons" for row in subset_bands.itertuples(index=False))
+            + ")"
+            if len(subset_bands)
+            else ""
+        )
+        + ". They ask whether a published number stands",
         "  out from seed-structure noise, not whether it would predict future brackets.",
-        "- Percentile bootstrap intervals can under-cover in small, skewed samples (e.g. Horizon: n = 18 with two extreme",
-        "  values). The permutation p-values do not rely on that approximation.",
+        "- Percentile bootstrap intervals can under-cover in small, skewed samples (e.g. Horizon: n = "
+        f"{horizon['n']} with two extreme values). The permutation p-values do not rely on that approximation.",
+        "- **Per-conference bootstrap CIs (in the CSV) are unreliable for many conferences.** No team-season beat its seed",
+        f"  line in {', '.join(no_upset) if no_upset else 'none'}, so the bootstrap cannot draw an upset and the interval collapses "
+        "below zero even where the",
+        f"  permutation test finds nothing (e.g. {', '.join(no_upset[:1]) or 'n/a'}). The bootstrap SD is under "
+        f"{BOOT_SPREAD_FLOOR:g}x the seed-line SD in {', '.join(narrow) if narrow else 'none'}.",
+        f"  {len(few_programs)} of {omnibus['conferences']} conferences have fewer than {MIN_CLUSTERS} programs "
+        f"({', '.join(few_programs) if few_programs else 'none'}), so their program-cluster CI is too narrow"
+        + (f"; {', '.join(few_seasons)} also ha{'s' if len(few_seasons) == 1 else 've'} fewer than {MIN_CLUSTERS} seasons" if few_seasons else "")
+        + ". For these rows use `null_lo`/`null_hi`, `p_perm`/`q_bh` and the EB interval.",
         f"- In seeds {SEED_GROUP_ORDER[-1]}, {low_seed['modal_finish_share'].min():.0%}-{low_seed['modal_finish_share'].max():.0%} "
         "of teams share their seed line's most common finish, so a single deep run moves the",
         f"  estimate and bootstrap distributions can be bimodal (e.g. {lopsided['topic']} {lopsided['metric']}: "
@@ -1244,7 +1473,7 @@ def write_summary(
         "- Cells overlap (tempo since 2014 is a subset of tempo all years; offense/defense metrics share teams), so the",
         "  tests are dependent. BH controls FDR under positive dependence"
         + (
-            "; since nothing survives BH, nothing would survive the stricter Benjamini-Yekutieli correction either."
+            "; since nothing survives pooled BH, nothing would survive the stricter Benjamini-Yekutieli correction either."
             if len(bh_05) == 0
             else "; Benjamini-Yekutieli would be the conservative alternative."
         ),
@@ -1254,11 +1483,29 @@ def write_summary(
         "",
         "- `reports/robustness_sos_within_seed.csv` - claim (a)",
         "- `reports/robustness_seed_band_correlations.csv` - family (b), one row per topic x statistic x seed band",
-        "- `reports/robustness_conference_overperformance.csv` - claim (c), one row per conference (+ Horizon without Butler)",
+        "- `reports/robustness_conference_overperformance.csv` - claim (c), one row per conference (+ Horizon without Butler),",
+        "  including the bootstrap CIs, `boot_sd_ratio` and `ci_note`",
         "- `reports/robustness_conference_team_seasons.csv` - Horizon and MWC team-seasons ranked by contribution",
         "- `reports/robustness_conference_leave_one_program_out.csv` - conference mean after dropping each program",
     ]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def published_conference_check(conf_table: pd.DataFrame, published_csv: Path) -> pd.DataFrame:
+    """Compare each conference's n, mean and median with the published CSV (6 decimals).
+    Rows with no published counterpart (Horizon without Butler) get NA rather than False."""
+    published = pd.read_csv(published_csv).set_index("Conf")
+    out = conf_table.copy()
+    out["published_n"] = out["Conf"].map(published["team_count"])
+    out["published_mean"] = out["Conf"].map(published["mean_overperformance"])
+    out["published_median"] = out["Conf"].map(published["median_overperformance"])
+    out["matches_published"] = (
+        (out["n"] == out["published_n"])
+        & ((out["mean_overperformance"] - out["published_mean"]).abs() < 1e-6)
+        & ((out["median_overperformance"] - out["published_median"]).abs() < 1e-6)
+    ).astype("boolean")
+    out.loc[out["published_mean"].isna(), "matches_published"] = pd.NA
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1267,8 +1514,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     paths = get_paths()
 
-    sos_cell = build_sos_within_seed_cell(paths["sos_sample"])
+    sos_cell = build_sos_within_seed_cell(paths["sos_sample"], paths["published_sos_md"])
     sos_row = pd.Series(evaluate_cell(sos_cell, args.n_resamples))
+    pooled_value, _ = read_published_md_value(paths["published_sos_pooled_md"])
+    sos_row["published_rho_pooled_summary"] = pooled_value
     pd.DataFrame([sos_row]).round(6).to_csv(paths["csv_sos"], index=False)
 
     band_cells, experience_audit = build_band_cells(paths)
@@ -1277,20 +1526,26 @@ def main(argv: list[str] | None = None) -> int:
 
     over, conference_table = load_conference_data(paths["sos_sample"])
     conf = run_conference_checks(over, conference_table, args.n_resamples)
-    published_means = conference_table.set_index("Conf")["mean_overperformance"]
-    conf_table = conf["table"]
-    conf_table["published_mean"] = conf_table["Conf"].map(published_means)
-    conf_table["matches_published"] = (conf_table["mean_overperformance"] - conf_table["published_mean"]).abs() < 5e-6
-    conf_table.round(6).to_csv(paths["csv_conf"], index=False)
+    conf["table"] = published_conference_check(conf["table"], paths["published_conf_csv"])
+    conf["table"].round(6).to_csv(paths["csv_conf"], index=False)
     conf["team_seasons"].round(6).to_csv(paths["csv_conf_team_seasons"], index=False)
     conf["loo"].round(6).to_csv(paths["csv_conf_loo"], index=False)
 
-    write_summary(paths["md"], sos_row, bands, experience_audit, conf, args.n_resamples)
+    sample = {
+        "years": np.sort(over["year"].unique()).astype(int),
+        "seed_season_sizes": over.groupby(["year", "seed_int"]).size(),
+    }
+    write_summary(paths["md"], sos_row, bands, experience_audit, conf, args.n_resamples, sample)
 
     mismatched = bands.loc[~bands["matches_published"], ["topic", "statistic", "seed_group", "published_rho", "rho"]]
-    print(f"(a) SOS within-seed rho: {sos_row['rho']:.4f} (published {sos_row['published_rho']:.4f})")
+    in_family = conf["table"]["q_bh"].notna()
+    conf_mismatched = int((~conf["table"].loc[in_family, "matches_published"]).sum())
+    print(
+        f"(a) SOS within-seed rho: {sos_row['rho']:.4f} (published {sos_row['published_rho']:.3f}; "
+        f"matches: {sos_row['matches_published']})"
+    )
     print(f"(b) {len(bands)} seed-band cells; {len(mismatched)} differ from the published value")
-    print(f"(c) {len(conference_table)} conferences; omnibus: {conf['omnibus']}")
+    print(f"(c) {len(conference_table)} conferences; {conf_mismatched} differ from the published table; omnibus: {conf['omnibus']}")
     for key in ["md", "csv_sos", "csv_bands", "csv_conf", "csv_conf_team_seasons", "csv_conf_loo"]:
         print(f"Wrote: {paths[key]}")
     return 0
