@@ -1274,7 +1274,7 @@ def write_analysis_07_md(
     lines = [
         f"# Size Analysis 7: {CURRENT_FIELD_YEAR} Field Application",
         "",
-        f"Projected seeds from `data/raw/2026 expected seeds.xlsx` are joined to the `{CURRENT_FIELD_YEAR}` size sample. The scatter is contextual: logos to the right of their seed markers are bigger on `{primary_metric}` than that seed line usually carries. Full-sample trends drive the read; recent trends only raise or lower confidence.",
+        f"Projected seeds from `data/raw/2026_expected_seeds_update.csv` are joined to the `{CURRENT_FIELD_YEAR}` size sample. The scatter is contextual: logos to the right of their seed markers are bigger on `{primary_metric}` than that seed line usually carries. Full-sample trends drive the read; recent trends only raise or lower confidence.",
         "",
         "## What tends to carry over most reliably",
         "",
