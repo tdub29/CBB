@@ -21,8 +21,8 @@ Predict how far each tournament team advances (round 0–6) and convert those pr
 ## Training Data
 
 **Source:** `data/processed/cbb_training_clean.csv`
-- ~5,972 team-seasons (2008–2025, excluding 2020)
-- Tournament teams only (~1,100 rows have non-null `round`); remaining rows are non-tournament teams with `round = 0` or NaN
+- 5,971 team-seasons (2008–2025, excluding 2020)
+- Models train on the 1,088 tournament rows (64 per season × 17 seasons, `seed` and `round` non-null), selected by `tournament_model_frame()` in `src/pipelines/madness.py`. Both `run_pipeline` and `scripts/run_analysis.py` use it, so the evaluated model is the shipped one.
 - 70+ columns: Bart Torvik efficiency stats, team-table metrics, coach experience features, conference flags, outcome variables
 
 **Key feature groups:**
@@ -35,7 +35,7 @@ Predict how far each tournament team advances (round 0–6) and convert those pr
 | Physical | BLK%, BLKED%, AVGHGT, EFFHGT | Size/athleticism proxies |
 | Roster | TALENT, EXP., AST%, OPAST% | Recruiting rank & experience |
 | Schedule | ELITESOS | Strength of schedule metric |
-| **Outcome-derived, NEVER features** | PAKE, PASE | Wins minus expectation, so they are computed from the result. Filing them under Schedule is what put them in the feature sets. Enforced by `assert_no_target_leakage` in `scripts/run_analysis.py`. |
+| **Outcome-derived, NEVER features** | PAKE, PASE | Wins minus expectation, so they are computed from the result. Filing them under Schedule is what put them in the feature sets. Enforced by `assert_no_target_leakage` in `src/pipelines/madness.py`, which both `run_pipeline` and `scripts/run_analysis.py` call on every feature set. |
 | Coach experience | coach_tourn_appearances_5y, coach_tourn_wins_5y, coach_tourn_losses_5y, coach_years_with_program, coach_tourn_games_5y, coach_tourn_win_pct_5y, coach_avg_wins_per_appearance | Rolling 5-year tournament track record |
 | Conference | Power6, B12, B10, SEC, ACC, P12, BE, MWC | One-hot flags |
 | Seed | seed | NCAA committee ranking (1–16) |
@@ -46,16 +46,22 @@ Predict how far each tournament team advances (round 0–6) and convert those pr
 ## Current Model Architecture
 
 ### Phase 1: General Model
-- **Algorithm:** Ridge regression (StandardScaler → Ridge, `fit_intercept=False`)
+- **Algorithm:** Ridge regression (StandardScaler → Ridge, with an intercept)
 - **Target:** `round` (0–6)
-- **Features (10 + 6 coach + 3 polynomial):**
+- **Features (10 + 6 coach + 4 polynomial):**
   - Base: TOR, Barthag, AdjOE, ORB, EFGD%, 3P%, AdjDE, seed, TALENT, AST%
   - Coach: coach_tourn_appearances_5y, coach_tourn_wins_5y, coach_years_with_program, coach_tourn_win_pct_5y, coach_tourn_games_5y, coach_avg_wins_per_appearance
   - Polynomial: Barthag², AdjDE², seed², seed³
-- **Output:** `predround` — a continuous predicted-round value used as a feature in seed models
+- **Output:** `predround`, a continuous predicted-round value. It is the team strength for bracket simulation and an input to the seed models.
+- **Intercept fix (2026-10):** the Python port used `fit_intercept=False` after `StandardScaler`. `madness.R` fits `lm(... + 0)` on raw columns, where the level can ride on the uncentred features, but once the scaler centres them every prediction averages 0. Measured on the 1,088 rows: general model mean prediction 0.00 vs mean round 0.98; the seeds 1–2 band 0.00 vs 2.75. Both pipelines now fit an intercept.
 
-### Phase 2: 14 Seed-Stratified Models
-Each model trains on a 2–3 seed band and applies to the same band. All include `predround` from the general model as a feature.
+### Phase 2: 14 Seed-Stratified Models (the "stack")
+Each model trains on a 2–3 seed band. All include the general model's `predround` as a feature.
+- **Out-of-fold `predround`:** seed-model training rows get `predround` from a general model refit without that row's season (`oof_predround()`, leave-one-season-out). `train_seed_models()` refuses a frame without the `predround_oof` column. The old pipeline fed them the in-sample fit, which had already seen each row's result; on seasons before 2025 that flattered the seed models' own CV MSE by +0.024 on average (12 of 14 bands), and by +0.117 for the seeds 1–2 band.
+- **New-season prediction:** the general model fit on every training season produces `predround`, then the seed models overwrite it for seeds 1–15.
+- **Which band scores which seed:** bands overlap and are applied in order, so the last band holding a seed wins. Seed s (1–13) is scored by the 3-seed band that starts at s, seeds 14–15 by [13, 14, 15], and seed 16 by the general model. Band 1 ([1, 2]) never scores anything.
+- **Provenance:** the lists were hand-picked in `madness.R`, not selected out of sample. 13 of 14 match the file as committed on 2025-01-16 (commit 21a1e96) once `WAB` terms are removed; band 9 has since dropped `W`. So they predate the 2025 tournament but not the 2013–2024 walk-forward seasons.
+- **Switch:** `model.use_seed_models` in `configs/default.yaml` (default `true`, see Results).
 
 | # | Train seeds | Features (besides predround) |
 |---|-------------|------|
@@ -81,8 +87,39 @@ Each model trains on a 2–3 seed band and applies to the same band. All include
 
 ### Regularization
 - Ridge `alpha` selected per model via CV grid search: `[0.0, 0.01, 0.1, 0.3, 1.0, 3.0, 10.0]`
-- CV scheme: KFold(5) when n > 50, LeaveOneOut when n ≤ 50
-- Final evaluation: Leave-One-Out MSE per model
+- CV scheme: leave-one-season-out (`LeaveOneGroupOut` on `year`). The old scheme (shuffled KFold(5), or row-level LOO for n ≤ 50) put teams from the same bracket in train and test.
+- Training metric: leave-one-season-out MSE per model (`reports/model_optimization_YYYYMMDD.md`). This is model selection inside the training years, not an accuracy claim.
+
+---
+
+## Validation
+
+All of this is in `scripts/run_analysis.py`, with the splitters, baseline and stack in `src/pipelines/madness.py`.
+
+- **The season is the unit.** One season is one 64-team bracket of 63 games: the rounds in a season always sum to 63, and a team's finish depends on who is in its path. No split ever puts a season on both sides (`season_group_splits()`, `walk_forward_splits()`; unit-tested in `tests/test_validation_and_stacking.py`).
+- **Grouped CV:** `GroupKFold(10)` on year over the 16 seasons before the holdout. Used to pick ridge alphas, the feature set, and the algorithm.
+- **Walk-forward (expanding window):** for each test season Y in 2013–2024 (11 seasons; 2020 had no tournament), fit on every season before Y and predict Y. Ridge alphas are re-tuned inside each window.
+- **Blind holdout:** 2025, fit on 2008–2024, scored once, nothing selected on it.
+- **Seed-only baseline:** predicted round = mean round of that seed in the training seasons only. Every model is reported against it on identical folds.
+- **Metrics:** MAE and RMSE on round (0–6), plus mean within-season Spearman between predicted and actual round. Predictions are clipped to [0, 6] for every model.
+- **Uncertainty:** gaps to the baseline get a 95% interval from resampling walk-forward seasons with replacement (10,000 draws), and a count of seasons where the model wins.
+- **Leakage guard:** `assert_no_target_leakage()` (now in `madness.py`) runs on every feature set in both pipelines.
+
+## Results (reports/predictive_analysis_20261025.md)
+
+| Model | Walk-forward 2013–2024 MAE | RMSE | 2025 holdout MAE | RMSE |
+|-------|------|------|------|------|
+| Seed-only baseline | 0.7626 | 1.0914 | 0.5874 | 0.7641 |
+| General ridge (pipeline) | 0.7463 | 1.0672 | 0.5484 | 0.7363 |
+| **Seed-stratified stack (pipeline)** | **0.7195** | **1.0585** | **0.5152** | **0.7101** |
+| Search winner (ridge, alpha=0.3, `baseline_raw_poly`) | 0.7426 | 1.0637 | 0.5529 | 0.7428 |
+
+- **Best model:** the stack, chosen on pre-holdout walk-forward MSE. Against the baseline it is 5.7% better on walk-forward MAE and 3.0% on RMSE, and 12.3% / 7.1% on the 2025 holdout. Walk-forward gap to the baseline: MAE −0.0431 (95% interval −0.0714 to −0.0161), RMSE −0.0329 (−0.0567 to −0.0096). It beats the baseline's MAE in 9 of 11 seasons.
+- **Do the seed models help?** Modestly. Stack minus general ridge, walk-forward: MAE −0.0268 (interval −0.0474 to −0.0080, excludes zero), RMSE −0.0087 (−0.0274 to +0.0087, includes zero); lower MAE in 9 of 11 seasons. The gain is in seeds 9–16 (MAE 0.6653 vs 0.6939 for seeds 9–12, 0.2318 vs 0.2995 for 13–16); for seeds 1–4 the general model is slightly better (1.1504 vs 1.1530).
+- **Rule used:** keep the stack only if it beats the general model on both walk-forward MAE and MSE and at least one interval excludes zero. The rule was written after a first look at walk-forward results; the 2025 holdout, scored afterwards, points the same way.
+- **Feature engineering and other algorithms did not help.** Under grouped CV no feature set improved on the plain `baseline_raw_poly` set (CV MSE 1.0862; engineered interactions 1.0898, kitchen sink 1.1585, rank-only 1.1915), and ridge beat lasso, elastic net, random forest and gradient boosting (best non-ridge: elastic net 1.1028, random forest 1.1249, gradient boosting 1.1602).
+- **Scale of the effect:** the stats-based models improve on seed alone by a few percent, not by multiples.
+- The 2025 holdout is one bracket of 64 teams, so it is a single noisy draw; read it next to the walk-forward numbers.
 
 ---
 
@@ -90,12 +127,14 @@ Each model trains on a 2–3 seed band and applies to the same band. All include
 
 | Metric | Scope | Purpose |
 |--------|-------|---------|
-| LOO MSE | Per model | Primary error metric; comparable across runs |
-| CV MSE grid | Per model | Ridge alpha selection evidence |
-| Holdout MSE | 2023 season (if held out) | Out-of-sample sanity check |
-| Bracket accuracy | Full simulation | Downstream validation against actual outcomes |
+| Walk-forward MAE / RMSE / Spearman vs seed baseline | Each model, 2013–2024 | Primary out-of-sample comparison |
+| Season-bootstrap interval of the gap to baseline | Each model | Whether a gap is distinguishable from season noise |
+| Holdout MAE / RMSE | 2025 season | One blind check, never used for selection |
+| Grouped-CV MSE | Each model, seasons < 2025 | Alpha, feature set and algorithm selection |
+| Leave-one-season-out MSE | Each pipeline model | In-pipeline alpha selection evidence |
+| Bracket accuracy | Full simulation | Downstream validation against actual outcomes (not built yet) |
 
-Reports auto-generated at `reports/model_optimization_YYYYMMDD.md`.
+Reports: `reports/predictive_analysis_YYYYMMDD.md` (out-of-sample, from `scripts/run_analysis.py`) and `reports/model_optimization_YYYYMMDD.md` (in-pipeline selection, from `scripts/run_pipeline.py`). The pre-fix reports from 2026-03-04 and 2026-03-06 are void and live in `reports/archive/`.
 
 ---
 
@@ -123,9 +162,15 @@ Reports auto-generated at `reports/model_optimization_YYYYMMDD.md`.
    - Test log-transformed result codes, or model each binary milestone (Round2, S16, E8, F4, Ship, Champ) separately with logistic regression
    - Ensemble the binary classifiers for a composite advancement probability
 
-5. **Temporal validation**
-   - Replace LOO with walk-forward (train on years < Y, test on year Y) to respect time ordering
-   - LOO treats 2008 and 2024 as exchangeable — walk-forward doesn't
+5. **Temporal validation** (done 2026-10, see Validation)
+   - Walk-forward by season and season-grouped CV replaced row-level LOO and shuffled KFold
+
+5a. **Is the stack just per-band calibration?** (next)
+   - The stack's gain sits in seeds 9–16, where the general model is worse than seed alone. Test whether the general model plus a per-seed offset (one parameter per seed, no hand-picked lists) recovers the same walk-forward gain; if so, drop the 14 lists.
+   - In a 2008–2025 `run_pipeline` run, 13 of 14 seed bands picked alpha = 10, the top of the grid; extend the grid before trusting those fits.
+
+5b. **Search-winner nesting**
+   - The algorithm search's hyperparameters are picked on all pre-holdout seasons, so its walk-forward score is mildly optimistic. Nest the search inside each walk-forward window if a non-ridge model ever comes close.
 
 ### Medium-term (requires some new work)
 
@@ -156,7 +201,7 @@ Reports auto-generated at `reports/model_optimization_YYYYMMDD.md`.
 
 11. **Ensemble stacking**
     - Train multiple model families (Ridge, GBT, ordinal regression) and combine with a meta-learner
-    - Use out-of-fold predictions as meta-features
+    - Use out-of-fold predictions as meta-features (the seed stack already does this for `predround`)
 
 12. **Player-level features**
     - Returning production metrics (% of minutes, points, assists returning)
@@ -178,7 +223,12 @@ python scripts/run_pipeline.py --data-only
 python scripts/run_pipeline.py --bracket data/external/templates/bracket_template.csv --n-sims 20000 --k 1.0
 ```
 
-Model artifacts saved to `models/` (joblib). Reports to `reports/`.
+```bash
+# Out-of-sample evaluation: grouped CV, walk-forward and 2025 holdout vs the seed baseline
+python scripts/run_analysis.py --holdout-year 2025
+```
+
+Model artifacts are saved to `models/` (joblib, not committed). Reports go to `reports/`.
 
 ---
 
@@ -189,3 +239,8 @@ Model artifacts saved to `models/` (joblib). Reports to `reports/`.
 | 2026-03 | Start from Ridge + seed stratification | Interpretable baseline; matches R pipeline; low risk of overfitting on ~70 rows per seed band |
 | 2026-03 | Include coach experience features | Tournament coaching experience is a known predictor; 5-year rolling window balances recency and sample size |
 | 2026-03 | Bradley-Terry for simulation | Standard pairwise comparison model; simple, well-understood, converts continuous strength to win probability |
+| 2026-10 | Season-grouped CV + walk-forward; seed-only baseline in every comparison | A season is one bracket, so row-level splits leak; an accuracy number means little without the seed baseline beside it |
+| 2026-10 | Seed models train on out-of-fold `predround` | The in-sample fit had already seen each row's result |
+| 2026-10 | Fit an intercept in every ridge | `fit_intercept=False` after scaling forced every model's predictions to average 0 |
+| 2026-10 | Train on `tournament_model_frame(clean_df)` in `run_pipeline` | The old `training_data` frame dropped AdjOE/AdjDE and then every row (all-NaN `blank` column), so modeling crashed on an unfitted model |
+| 2026-10 | Keep the seed stack on (`model.use_seed_models: true`) | Beats the general model on walk-forward MAE with an interval that excludes zero; RMSE gain is nominal. Revisit with item 5a |

@@ -1,4 +1,6 @@
-# Predictive Analysis Report (20260304)
+# Predictive Analysis Report (20260306)
+
+> **VOID.** Every metric here comes from feature sets that contained `PAKE`/`PASE`, which are tournament wins minus expectation and so are computed from the target (fixed in commit b117223). The CV also split teams from the same bracket across folds. Kept as history only; current numbers are in `reports/predictive_analysis_20261025.md`.
 
 ## Run Configuration
 - input_csv: `data/processed/cbb_training_clean.csv`
@@ -8,7 +10,7 @@
 - random_state: `42`
 
 ## Section 1: Data Profile
-- dataset_shape: `5971 rows x 119 columns`
+- dataset_shape: `5971 rows x 122 columns`
 - year_range: `2008-2025`
 - tournament_rows (seed+round non-null): `1088`
 - non_tournament_rows: `4883`
@@ -26,10 +28,10 @@
 | round | 0.9844 | 1.3410 | 0.0000 | 0.0000 | 0.5000 | 1.2500 | 6.0000 |
 
 ### Missingness (candidate feature columns)
-![Missingness Heatmap](figures/missingness_heatmap.png)
+![Missingness Heatmap](../figures/missingness_heatmap.png)
 
 ### Correlation Matrix
-![Correlation Matrix](figures/correlation_matrix.png)
+![Correlation Matrix](../figures/correlation_matrix.png)
 
 ### Collinearity Note
 - corr(Barthag, AdjOE) = `0.8594`, corr(Barthag, AdjDE) = `-0.8258`, corr(AdjOE, AdjDE) = `-0.4603`.
@@ -60,7 +62,7 @@
 | feature_set | n_features | best_alpha | cv_mse | cv_mae | cv_mse_std | cv_splits | loo_mse | loo_mae |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | baseline_plus_unused | 27 | 0.010000 | 0.974168 | 0.983569 | 0.002297 | 3 | 0.975635 | 0.984448 |
-| kitchen_sink_numeric_no_leakage | 98 | 1.000000 | 1.000797 | 0.982199 | 0.010994 | 3 | 1.003737 | 0.984568 |
+| kitchen_sink_numeric_no_leakage | 101 | 1.000000 | 1.000857 | 0.982878 | 0.019138 | 3 | 1.002152 | 0.984548 |
 | raw_plus_rank | 43 | 0.010000 | 1.090934 | 0.982504 | 0.018177 | 3 | 1.099688 | 0.986337 |
 | rank_only | 23 | 1.000000 | 1.188644 | 0.981556 | 0.059393 | 3 | inf | inf |
 | baseline_raw_poly | 20 | 10.000000 | 1.644462 | 1.076167 | 0.084672 | 3 | inf | inf |
@@ -139,7 +141,7 @@
 | 6 | lasso | alpha=10.0 | 1.796640 | 0.984372 | 0.027951 | 3 | inf | inf |
 | 9 | elasticnet | alpha=10.0, l1_ratio=0.5 | 1.796640 | 0.984372 | 0.027951 | 3 | inf | inf |
 
-![Model Comparison](figures/model_comparison.png)
+![Model Comparison](../figures/model_comparison.png)
 
 - winning_algorithm: `gbr`
 - winning_params: `n_estimators=100, max_depth=3, learning_rate=0.1`
@@ -152,9 +154,9 @@
 - holdout_mae: `0.060167`
 - holdout_rows_scored: `64`
 - final_retrain_rows: `1088`
-- model_artifact: `models\analysis_best_model_20260304.joblib`
+- model_artifact: `models\analysis_best_model_20260306.joblib`
 
-![Holdout Actual vs Predicted](figures/holdout_2025_actual_vs_pred.png)
+![Holdout Actual vs Predicted](../figures/holdout_2025_actual_vs_pred.png)
 
 ### Holdout Prediction Table
 | Team | year | seed | actual_round | pred_round |
@@ -186,7 +188,7 @@
 | Louisville | 2025 | 8.0000 | 0.0000 | 0.1063 |
 
 ### Winner Feature Importance
-![Feature Importance](figures/feature_importance.png)
+![Feature Importance](../figures/feature_importance.png)
 
 | feature | importance |
 | --- | --- |
