@@ -36,3 +36,7 @@ model:
   ridge_alpha: 1.0
   optimize_ridge_alpha: true
   ridge_alpha_grid: [0.0, 0.01, 0.1, 0.3, 1.0, 3.0, 10.0]
+  # Seed-stratified stack on top of the general model. Kept because it beats the general
+  # model on walk-forward MAE and RMSE (MAE gap's season-bootstrap interval excludes zero);
+  # see reports/predictive_analysis_20261025.md, Section 5. false = general model only.
+  use_seed_models: true

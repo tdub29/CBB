@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 import requests
 from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import KFold, LeaveOneOut, cross_val_score
+from sklearn.model_selection import GroupKFold, LeaveOneGroupOut, cross_val_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression, Ridge
@@ -58,6 +58,7 @@ DEFAULT_CONFIG = {
         "ridge_alpha": 1.0,
         "optimize_ridge_alpha": True,
         "ridge_alpha_grid": [0.0, 0.01, 0.1, 0.3, 1.0, 3.0, 10.0],
+        "use_seed_models": True,
     },
 }
 
@@ -122,6 +123,9 @@ def _validate_runtime_config(cfg: dict) -> dict[str, Any]:
         except (TypeError, ValueError) as exc:
             raise ValueError(f"model.ridge_alpha_grid contains non-numeric value: {val!r}") from exc
     alpha_grid = sorted(set(alpha_grid))
+    use_seed_models = bool(
+        _get_cfg_model(cfg, "use_seed_models", DEFAULT_CONFIG["model"]["use_seed_models"])
+    )
 
     if n_sims <= 0:
         raise ValueError(f"model.n_sims must be > 0 (got {n_sims})")
@@ -142,6 +146,7 @@ def _validate_runtime_config(cfg: dict) -> dict[str, Any]:
         "ridge_alpha": ridge_alpha,
         "optimize_ridge_alpha": optimize_ridge_alpha,
         "ridge_alpha_grid": alpha_grid,
+        "use_seed_models": use_seed_models,
     }
 
 
@@ -1814,6 +1819,16 @@ GEN_FEATURES = [
 GEN_POLY = {"Barthag": 2, "AdjDE": 2, "seed": 3}
 
 # Seed model config: (hist_seeds, holdout_seeds, features)
+#
+# These 14 per-band feature lists were hand-picked in madness.R (fit1..fit14), not
+# selected out of sample, so on their own they are 14 forking paths. They stay on by
+# default (model.use_seed_models) only because walk-forward 2013-2024 says they earn it:
+# the stack beats the general model on MAE (0.7195 vs 0.7463; the season-bootstrap 95%
+# interval for the gap excludes zero) and nominally on RMSE (1.0585 vs 1.0672; interval
+# includes zero), with the gain in seeds 9-16. See reports/predictive_analysis_20261025.md.
+# Bands overlap and _predict_with_seed_models applies them in order, so the last band
+# holding a seed wins: seed s (1-13) is scored by the 3-seed band that starts at s,
+# seeds 14-15 by [13, 14, 15], seed 16 by the general model, and band 1 never scores.
 SEED_MODELS = [
     ([1, 2], [1, 2], ["Barthag", "AdjOE", "OPAST%", "EXP.", "AdjDE", "seed", "predround"]),
     ([1, 2, 3], [1, 2, 3], ["Barthag", "AdjOE", "AdjDE", "seed", "predround"]),
@@ -1874,57 +1889,206 @@ def _get_Xy(
     return X, y
 
 
-def jackknife_loo(
+# -----------------------------------------------------------------------------
+# Validation: season-grouped folds, walk-forward, seed-only baseline
+# -----------------------------------------------------------------------------
+
+# One season is one bracket: 63 games, so the 64 rounds in a year always sum to 63 and a
+# team's finish depends on who else is in its path. Row-level KFold/LOO puts teams from
+# the same bracket on both sides of a split, so every split below keeps a season whole.
+
+WALK_FORWARD_FIRST_TEST_YEAR = 2013  # five training seasons (2008-2012) before the first test
+PREDROUND_OOF_COL = "predround_oof"
+ROUND_MIN, ROUND_MAX = 0.0, 6.0
+
+
+def season_years(df: pd.DataFrame, year_col: str = "year") -> np.ndarray:
+    """Return the season of every row as ints; fail if any row has no season."""
+    if year_col not in df.columns:
+        raise ValueError(f"season-grouped validation needs a '{year_col}' column")
+    years = pd.to_numeric(df[year_col], errors="coerce")
+    if years.isna().any():
+        raise ValueError(f"{int(years.isna().sum())} rows have no '{year_col}'")
+    return years.astype(int).to_numpy()
+
+
+def season_group_splits(
+    years: np.ndarray | list[int],
+    n_splits: int | None = None,
+) -> list[tuple[np.ndarray, np.ndarray]]:
+    """
+    Train/test index pairs that never split a season.
+
+    n_splits=None (or >= number of seasons) gives leave-one-season-out; otherwise
+    GroupKFold(n_splits) with the season as the group.
+    """
+    years = np.asarray(years)
+    n_seasons = len(np.unique(years))
+    if n_seasons < 2:
+        raise ValueError(f"need at least 2 seasons for grouped CV (got {n_seasons})")
+    if n_splits is None or n_splits >= n_seasons:
+        splitter: Any = LeaveOneGroupOut()
+    else:
+        splitter = GroupKFold(n_splits=max(2, int(n_splits)))
+    placeholder = np.zeros(len(years))
+    return [(train_idx, test_idx) for train_idx, test_idx in splitter.split(placeholder, groups=years)]
+
+
+def season_cv_label(years: np.ndarray | list[int], n_splits: int | None = None) -> str:
+    n_seasons = len(np.unique(np.asarray(years)))
+    if n_splits is None or n_splits >= n_seasons:
+        return f"LeaveOneGroupOut(groups=year, {n_seasons} seasons)"
+    return f"GroupKFold(n_splits={max(2, int(n_splits))}, groups=year, {n_seasons} seasons)"
+
+
+def walk_forward_splits(
+    years: np.ndarray | list[int],
+    test_years: list[int] | None = None,
+    first_test_year: int = WALK_FORWARD_FIRST_TEST_YEAR,
+) -> list[tuple[int, np.ndarray, np.ndarray]]:
+    """
+    Expanding-window splits: for each test season Y, train on every season < Y, test on Y.
+
+    Returns (Y, train_idx, test_idx). Seasons with no rows (2020) simply do not appear.
+    """
+    years = np.asarray(years).astype(int)
+    if test_years is None:
+        test_years = [int(y) for y in np.unique(years) if y >= first_test_year]
+    splits: list[tuple[int, np.ndarray, np.ndarray]] = []
+    for year in test_years:
+        train_idx = np.flatnonzero(years < year)
+        test_idx = np.flatnonzero(years == year)
+        if len(train_idx) == 0 or len(test_idx) == 0:
+            continue
+        splits.append((int(year), train_idx, test_idx))
+    return splits
+
+
+def tournament_model_frame(df: pd.DataFrame, exclude_years: tuple[int, ...] = (2020,)) -> pd.DataFrame:
+    """Rows the models train and are scored on: tournament teams with seed, round and season."""
+    seed = pd.to_numeric(df["seed"], errors="coerce")
+    rnd = pd.to_numeric(df["round"], errors="coerce")
+    years = pd.to_numeric(df["year"], errors="coerce")
+    mask = seed.notna() & rnd.notna() & years.notna() & ~years.isin(list(exclude_years))
+    return df.loc[mask].reset_index(drop=True)
+
+
+def fit_seed_baseline(train_df: pd.DataFrame, target: str = "round") -> dict[str, Any]:
+    """Expected round given seed, estimated from the training seasons only."""
+    seed = pd.to_numeric(train_df["seed"], errors="coerce")
+    y = pd.to_numeric(train_df[target], errors="coerce")
+    ok = seed.notna() & y.notna()
+    if not ok.any():
+        raise ValueError("seed baseline needs rows with both seed and target")
+    return {
+        "by_seed": y[ok].groupby(seed[ok]).mean().to_dict(),
+        "fallback": float(y[ok].mean()),
+    }
+
+
+def predict_seed_baseline(baseline: dict[str, Any], df: pd.DataFrame) -> np.ndarray:
+    seed = pd.to_numeric(df["seed"], errors="coerce")
+    return seed.map(baseline["by_seed"]).fillna(baseline["fallback"]).to_numpy(dtype=float)
+
+
+def assert_no_target_leakage(df: pd.DataFrame, features: list[str], target: str,
+                             condition: str = "seed", threshold: float = 0.90,
+                             label: str = "") -> None:
+    """Fail loudly if a feature reconstructs the target once seed is accounted for.
+
+    A plain corr(feature, target) does NOT catch this: PASE against round is only 0.767,
+    because PASE IS wins minus seed expectation, so the identity needs two variables.
+    Residualising the target against seed first separates them cleanly, measured on the
+    1,088-row training set:
+
+        corr(resid_seed(round), PASE)  = 0.9948
+        corr(resid_seed(round), PAKE)  = 0.9553
+        corr(resid_seed(round), AdjOE) = 0.0580   <- clean control
+
+    The PASE leak scored 0.060 MAE on a 0-6 target and read as a great model for months.
+    """
+    y = pd.to_numeric(df[target], errors="coerce")
+    cond = pd.to_numeric(df[condition], errors="coerce") if condition in df.columns else None
+
+    bad = []
+    for col in features:
+        if col not in df.columns or col == condition:
+            continue
+        x = pd.to_numeric(df[col], errors="coerce")
+        ok = x.notna() & y.notna()
+        if cond is not None:
+            ok &= cond.notna()
+        if ok.sum() < 30 or x[ok].nunique() < 3:
+            continue
+        resid = y[ok] - y[ok].groupby(cond[ok]).transform("mean") if cond is not None else y[ok]
+        if resid.std() == 0:
+            continue
+        r = abs(float(np.corrcoef(resid, x[ok])[0, 1]))
+        if r >= threshold:
+            bad.append((col, r))
+
+    if bad:
+        detail = ", ".join(f"{c} r={r:.4f}" for c, r in sorted(bad, key=lambda t: -t[1]))
+        raise ValueError(
+            f"target leakage in feature set {label or '(unnamed)'}: {detail}. "
+            f"Against '{target}' residualised on '{condition}', r>={threshold} means the "
+            f"feature is derived from the outcome, not a predictor of it."
+        )
+
+
+# -----------------------------------------------------------------------------
+# Model training (general model, seed-stratified stack)
+# -----------------------------------------------------------------------------
+
+
+def season_cv_predict(
     df: pd.DataFrame,
     features: list[str],
     poly: dict | None = None,
     ridge_alpha: float = DEFAULT_CONFIG["model"]["ridge_alpha"],
+    n_splits: int | None = None,
 ) -> tuple[Pipeline, float, np.ndarray, np.ndarray]:
-    """Leave-one-out cross-validation; return best model, MSE, pred, actual."""
-    model_template = _build_regression_model(ridge_alpha)
+    """
+    Season-grouped out-of-fold predictions (leave-one-season-out by default).
+
+    Returns (model fit on all rows, out-of-fold MSE, out-of-fold predictions in row
+    order, actuals). Replaces the old row-level jackknife, which mixed teams from one
+    bracket across train and test.
+    """
+    model_all = _build_regression_model(ridge_alpha)
     X, y = _get_Xy(df, features, poly=poly)
     if X.empty or len(y) == 0:
-        return model_template, np.inf, np.array([]), np.array([])
-    if len(X) < 3:
-        # Too few for meaningful LOO; still fit on all data so returned model is fitted
-        model_template.fit(X, y)
-        return model_template, np.inf, np.array([]), np.array([])
+        return model_all, np.inf, np.array([]), np.array([])
+    years = season_years(df)
+    if len(X) < 3 or len(np.unique(years)) < 2:
+        # Too few rows or seasons to hold anything out; still return a fitted model.
+        model_all.fit(X, y)
+        return model_all, np.inf, np.array([]), np.array([])
 
-    loo = LeaveOneOut()
-    preds, actuals = [], []
-
-    for train_idx, test_idx in loo.split(X):
-        X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
-        y_train = y.iloc[train_idx]
+    preds = np.full(len(X), np.nan)
+    for train_idx, test_idx in season_group_splits(years, n_splits):
         model = _build_regression_model(ridge_alpha)
-        model.fit(X_train, y_train)
-        pred = model.predict(X_test)[0]
-        actual = y.iloc[test_idx].values[0]
-        preds.append(pred)
-        actuals.append(actual)
+        model.fit(X.iloc[train_idx], y.iloc[train_idx])
+        preds[test_idx] = model.predict(X.iloc[test_idx])
 
-    preds_arr = np.array(preds)
-    actuals_arr = np.array(actuals)
-    mse_total = mean_squared_error(actuals_arr, preds_arr)
-    final_model = _build_regression_model(ridge_alpha)
-    final_model.fit(X, y)
-    return final_model, mse_total, preds_arr, actuals_arr
+    actuals = y.to_numpy(dtype=float)
+    mse_total = float(mean_squared_error(actuals, preds))
+    model_all.fit(X, y)
+    return model_all, mse_total, preds, actuals
 
 
 def _build_regression_model(ridge_alpha: float) -> Pipeline:
     """Build a scaled linear model (Ridge when alpha>0, else OLS)."""
+    # fit_intercept must stay True. madness.R fits `lm(... + 0)` on raw columns, where the
+    # level can still ride on the uncentred features; after StandardScaler centres them,
+    # no intercept forces every prediction to average 0. That is what the port did: the
+    # general model averaged 0.00 against a mean round of 0.98, and the seeds 1-2 band
+    # averaged 0.00 against 2.75.
     if ridge_alpha > 0:
-        estimator = Ridge(alpha=ridge_alpha, fit_intercept=False, random_state=42)
+        estimator = Ridge(alpha=ridge_alpha, fit_intercept=True, random_state=42)
     else:
-        estimator = LinearRegression(fit_intercept=False)
+        estimator = LinearRegression(fit_intercept=True)
     return Pipeline([("scaler", StandardScaler()), ("model", estimator)])
-
-
-def _cv_label(cv: Any) -> str:
-    name = type(cv).__name__
-    if isinstance(cv, KFold):
-        return f"KFold(n_splits={cv.n_splits}, shuffle={cv.shuffle})"
-    return name
 
 
 def tune_ridge_alpha(
@@ -1932,26 +2096,28 @@ def tune_ridge_alpha(
     features: list[str],
     poly: dict | None,
     alpha_grid: list[float],
-    random_state: int = 42,
+    n_splits: int | None = None,
 ) -> dict[str, Any]:
     """
-    Pick ridge alpha by CV MSE on a grid.
+    Pick ridge alpha by season-grouped CV MSE on a grid.
 
-    Uses KFold(5, shuffle) when n>50, otherwise LeaveOneOut.
-    Returns a dict with alpha_selected and a compact CV summary.
+    Folds keep each season whole: leave-one-season-out by default, GroupKFold(n_splits)
+    on year otherwise. Returns a dict with alpha_selected and a compact CV summary.
     """
     X, y = _get_Xy(df, features, poly=poly)
     n = len(X)
-    if n < 3:
+    years = season_years(df)
+    n_seasons = len(np.unique(years))
+    if n < 3 or n_seasons < 2:
         return {
             "tuned": False,
-            "reason": f"insufficient_rows({n})",
+            "reason": f"insufficient_rows({n})_or_seasons({n_seasons})",
             "alpha_selected": None,
             "cv": None,
             "results": [],
         }
 
-    cv = LeaveOneOut() if n <= 50 else KFold(n_splits=5, shuffle=True, random_state=random_state)
+    splits = season_group_splits(years, n_splits)
     results: list[dict[str, float]] = []
     for alpha in alpha_grid:
         model = _build_regression_model(float(alpha))
@@ -1959,7 +2125,7 @@ def tune_ridge_alpha(
             model,
             X,
             y,
-            cv=cv,
+            cv=splits,
             scoring="neg_mean_squared_error",
             n_jobs=1,
         )
@@ -1979,7 +2145,7 @@ def tune_ridge_alpha(
     return {
         "tuned": True,
         "alpha_selected": float(best["alpha"]),
-        "cv": _cv_label(cv),
+        "cv": season_cv_label(years, n_splits),
         "results": kept,
     }
 
@@ -1990,7 +2156,8 @@ def train_general_model(
     optimize_ridge_alpha: bool = DEFAULT_CONFIG["model"]["optimize_ridge_alpha"],
     ridge_alpha_grid: list[float] | None = None,
 ) -> tuple[Pipeline, list[str], dict]:
-    """Train general model with jackknife LOO."""
+    """Train the general model; alpha and the reported MSE both come from season-grouped CV."""
+    assert_no_target_leakage(training_data, GEN_FEATURES, "round", label="general_model")
     alpha_used = float(ridge_alpha)
     tuning: dict[str, Any] = {"tuned": False, "alpha_selected": None, "cv": None, "results": []}
     grid = ridge_alpha_grid or list(DEFAULT_CONFIG["model"]["ridge_alpha_grid"])
@@ -2002,7 +2169,7 @@ def train_general_model(
         except Exception as exc:
             tuning = {"tuned": False, "reason": str(exc), "alpha_selected": None, "cv": None, "results": []}
 
-    model, mse, _, _ = jackknife_loo(
+    model, mse, _, _ = season_cv_predict(
         training_data,
         GEN_FEATURES,
         poly=GEN_POLY,
@@ -2011,6 +2178,30 @@ def train_general_model(
     df = _add_poly_features(training_data.copy(), GEN_POLY)
     all_feats = _resolve_features(GEN_FEATURES, GEN_POLY, df)
     return model, all_feats, {"mse": mse, "ridge_alpha": alpha_used, "tuning": tuning}
+
+
+def oof_predround(
+    training_data: pd.DataFrame,
+    ridge_alpha: float = DEFAULT_CONFIG["model"]["ridge_alpha"],
+    n_splits: int | None = None,
+) -> pd.Series:
+    """
+    Out-of-fold general-model predictions, grouped by season.
+
+    Each row's value comes from a general model fit without that row's season. Seed
+    models used to train on the in-sample fit instead, so they learned to trust a
+    predround that had already seen the answer, and their LOO scores inherited it.
+    """
+    _, _, preds, _ = season_cv_predict(
+        training_data,
+        GEN_FEATURES,
+        poly=GEN_POLY,
+        ridge_alpha=ridge_alpha,
+        n_splits=n_splits,
+    )
+    if len(preds) != len(training_data) or np.isnan(preds).any():
+        raise ValueError("out-of-fold predround needs at least 2 seasons and 3 rows")
+    return pd.Series(preds, index=training_data.index, name=PREDROUND_OOF_COL)
 
 
 def _ensure_derived_features(df: pd.DataFrame, features: list[str]) -> pd.DataFrame:
@@ -2025,12 +2216,25 @@ def train_seed_models(
     optimize_ridge_alpha: bool = DEFAULT_CONFIG["model"]["optimize_ridge_alpha"],
     ridge_alpha_grid: list[float] | None = None,
 ) -> tuple[dict[int, tuple[Pipeline, list[str]]], dict[int, dict[str, Any]]]:
-    """Train all 14 seed-stratified models. Returns {seed: (model, features)}."""
+    """
+    Train all 14 seed-stratified models. Returns {model_id: (model, features)}.
+
+    The predround feature is read from PREDROUND_OOF_COL (see oof_predround), never from
+    an in-sample general-model fit; a frame without it is refused.
+    """
+    if PREDROUND_OOF_COL not in training_data.columns:
+        raise ValueError(
+            f"train_seed_models needs out-of-fold predround in '{PREDROUND_OOF_COL}' "
+            "(see oof_predround); the in-sample general-model fit leaks the target."
+        )
+    data = training_data.copy()
+    data["predround"] = pd.to_numeric(data[PREDROUND_OOF_COL], errors="coerce")
+
     seed_models = {}
     seed_meta: dict[int, dict[str, Any]] = {}
     grid = ridge_alpha_grid or list(DEFAULT_CONFIG["model"]["ridge_alpha_grid"])
     for i, (hist_seeds, _, features) in enumerate(SEED_MODELS, 1):
-        sub = training_data[training_data["seed"].isin(hist_seeds)].copy()
+        sub = data[data["seed"].isin(hist_seeds)].copy()
         sub = _ensure_derived_features(sub, features)
         if len(sub) < 3:
             continue
@@ -2039,6 +2243,7 @@ def train_seed_models(
             avail.append("predround")
         if not avail:
             continue
+        assert_no_target_leakage(sub, avail, "round", label=f"seed_model_{i}")
 
         alpha_used = float(ridge_alpha)
         tuning: dict[str, Any] = {"tuned": False, "alpha_selected": None, "cv": None, "results": []}
@@ -2050,7 +2255,7 @@ def train_seed_models(
             except Exception as exc:
                 tuning = {"tuned": False, "reason": str(exc), "alpha_selected": None, "cv": None, "results": []}
 
-        model, loo_mse, _, _ = jackknife_loo(sub, avail, poly=None, ridge_alpha=alpha_used)
+        model, cv_mse, _, _ = season_cv_predict(sub, avail, poly=None, ridge_alpha=alpha_used)
         seed_models[i] = (model, avail)
         seed_meta[i] = {
             "model_id": i,
@@ -2058,7 +2263,7 @@ def train_seed_models(
             "holdout_seeds": list(SEED_MODELS[i - 1][1]),
             "n_train": int(len(sub)),
             "ridge_alpha": alpha_used,
-            "loo_mse": float(loo_mse),
+            "season_cv_mse": float(cv_mse),
             "tuning": tuning,
             "features": list(avail),
         }
@@ -2085,8 +2290,60 @@ def _predict_with_seed_models(
             X_sub[col] = pd.to_numeric(X_sub[col], errors="coerce")
         X_sub = X_sub.fillna(0.0)
         out.loc[mask, "predround"] = model.predict(X_sub)
-    out["predround"] = pd.to_numeric(out["predround"], errors="coerce").fillna(0.0).clip(0.0, 6.0)
+    out["predround"] = pd.to_numeric(out["predround"], errors="coerce").fillna(0.0).clip(ROUND_MIN, ROUND_MAX)
     return out
+
+
+def fit_predict_general(
+    train_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    *,
+    ridge_alpha: float = DEFAULT_CONFIG["model"]["ridge_alpha"],
+    optimize_ridge_alpha: bool = DEFAULT_CONFIG["model"]["optimize_ridge_alpha"],
+    ridge_alpha_grid: list[float] | None = None,
+) -> np.ndarray:
+    """Fit the general model on train_df alone (alpha tuned inside it) and predict test_df."""
+    gen_model, gen_feats, _ = train_general_model(
+        train_df,
+        ridge_alpha=ridge_alpha,
+        optimize_ridge_alpha=optimize_ridge_alpha,
+        ridge_alpha_grid=ridge_alpha_grid,
+    )
+    return compute_strength(test_df, gen_model, gen_feats).to_numpy(dtype=float)
+
+
+def fit_predict_stack(
+    train_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    *,
+    ridge_alpha: float = DEFAULT_CONFIG["model"]["ridge_alpha"],
+    optimize_ridge_alpha: bool = DEFAULT_CONFIG["model"]["optimize_ridge_alpha"],
+    ridge_alpha_grid: list[float] | None = None,
+) -> np.ndarray:
+    """
+    Fit general + seed-stratified models on train_df alone, as run_pipeline does, and
+    predict test_df.
+
+    Training rows get out-of-fold predround (grouped by season, inside train_df); test
+    rows get predround from the general model fit on all of train_df.
+    """
+    gen_model, gen_feats, gen_meta = train_general_model(
+        train_df,
+        ridge_alpha=ridge_alpha,
+        optimize_ridge_alpha=optimize_ridge_alpha,
+        ridge_alpha_grid=ridge_alpha_grid,
+    )
+    train = train_df.copy()
+    train[PREDROUND_OOF_COL] = oof_predround(train, ridge_alpha=gen_meta["ridge_alpha"])
+    seed_models, _ = train_seed_models(
+        train,
+        ridge_alpha=ridge_alpha,
+        optimize_ridge_alpha=optimize_ridge_alpha,
+        ridge_alpha_grid=ridge_alpha_grid,
+    )
+    test = test_df.copy()
+    test["predround"] = compute_strength(test, gen_model, gen_feats)
+    return _predict_with_seed_models(test, seed_models)["predround"].to_numpy(dtype=float)
 
 
 def _save_model_artifacts(
@@ -2177,13 +2434,20 @@ def _write_optimization_report(
     lines.append(f"# Model Optimization Report ({run_tag})")
     lines.append("")
     lines.append("## How To Tell Models Are Optimized")
-    lines.append("- Each model runs a Ridge `alpha` grid search (CV MSE) and picks the best `alpha`.")
+    lines.append("- Each model runs a Ridge `alpha` grid search and picks the best `alpha` by season-grouped CV MSE.")
+    lines.append("- Folds keep each season whole (leave-one-season-out): one season is one bracket, so")
+    lines.append("  teams from the same tournament never sit on both sides of a split.")
     lines.append("- The report shows baseline vs best CV MSE (lower is better) per model.")
-    lines.append("- Final training metric is Leave-One-Out (LOO) MSE for the selected `alpha`.")
+    lines.append("- Final training metric is leave-one-season-out MSE for the selected `alpha`.")
+    lines.append("- Seed models train on out-of-fold `predround` (general model fit without that season).")
+    lines.append("- These numbers are for model selection inside the training years. Out-of-sample accuracy")
+    lines.append("  against a seed-only baseline (walk-forward + blind holdout) is in")
+    lines.append("  `reports/predictive_analysis_*.md`, written by `scripts/run_analysis.py`.")
     lines.append("")
     lines.append("## Run Context")
     lines.append(f"- Training years: {year_start}-{year_end} (excluded: {', '.join(map(str, exclude_years)) or 'none'})")
     lines.append(f"- Ridge alpha tuning: {runtime_cfg['optimize_ridge_alpha']}")
+    lines.append(f"- Seed-stratified models: {runtime_cfg['use_seed_models']}")
     lines.append(f"- Alpha grid: {runtime_cfg['ridge_alpha_grid']}")
     lines.append(f"- Bradley-Terry k: {runtime_cfg['k_bradley_terry']}")
     lines.append(f"- Monte Carlo sims: {runtime_cfg['n_sims']:,}")
@@ -2194,7 +2458,7 @@ def _write_optimization_report(
 
     lines.append("## General Model")
     lines.append(f"- Selected `alpha`: {gen_meta.get('ridge_alpha')}")
-    lines.append(f"- LOO MSE: {gen_meta.get('mse'):.6f}")
+    lines.append(f"- Leave-one-season-out MSE: {gen_meta.get('mse'):.6f}")
     lines.append(f"- Features ({len(gen_feats)}): {', '.join(gen_feats)}")
     tuning = gen_meta.get("tuning", {}) or {}
     if tuning.get("tuned") and tuning.get("results"):
@@ -2216,7 +2480,9 @@ def _write_optimization_report(
     lines.append("")
 
     lines.append("## Seed Models (Summary)")
-    if not seed_meta:
+    if not runtime_cfg["use_seed_models"]:
+        lines.append("- Disabled (`model.use_seed_models: false`); `predround` comes from the general model alone.")
+    elif not seed_meta:
         lines.append("- No seed models trained (insufficient rows).")
     else:
         rows = []
@@ -2239,7 +2505,7 @@ def _write_optimization_report(
                     ",".join(map(str, m["holdout_seeds"])),
                     str(m["n_train"]),
                     f"{m['ridge_alpha']:g}",
-                    f"{m['loo_mse']:.6f}",
+                    f"{m['season_cv_mse']:.6f}",
                     baseline,
                     best,
                     cv_label,
@@ -2253,7 +2519,7 @@ def _write_optimization_report(
                     "apply_seeds",
                     "n_train",
                     "alpha",
-                    "loo_mse",
+                    "season_cv_mse",
                     "cv_mse_alpha0",
                     "cv_mse_best",
                     "cv",
@@ -2264,7 +2530,7 @@ def _write_optimization_report(
     lines.append("")
     lines.append("## Notes")
     lines.append("- `cv_mse_alpha0` is the baseline (OLS) mean CV MSE when `alpha=0` is in the grid.")
-    lines.append("- `loo_mse` is computed with Leave-One-Out CV using the selected `alpha`.")
+    lines.append("- `season_cv_mse` is leave-one-season-out MSE using the selected `alpha`.")
     lines.append("- If you want to tune `k`, you need historical bracket + actual outcomes for calibration.")
 
     report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -2412,28 +2678,39 @@ def run_pipeline(
         print("Data-only run complete. No models trained.")
         return
 
-    print("Training general model...")
+    # Models train on the clean tournament rows, the same rows scripts/run_analysis.py
+    # evaluates. The `training_data` frame drops its first three columns (Team, AdjOE,
+    # AdjDE) and then every row with any NaN, which left 0 rows and an unfitted model.
+    model_data = tournament_model_frame(clean_df, exclude_years)
+    print(f"Training general model on {len(model_data)} tournament rows...")
     gen_model, gen_feats, gen_meta = train_general_model(
-        training_data,
+        model_data,
         ridge_alpha=runtime_cfg["ridge_alpha"],
         optimize_ridge_alpha=runtime_cfg["optimize_ridge_alpha"],
         ridge_alpha_grid=runtime_cfg["ridge_alpha_grid"],
     )
-    training_data["predround"] = compute_strength(training_data, gen_model, gen_feats)
+    seed_models: dict[int, tuple[Pipeline, list[str]]] = {}
+    seed_meta: dict[int, dict[str, Any]] = {}
+    if runtime_cfg["use_seed_models"]:
+        # Seed models train on out-of-fold predround, grouped by season. The in-sample fit
+        # has already seen each row's result, so seed models trained on it over-trust it.
+        model_data[PREDROUND_OOF_COL] = oof_predround(model_data, ridge_alpha=gen_meta["ridge_alpha"])
+        print("Training seed-stratified models...")
+        seed_models, seed_meta = train_seed_models(
+            model_data,
+            ridge_alpha=runtime_cfg["ridge_alpha"],
+            optimize_ridge_alpha=runtime_cfg["optimize_ridge_alpha"],
+            ridge_alpha_grid=runtime_cfg["ridge_alpha_grid"],
+        )
+    else:
+        print("Seed-stratified models disabled (model.use_seed_models: false); using the general model.")
 
-    print("Training seed-stratified models...")
-    seed_models, seed_meta = train_seed_models(
-        training_data,
-        ridge_alpha=runtime_cfg["ridge_alpha"],
-        optimize_ridge_alpha=runtime_cfg["optimize_ridge_alpha"],
-        ridge_alpha_grid=runtime_cfg["ridge_alpha_grid"],
-    )
-    training_data = _predict_with_seed_models(training_data, seed_models)
-
-    # Create latest-team strength table used for bracket simulation.
+    # Create latest-team strength table used for bracket simulation. The general model is
+    # fit on every training season here, which is what a new season should be scored with.
     full_predictions = training_data_full.copy()
     full_predictions["predround"] = compute_strength(full_predictions, gen_model, gen_feats)
-    full_predictions = _predict_with_seed_models(full_predictions, seed_models)
+    if seed_models:
+        full_predictions = _predict_with_seed_models(full_predictions, seed_models)
     strength_lookup = build_strength_lookup(full_predictions)
     _save_model_artifacts(
         gen_model,
@@ -2443,15 +2720,8 @@ def run_pipeline(
         meta={"general": gen_meta, "seed_meta": seed_meta},
     )
 
-    # 2023 holdout (if available)
-    holdout_2023 = training_data_full[
-        (training_data_full["year"] == 2023) & (training_data_full["seed"].notna())
-    ]
-
-    if not holdout_2023.empty and len(seed_models) > 0:
-        print("2023 holdout: predictions available from general model.")
-    else:
-        print("Skipping 2023 holdout (no 2023 data or seed models).")
+    # Every season in year_range is in training here, so nothing in this run is a holdout.
+    print("Out-of-sample evaluation: python scripts/run_analysis.py (walk-forward + blind holdout).")
 
     round_out_path: Path | None = None
     if bracket_path:
@@ -2540,9 +2810,9 @@ def run_pipeline(
             "event": "pipeline_complete",
             "status": "success",
             "elapsed_seconds": elapsed,
-            "rows_training": int(len(training_data)),
+            "rows_training": int(len(model_data)),
             "rows_full": int(len(training_data_full)),
-            "general_mse": float(gen_meta["mse"]),
+            "general_season_cv_mse": float(gen_meta["mse"]),
             "seed_models_trained": int(len(seed_models)),
         }
     )
