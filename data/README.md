@@ -11,8 +11,8 @@
 
 | Role | Location | Used by |
 |------|----------|---------|
-| Per-year regular-season tables | `raw/trank_team_table_data08..25.csv` | recompile_all_trank_team_tables.py |
-| Per-year postseason tables | `raw/trank_postseason/*.csv` | Concatenated → trank_postseason_final.csv |
+| Per-year regular-season tables | `raw/sources/trank_team_table_data08..25.csv`, `raw/trank_team_table_data2026.csv` | recompile_all_trank_team_tables.py |
+| Per-year postseason tables | `raw/trank_postseason/trank_postseason_YYYY.csv` | append_postseason_final.py → trank_postseason_final.csv |
 | Postseason concat | `raw/trank_postseason_final.csv` | recompile script (Postseason rec join) |
 | Team-history cache | `raw/team_history_cache.csv` | populate_team_history_cache.py (write); enrich + pipeline (read) |
 | Enriched cache | `raw/team_history_cache_enriched.csv` | recompile script (history + experience join) |

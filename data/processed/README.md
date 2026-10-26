@@ -16,7 +16,7 @@ Outputs from the main modeling pipeline ([run_pipeline.py](../../scripts/run_pip
 
 ## Flow
 
-- Pipeline reads `data/raw/all_trank_team_tables.csv` and `data/raw/team_history_cache.csv` (and optional `data/external/coach_tournament_experience*.csv`).
+- Pipeline reads `data/raw/assembled/all_trank_team_tables.csv` and `data/raw/team_history_cache.csv` (and optional `data/external/coach_tournament_experience*.csv`).
 - Writes `cbbtrainingdata_YYYYMMDD.csv` and `cbb_training_clean.csv` here.
 - To regenerate clean from an existing export:  
   `python scripts/build_clean_training_data.py [path/to/cbbtrainingdata_YYYYMMDD.csv]`

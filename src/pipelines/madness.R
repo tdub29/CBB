@@ -282,7 +282,6 @@ if (length(ext_files) > 0) {
     external_team_depth$Rk <- ave(-as.numeric(external_team_depth$BARTHAG), external_team_depth$YEAR, FUN = rank)
   }
 }
-#read_excel("C:\\Users\\TrevorWhite\\Downloads\\cleanedtm.xlsx")->training_data
 training_data_full <- sqldf("
   SELECT 
     m.*, 
