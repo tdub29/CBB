@@ -146,7 +146,7 @@ def write_summary(path: Path, context_table: pd.DataFrame, coach_primary_metric:
         f"- Coach metric rule: {selection_note}",
         f"- Field-average `Exp.` moved from `{first_row['field_avg_exp']:.2f}` in `{int(first_row['year'])}` to `{last_row['field_avg_exp']:.2f}` in `{int(last_row['year'])}`.",
         f"- Field-average `{metric_label(coach_primary_metric)}` moved from `{context_table.loc[context_table['field_avg_coach_primary'].notna(), 'field_avg_coach_primary'].iloc[0]:.2f}` in `{int(context_table.loc[context_table['field_avg_coach_primary'].notna(), 'year'].iloc[0])}` to `{context_table.loc[context_table['field_avg_coach_primary'].notna(), 'field_avg_coach_primary'].iloc[-1]:.2f}` in `{int(context_table.loc[context_table['field_avg_coach_primary'].notna(), 'year'].iloc[-1])}`.",
-        "- Interpretation: this page is setup only. It shows how experienced the field and the average head coach looked by season before testing whether either signal actually matters in March.",
+        "- Interpretation: this is context only. It shows how experienced the field and the average head coach looked by season before testing whether either signal matters in March.",
         "",
         "## Table",
         "",

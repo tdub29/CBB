@@ -1,7 +1,7 @@
 # Three-Point Analysis 5: Rate and Success Interaction
 
 - Best profile: `high success + high volume` at `+0.029` overperformance points.
-- Interpretation: Day 5 should focus on how volume and success combine, not on either metric in isolation.
+- Interpretation: the useful comparison is how volume and success combine, not either metric in isolation.
 - Figure structure: ranked profile view on the left, 3PRATE x 3P% overperformance heatmap on the right.
 
 ## Table

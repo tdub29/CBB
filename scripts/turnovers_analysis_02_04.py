@@ -201,7 +201,7 @@ def plot_analysis_02(tournament_df: pd.DataFrame, over_df: pd.DataFrame, summary
         bbox=styled_box(),
     )
     fig.suptitle("Turnover and block metrics versus tournament overperformance", fontsize=22, fontweight="bold", y=0.975)
-    fig.text(0.5, 0.91, "Each point is one tournament team. Offense and defense now use separate panels.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
+    fig.text(0.5, 0.91, "Each point is one tournament team. Offense and defense are shown in separate panels.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=220, bbox_inches="tight")
     plt.close(fig)
@@ -428,7 +428,7 @@ def plot_analysis_04(table: pd.DataFrame, out_path: Path) -> None:
             )
 
     fig.suptitle("Turnover-overperformance relationship by seed band", fontsize=22, fontweight="bold", y=0.97)
-    fig.text(0.5, 0.90, "Each bar is the within-seed-band Spearman relationship with overperformance. Positive means the metric helps inside that band.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
+    fig.text(0.5, 0.90, "Each bar is the within-seed-band Spearman relationship with overperformance. Positive means teams better than their seed baseline on the metric tended to overperform inside that band.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=220, bbox_inches="tight")
     plt.close(fig)
@@ -478,7 +478,7 @@ def plot_analysis_04_blocks(table: pd.DataFrame, out_path: Path) -> None:
             )
 
     fig.suptitle("Block-overperformance relationship by seed band", fontsize=22, fontweight="bold", y=0.97)
-    fig.text(0.5, 0.90, "Each bar is the within-seed-band Spearman relationship with overperformance. Positive means the block metric helps inside that band.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
+    fig.text(0.5, 0.90, "Each bar is the within-seed-band Spearman relationship with overperformance. Positive means teams better than their seed baseline on the block metric tended to overperform inside that band.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=220, bbox_inches="tight")
     plt.close(fig)
@@ -496,7 +496,7 @@ def write_summary_02(table: pd.DataFrame, metric_selection: pd.DataFrame, out_pa
         f"- Exact-seed-controlled BLK% relationship: `{row['blk_seed_adjusted_spearman']:+.3f}`.",
         f"- Exact-seed-controlled BLKED% relationship: `{row['blked_seed_adjusted_spearman']:+.3f}`.",
         f"- Champions averaged `{row['champ_mean_tor']:.2f}` TOR vs `{row['r64_mean_tor']:.2f}` for R64 exits.",
-        "- Interpretation: the descriptive gradient is real, but the seed-controlled panel is the actual Day 4 bracket read.",
+        f"- Interpretation: the raw TOR relationship (`{row['raw_spearman']:+.3f}`) is `{row['seed_adjusted_spearman']:+.3f}` once exact seed is controlled, so the seed-controlled panel is the relevant comparison.",
         "",
         "## Metric selection",
         "",
@@ -532,7 +532,8 @@ def write_summary_04(table: pd.DataFrame, out_path: Path) -> None:
         "",
         f"- Strongest TOR seed band: `{strongest_tor['seed_group']}` at `{strongest_tor['tor_seed_band_rho']:+.3f}`.",
         f"- Strongest TORD seed band: `{strongest_tord['seed_group']}` at `{strongest_tord['tord_seed_band_rho']:+.3f}`.",
-        "- Interpretation: Day 4 should stay seed-band aware because the turnover-overperformance relationship changes materially across the bracket.",
+        f"- TOR band rhos run from `{table['tor_seed_band_rho'].min():+.3f}` to `{table['tor_seed_band_rho'].max():+.3f}`; TORD from `{table['tord_seed_band_rho'].min():+.3f}` to `{table['tord_seed_band_rho'].max():+.3f}`.",
+        "- Interpretation: these are descriptive band correlations; `reports/robustness_summary.md` tests each one against a within-seed permutation null.",
         "",
         "## Table",
         "",

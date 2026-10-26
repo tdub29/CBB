@@ -32,6 +32,7 @@ from experience_analysis_common import (
     get_experience_base_paths,
     load_experience_data,
     load_logo_image,
+    repo_relative_logo_paths,
     load_or_compute_coach_metric_selection,
     load_projected_field,
     load_tournament_data,
@@ -828,7 +829,7 @@ def write_analysis_06_summary(path: Path, table: pd.DataFrame, coach_primary_met
         "",
         f"- Player season-wide `Exp` rank edge was positive in `{player_positive}` of `{len(table)}` seasons, with the strongest year at `{int(player_best['year'])}` (`{player_best['player_seed_adjusted_rho']:+.3f}`).",
         f"- Coach experience (`{metric_label(coach_primary_metric)}`) was positive in `{coach_positive}` of `{int(table['coach_seed_adjusted_rho'].notna().sum())}` plotted seasons, with the strongest year at `{int(coach_best['year'])}` (`{coach_best['coach_seed_adjusted_rho']:+.3f}`).",
-        "- Interpretation: this page is the stability check. It asks whether player and coach experience behave like repeatable March signals or just occasional stories.",
+        "- Interpretation: this is the stability check. It asks whether player and coach experience behave like repeatable March signals or only show up in occasional seasons.",
         "",
         "## Table",
         "",
@@ -913,7 +914,7 @@ def main() -> int:
 
     table_05.round(6).to_csv(paths["csv_05"], index=False)
     table_06.round(6).to_csv(paths["csv_06"], index=False)
-    table_07.round(6).to_csv(paths["csv_07"], index=False)
+    repo_relative_logo_paths(table_07).round(6).to_csv(paths["csv_07"], index=False)
 
     plot_analysis_05(table_05, paths["fig_05"])
     plot_analysis_06(table_06, coach_primary_metric, paths["fig_06"])

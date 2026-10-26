@@ -67,7 +67,7 @@ def plot_context(table: pd.DataFrame, out_path: Path) -> None:
     fig.text(
         0.5,
         0.89,
-        "Field-level tournament averages from 2008-2026 with 2020 excluded. This context chart now focuses only on adjusted tempo.",
+        f"Field-level tournament averages, {int(years.min())}-{int(years.max())} (2020 excluded). Adjusted tempo only.",
         ha="center",
         va="center",
         fontsize=10.0,
