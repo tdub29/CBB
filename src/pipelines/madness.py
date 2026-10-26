@@ -58,7 +58,7 @@ DEFAULT_CONFIG = {
         "ridge_alpha": 1.0,
         "optimize_ridge_alpha": True,
         "ridge_alpha_grid": [0.0, 0.01, 0.1, 0.3, 1.0, 3.0, 10.0],
-        "use_seed_models": True,
+        "use_seed_models": False,
     },
 }
 
@@ -1842,11 +1842,11 @@ GEN_POLY = {"Barthag": 2, "AdjDE": 2, "seed": 3}
 # Seed model config: (hist_seeds, holdout_seeds, features)
 #
 # These 14 per-band feature lists were hand-picked in madness.R (fit1..fit14), not
-# selected out of sample, so on their own they are 14 forking paths. They stay on by
-# default (model.use_seed_models) only because walk-forward 2013-2024 says they earn it:
-# the stack beats the general model on MAE (0.7195 vs 0.7463; the season-bootstrap 95%
-# interval for the gap excludes zero) and nominally on RMSE (1.0585 vs 1.0672; interval
-# includes zero), with the gain in seeds 9-16. See reports/predictive_analysis_20261025.md.
+# selected out of sample, so on their own they are 14 forking paths. They are off by
+# default (model.use_seed_models: false). In walk-forward the stack's MSE edge over the
+# general model alone is not distinguishable from zero, and its MAE edge comes mostly
+# from pulling seeds 13-16 toward 0; overall its MAE is level with a per-seed median.
+# The numbers are in Section 5 of the latest reports/predictive_analysis_*.md.
 # Bands overlap and _predict_with_seed_models applies them in order, so the last band
 # holding a seed wins: seed s (1-13) is scored by the 3-seed band that starts at s,
 # seeds 14-15 by [13, 14, 15], seed 16 by the general model, and band 1 never scores.
@@ -1994,16 +1994,25 @@ def tournament_model_frame(df: pd.DataFrame, exclude_years: tuple[int, ...] = (2
     return df.loc[mask].reset_index(drop=True)
 
 
-def fit_seed_baseline(train_df: pd.DataFrame, target: str = "round") -> dict[str, Any]:
-    """Expected round given seed, estimated from the training seasons only."""
+def fit_seed_baseline(train_df: pd.DataFrame, target: str = "round", stat: str = "mean") -> dict[str, Any]:
+    """
+    Round given seed, estimated from the training seasons only.
+
+    stat="mean" is the best seed-only predictor under squared error (RMSE); stat="median"
+    is the best under absolute error (MAE). round is skewed and mostly 0 for seeds 9-16,
+    so a mean baseline is a weak opponent on MAE and overstates a least-squares model's
+    MAE gain.
+    """
+    if stat not in {"mean", "median"}:
+        raise ValueError(f"seed baseline stat must be 'mean' or 'median' (got {stat!r})")
     seed = pd.to_numeric(train_df["seed"], errors="coerce")
     y = pd.to_numeric(train_df[target], errors="coerce")
     ok = seed.notna() & y.notna()
     if not ok.any():
         raise ValueError("seed baseline needs rows with both seed and target")
     return {
-        "by_seed": y[ok].groupby(seed[ok]).mean().to_dict(),
-        "fallback": float(y[ok].mean()),
+        "by_seed": y[ok].groupby(seed[ok]).agg(stat).to_dict(),
+        "fallback": float(y[ok].agg(stat)),
     }
 
 
@@ -2017,16 +2026,11 @@ def assert_no_target_leakage(df: pd.DataFrame, features: list[str], target: str,
                              label: str = "") -> None:
     """Fail loudly if a feature reconstructs the target once seed is accounted for.
 
-    A plain corr(feature, target) does NOT catch this: PASE against round is only 0.767,
-    because PASE IS wins minus seed expectation, so the identity needs two variables.
-    Residualising the target against seed first separates them cleanly, measured on the
-    1,088-row training set:
-
-        corr(resid_seed(round), PASE)  = 0.9948
-        corr(resid_seed(round), PAKE)  = 0.9553
-        corr(resid_seed(round), AdjOE) = 0.0580   <- clean control
-
-    The PASE leak scored 0.060 MAE on a 0-6 target and read as a great model for months.
+    A plain corr(feature, target) does NOT catch this: PASE IS wins minus seed
+    expectation, so the identity needs two variables and its plain correlation with round
+    is unremarkable. Residualising the target against seed first separates leaks from
+    real predictors cleanly; the measured correlations are in docs/modeling_plan.md
+    (Training Data, "Outcome-derived").
     """
     y = pd.to_numeric(df[target], errors="coerce")
     cond = pd.to_numeric(df[condition], errors="coerce") if condition in df.columns else None
@@ -2102,9 +2106,8 @@ def _build_regression_model(ridge_alpha: float) -> Pipeline:
     """Build a scaled linear model (Ridge when alpha>0, else OLS)."""
     # fit_intercept must stay True. madness.R fits `lm(... + 0)` on raw columns, where the
     # level can still ride on the uncentred features; after StandardScaler centres them,
-    # no intercept forces every prediction to average 0. That is what the port did: the
-    # general model averaged 0.00 against a mean round of 0.98, and the seeds 1-2 band
-    # averaged 0.00 against 2.75.
+    # no intercept forces every prediction to average 0, which is what the port did
+    # (measured in docs/modeling_plan.md, "Intercept fix").
     if ridge_alpha > 0:
         estimator = Ridge(alpha=ridge_alpha, fit_intercept=True, random_state=42)
     else:
@@ -2176,15 +2179,22 @@ def train_general_model(
     ridge_alpha: float = DEFAULT_CONFIG["model"]["ridge_alpha"],
     optimize_ridge_alpha: bool = DEFAULT_CONFIG["model"]["optimize_ridge_alpha"],
     ridge_alpha_grid: list[float] | None = None,
+    features: list[str] | None = None,
 ) -> tuple[Pipeline, list[str], dict]:
-    """Train the general model; alpha and the reported MSE both come from season-grouped CV."""
-    assert_no_target_leakage(training_data, GEN_FEATURES, "round", label="general_model")
+    """
+    Train the general model; alpha and the reported MSE both come from season-grouped CV.
+
+    features defaults to GEN_FEATURES. Passing another list (with GEN_POLY still applied
+    to whichever of its terms are present) is for ablations in scripts/run_analysis.py.
+    """
+    features = list(GEN_FEATURES if features is None else features)
+    assert_no_target_leakage(training_data, features, "round", label="general_model")
     alpha_used = float(ridge_alpha)
     tuning: dict[str, Any] = {"tuned": False, "alpha_selected": None, "cv": None, "results": []}
     grid = ridge_alpha_grid or list(DEFAULT_CONFIG["model"]["ridge_alpha_grid"])
     if optimize_ridge_alpha:
         try:
-            tuning = tune_ridge_alpha(training_data, GEN_FEATURES, poly=GEN_POLY, alpha_grid=grid)
+            tuning = tune_ridge_alpha(training_data, features, poly=GEN_POLY, alpha_grid=grid)
             if tuning.get("tuned") and tuning.get("alpha_selected") is not None:
                 alpha_used = float(tuning["alpha_selected"])
         except Exception as exc:
@@ -2192,12 +2202,12 @@ def train_general_model(
 
     model, mse, _, _ = season_cv_predict(
         training_data,
-        GEN_FEATURES,
+        features,
         poly=GEN_POLY,
         ridge_alpha=alpha_used,
     )
     df = _add_poly_features(training_data.copy(), GEN_POLY)
-    all_feats = _resolve_features(GEN_FEATURES, GEN_POLY, df)
+    all_feats = _resolve_features(features, GEN_POLY, df)
     return model, all_feats, {"mse": mse, "ridge_alpha": alpha_used, "tuning": tuning}
 
 
@@ -2242,6 +2252,11 @@ def train_seed_models(
 
     The predround feature is read from PREDROUND_OOF_COL (see oof_predround), never from
     an in-sample general-model fit; a frame without it is refused.
+
+    season_cv_mse in the returned meta is for alpha selection, not an accuracy claim. The
+    OOF column is built once over every season, so when season s is held out here, the
+    training rows' predround came from general models that saw s. Walk-forward scoring
+    (fit_predict_stack inside each window) rebuilds the column and does not have this.
     """
     if PREDROUND_OOF_COL not in training_data.columns:
         raise ValueError(
@@ -2322,6 +2337,7 @@ def fit_predict_general(
     ridge_alpha: float = DEFAULT_CONFIG["model"]["ridge_alpha"],
     optimize_ridge_alpha: bool = DEFAULT_CONFIG["model"]["optimize_ridge_alpha"],
     ridge_alpha_grid: list[float] | None = None,
+    features: list[str] | None = None,
 ) -> np.ndarray:
     """Fit the general model on train_df alone (alpha tuned inside it) and predict test_df."""
     gen_model, gen_feats, _ = train_general_model(
@@ -2329,6 +2345,7 @@ def fit_predict_general(
         ridge_alpha=ridge_alpha,
         optimize_ridge_alpha=optimize_ridge_alpha,
         ridge_alpha_grid=ridge_alpha_grid,
+        features=features,
     )
     return compute_strength(test_df, gen_model, gen_feats).to_numpy(dtype=float)
 
@@ -2365,6 +2382,44 @@ def fit_predict_stack(
     test = test_df.copy()
     test["predround"] = compute_strength(test, gen_model, gen_feats)
     return _predict_with_seed_models(test, seed_models)["predround"].to_numpy(dtype=float)
+
+
+def train_pipeline_models(
+    model_data: pd.DataFrame,
+    runtime_cfg: dict[str, Any],
+) -> tuple[Pipeline, list[str], dict, dict[int, tuple[Pipeline, list[str]]], dict[int, dict[str, Any]]]:
+    """
+    Fit the production models on every row of model_data (see tournament_model_frame).
+
+    Returns (general model, its features, its meta, seed models, seed meta). The seed
+    models are only trained when runtime_cfg["use_seed_models"] is true, and then on
+    out-of-fold predround grouped by season.
+    """
+    print(f"Training general model on {len(model_data)} tournament rows...")
+    gen_model, gen_feats, gen_meta = train_general_model(
+        model_data,
+        ridge_alpha=runtime_cfg["ridge_alpha"],
+        optimize_ridge_alpha=runtime_cfg["optimize_ridge_alpha"],
+        ridge_alpha_grid=runtime_cfg["ridge_alpha_grid"],
+    )
+    seed_models: dict[int, tuple[Pipeline, list[str]]] = {}
+    seed_meta: dict[int, dict[str, Any]] = {}
+    if not runtime_cfg["use_seed_models"]:
+        print("Seed-stratified models disabled (model.use_seed_models: false); using the general model.")
+        return gen_model, gen_feats, gen_meta, seed_models, seed_meta
+
+    # Seed models train on out-of-fold predround, grouped by season. The in-sample fit has
+    # already seen each row's result, so seed models trained on it over-trust it.
+    data = model_data.copy()
+    data[PREDROUND_OOF_COL] = oof_predround(data, ridge_alpha=gen_meta["ridge_alpha"])
+    print("Training seed-stratified models...")
+    seed_models, seed_meta = train_seed_models(
+        data,
+        ridge_alpha=runtime_cfg["ridge_alpha"],
+        optimize_ridge_alpha=runtime_cfg["optimize_ridge_alpha"],
+        ridge_alpha_grid=runtime_cfg["ridge_alpha_grid"],
+    )
+    return gen_model, gen_feats, gen_meta, seed_models, seed_meta
 
 
 def _save_model_artifacts(
@@ -2462,7 +2517,7 @@ def _write_optimization_report(
     lines.append("- Final training metric is leave-one-season-out MSE for the selected `alpha`.")
     lines.append("- Seed models train on out-of-fold `predround` (general model fit without that season).")
     lines.append("- These numbers are for model selection inside the training years. Out-of-sample accuracy")
-    lines.append("  against a seed-only baseline (walk-forward + blind holdout) is in")
+    lines.append("  against seed-only baselines (walk-forward + a held-out season) is in")
     lines.append("  `reports/predictive_analysis_*.md`, written by `scripts/run_analysis.py`.")
     lines.append("")
     lines.append("## Run Context")
@@ -2551,7 +2606,10 @@ def _write_optimization_report(
     lines.append("")
     lines.append("## Notes")
     lines.append("- `cv_mse_alpha0` is the baseline (OLS) mean CV MSE when `alpha=0` is in the grid.")
-    lines.append("- `season_cv_mse` is leave-one-season-out MSE using the selected `alpha`.")
+    lines.append("- `season_cv_mse` is leave-one-season-out MSE using the selected `alpha`. It is for picking")
+    lines.append("  `alpha`, not an accuracy claim: the out-of-fold `predround` column is built once over all")
+    lines.append("  seasons, so when season s is held out here, the training rows' `predround` came from general")
+    lines.append("  models that saw s. Walk-forward scores in `reports/predictive_analysis_*.md` do not have this.")
     lines.append("- If you want to tune `k`, you need historical bracket + actual outcomes for calibration.")
 
     report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -2703,28 +2761,7 @@ def run_pipeline(
     # evaluates. The `training_data` frame drops its first three columns (Team, AdjOE,
     # AdjDE) and then every row with any NaN, which left 0 rows and an unfitted model.
     model_data = tournament_model_frame(clean_df, exclude_years)
-    print(f"Training general model on {len(model_data)} tournament rows...")
-    gen_model, gen_feats, gen_meta = train_general_model(
-        model_data,
-        ridge_alpha=runtime_cfg["ridge_alpha"],
-        optimize_ridge_alpha=runtime_cfg["optimize_ridge_alpha"],
-        ridge_alpha_grid=runtime_cfg["ridge_alpha_grid"],
-    )
-    seed_models: dict[int, tuple[Pipeline, list[str]]] = {}
-    seed_meta: dict[int, dict[str, Any]] = {}
-    if runtime_cfg["use_seed_models"]:
-        # Seed models train on out-of-fold predround, grouped by season. The in-sample fit
-        # has already seen each row's result, so seed models trained on it over-trust it.
-        model_data[PREDROUND_OOF_COL] = oof_predround(model_data, ridge_alpha=gen_meta["ridge_alpha"])
-        print("Training seed-stratified models...")
-        seed_models, seed_meta = train_seed_models(
-            model_data,
-            ridge_alpha=runtime_cfg["ridge_alpha"],
-            optimize_ridge_alpha=runtime_cfg["optimize_ridge_alpha"],
-            ridge_alpha_grid=runtime_cfg["ridge_alpha_grid"],
-        )
-    else:
-        print("Seed-stratified models disabled (model.use_seed_models: false); using the general model.")
+    gen_model, gen_feats, gen_meta, seed_models, seed_meta = train_pipeline_models(model_data, runtime_cfg)
 
     # Create latest-team strength table used for bracket simulation. The general model is
     # fit on every training season here, which is what a new season should be scored with.
@@ -2742,7 +2779,7 @@ def run_pipeline(
     )
 
     # Every season in year_range is in training here, so nothing in this run is a holdout.
-    print("Out-of-sample evaluation: python scripts/run_analysis.py (walk-forward + blind holdout).")
+    print("Out-of-sample evaluation: python scripts/run_analysis.py (walk-forward + held-out season).")
 
     round_out_path: Path | None = None
     if bracket_path:
