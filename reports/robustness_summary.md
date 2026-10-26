@@ -16,8 +16,8 @@ CSVs to 6 decimals, (a) against the 3-decimal value printed in
 - **(b) Seed-band correlations:** pooled across all 131 cells (the conservative family), 0 survive Benjamini-Hochberg at q < 0.05 (0 at q < 0.10). 9 have nominal p < 0.05, against ~6.6 expected by chance. Smallest pooled q = 0.367 (sos Elite SOS seeds 11-13).
   The count depends on the family. With BH applied within each published table, 2 survive: sos Elite SOS seeds 11-13 (rho `+0.313`, per-table q = 0.034, seed-and-season p = 0.071, within-seed null mean `+0.155`, exact-seed-centered rho `+0.169`); sos conf_avg_barthag seeds 11-13 (rho `+0.303`, per-table q = 0.036, seed-and-season p = 0.138, within-seed null mean `+0.162`, exact-seed-centered rho `+0.145`). Within each statistic's bands, 2 survive (sos Elite SOS seeds 11-13, sos conf_avg_barthag seeds 11-13).
   The quoted size numbers (EFFHGT `+0.108` seeds 1-2, `-0.077` seeds 7-8) have p = 0.347 / 0.347 and pooled q = 0.909 / 0.909.
-  The published player-experience band values (e.g. `+0.554` for seeds 1-2) come from a
-  row-misalignment bug; with rows aligned the largest |rho| is `0.108`.
+  The player-experience band values were corrected for a row-misalignment bug (seeds 1-2 was published as
+  `+0.554`, now `+0.092`); the largest |rho| is now `0.108`.
 - **(c) Conference overperformance:** Horz `+0.420` has median `-0.118`; Butler's 4 appearances sum to `+7.588`, more than the conference's entire `+7.559` total. Without Butler the mean is `-0.002` (p = 1.000).
   A conference with Horz's seed mix lands in [-0.247, +0.364] 95% of the time under the within-seed null. Horz (p = 0.026, seed-and-season p = 0.187, q = 0.422) and MWC (`-0.342`, null band [-0.276, +0.324], p = 0.018, q = 0.422) are not significant after BH across 32 conferences,
   and as the most extreme of 32 means they are unremarkable (P = 0.201 / 0.220). Cochran's Q permutation p = 0.271: no detectable conference effect beyond seed.
@@ -55,7 +55,7 @@ CSVs to 6 decimals, (a) against the 3-decimal value printed in
 | (b) Size EFFHGT, seeds 1-2 | 136 | +0.108 | [-0.066, +0.275] | [-0.071, +0.290] | 0.347 | 0.909 | 0.660 | not distinguishable from noise |
 | (b) Size EFFHGT, seeds 7-8 | 136 | -0.077 | [-0.245, +0.093] | [-0.267, +0.107] | 0.347 | 0.909 | 0.660 | not distinguishable from noise |
 | (b) SOS Elite SOS, seeds 11-13 (largest published band rho) | 204 | +0.313 | [+0.181, +0.437] | [+0.177, +0.444] | 0.0028 | 0.367 | 0.034 | survives per-table BH only (fails pooled BH) |
-| (b) Player experience, seeds 1-2 (published +0.554; aligned value shown) | 136 | +0.092 | [-0.071, +0.254] | [-0.101, +0.269] | 0.284 | 0.906 | 0.662 | not distinguishable from noise |
+| (b) Player experience, seeds 1-2 (was +0.554 before the row-alignment fix) | 136 | +0.092 | [-0.071, +0.254] | [-0.101, +0.269] | 0.284 | 0.906 | 0.662 | not distinguishable from noise |
 | (c) Horz mean overperformance | 18 | +0.420 | [-0.105, +1.111] | [-0.090, +1.124] | 0.026 | 0.422 | 0.422 | nominal only (fails BH) |
 | (c) Horz without Butler | 14 | -0.002 | [-0.151, +0.205] | [-0.150, +0.201] | 1.000 | n/a | n/a | not distinguishable from noise |
 | (c) MWC mean overperformance | 45 | -0.342 | [-0.572, -0.062] | [-0.545, -0.098] | 0.018 | 0.422 | 0.422 | nominal only (fails BH) |
@@ -123,14 +123,15 @@ Every cell with nominal p < 0.05:
   further". The within-seed null keeps that part, so its mean shows how much is seed mix. SOS Elite SOS, seeds 11-13:
   published `+0.313`, within-seed null mean `+0.155`, exact-seed-centered rho `+0.169` (p = 0.0028, pooled q = 0.367, per-table q = 0.034, seed-and-season p = 0.071).
 
-### Bug: the published player-experience correlations pair the wrong rows
+### Fixed bug: the player-experience correlations used to pair the wrong rows
 
-`scripts/experience_analysis_02_04.py` wraps the experience edge in `pd.Series(numpy_array)`, which gets a fresh
-`0..n-1` index, then calls `overperformance.corr(edge)`. pandas aligns on index labels, so each correlation is
-computed only on the few rows whose original labels fall in `0..n-1`, paired with the wrong teams. Replicating that
-call reproduces every published value; aligning the rows gives:
+`scripts/experience_analysis_02_04.py` used to wrap the experience edge in `pd.Series(numpy_array)`, which gets a
+fresh `0..n-1` index, then call `overperformance.corr(edge)`. pandas aligns on index labels, so each correlation was
+computed only on the few rows whose original labels fall in `0..n-1`, paired with the wrong teams. The script now
+keeps the row index, and the regenerated reports carry the aligned values. For the record, `old_code_rho` replays
+the old call and `aligned_rho` is the corrected value:
 
-| scope | rows | rows_actually_paired | published_code_rho | aligned_rho |
+| scope | rows | rows_actually_paired | old_code_rho | aligned_rho |
 |:--|--:|--:|--:|--:|
 | 1-2 | 136 | 8 | 0.5543 | 0.0916 |
 | 3-4 | 136 | 8 | 0.4001 | 0.1082 |
@@ -142,9 +143,8 @@ call reproduces every published value; aligning the rows gives:
 | pooled seed-adjusted | 1088 | 238 | 0.0188 | 0.0302 |
 | pooled raw | 1088 | 238 | 0.0155 | -0.1221 |
 
-Aligned, the band estimates run from `-0.048` to `+0.108` (published: `-0.344` to `+0.554`). The pooled
-numbers in `reports/player_exp_vs_finish_pooled_summary.md` use the same pattern (last two rows). The `rho` column of
-`robustness_seed_band_correlations.csv` holds the aligned values; the experience script itself is not patched here.
+Aligned, the band estimates run from `-0.048` to `+0.108` (old code: `-0.344` to `+0.554`). The pooled numbers in
+`reports/player_exp_vs_finish_pooled_summary.md` had the same bug (last two rows) and are corrected too.
 
 ## (c) Conference overperformance vs exact-seed expectation
 

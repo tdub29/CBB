@@ -23,7 +23,6 @@ from experience_analysis_common import (
     TEXT_LIGHT,
     apply_report_background,
     build_overperformance_data,
-    cache_logo_images,
     get_experience_base_paths,
     filter_coach_analysis,
     load_experience_data,
@@ -31,7 +30,6 @@ from experience_analysis_common import (
     load_tournament_data,
     metric_label,
     metric_slug,
-    normalize_team_key,
     set_project_theme,
     styled_box,
 )
@@ -60,7 +58,6 @@ def get_paths() -> dict[str, Path]:
     return {
         "input": base["input_sample"],
         "metric_selection": base["metric_selection"],
-        "logo_cache": base["logo_cache"],
         "fig_02": root / "reports" / "figures" / "player_exp_vs_finish_pooled.png",
         "fig_03": root / "reports" / "figures" / "player_exp_late_rounds.png",
         "fig_04": root / "reports" / "figures" / "coach_experience_vs_march.png",
@@ -85,9 +82,13 @@ def build_analysis_02_table(df: pd.DataFrame, over_df: pd.DataFrame) -> pd.DataF
         [
             {
                 "metric": PLAYER_VISUAL_METRIC,
-                "raw_spearman": float(df["finish_depth"].corr(pd.Series(player_visual_edge(df[PLAYER_VISUAL_METRIC])), method="spearman")),
+                "raw_spearman": float(
+                    df["finish_depth"].corr(
+                        pd.Series(player_visual_edge(df[PLAYER_VISUAL_METRIC]), index=df.index), method="spearman"
+                    )
+                ),
                 "seed_adjusted_spearman": float(
-                    over_df["overperformance"].corr(pd.Series(player_rank_vs_seed), method="spearman")
+                    over_df["overperformance"].corr(pd.Series(player_rank_vs_seed, index=over_df.index), method="spearman")
                 ),
                 "field_avg_exp": float(df[PLAYER_PRIMARY_METRIC].mean()),
                 "champ_avg_exp": float(champs[PLAYER_PRIMARY_METRIC].mean()),
@@ -435,7 +436,7 @@ def write_analysis_02_summary(path: Path, summary_table: pd.DataFrame) -> None:
         f"- Exact-seed-controlled season-wide `Exp` rank edge relationship: `{row['seed_adjusted_spearman']:+.3f}`.",
         f"- Champion average `Exp.` vs R64 average: `{row['champ_avg_exp']:.2f}` vs `{row['r64_avg_exp']:.2f}` (`{row['champ_minus_r64_exp']:+.2f}`).",
         f"- Champion average season-wide `Exp` rank vs R64 average: `{row['champ_avg_exp_rank']:.1f}` vs `{row['r64_avg_exp_rank']:.1f}` (`{row['champ_minus_r64_exp_rank']:+.1f}`, where lower rank means more experience).",
-        "- Interpretation: the visuals now use season-wide Exp rank, with the controlled panel expressed as rank edge versus the exact-seed baseline.",
+        "- Interpretation: the controlled panel expresses each team's season-wide Exp rank as an edge versus its exact-seed baseline.",
         "",
         "## Table",
         "",
@@ -467,13 +468,18 @@ def write_analysis_04_summary(path: Path, table: pd.DataFrame, coach_primary_met
     lead_row = table.loc[table["metric"] == coach_primary_metric].iloc[0]
     tenure_row = table.loc[table["metric"] == "coach_years_with_program"].iloc[0]
     support_row = table.loc[table["metric"] == COACH_SUPPORT_METRIC].iloc[0]
+    seed_share = (
+        "most of the raw association runs through seed"
+        if abs(lead_row["seed_adjusted_spearman"]) < abs(lead_row["raw_spearman"]) / 2
+        else "much of the raw association survives seed control"
+    )
     lines = [
         "# Experience Analysis 4: Coach Experience vs March Success",
         "",
         f"- Lead coach metric: `{coach_primary_metric}` (`{metric_label(coach_primary_metric)}`) with seed-adjusted rho `{lead_row['seed_adjusted_spearman']:+.3f}` on `{COACH_ANALYSIS_START_YEAR}+` seasons.",
         f"- `coach_years_with_program` seed-adjusted rho: `{tenure_row['seed_adjusted_spearman']:+.3f}`.",
         f"- Support metric `coach_tourn_win_pct_5y` seed-adjusted rho: `{support_row['seed_adjusted_spearman']:+.3f}`.",
-        "- Interpretation: coach experience belongs in the Day 3 argument as a co-headline track, but recent March reps and tenure do not carry the exact same signal strength.",
+        f"- Interpretation: raw rho for `{coach_primary_metric}` is `{lead_row['raw_spearman']:+.3f}` but `{lead_row['seed_adjusted_spearman']:+.3f}` within seed, so {seed_share}.",
         "",
         "## Table",
         "",
@@ -503,7 +509,8 @@ def build_seed_group_table(
         over_subset = over_df[over_df["seed_group"] == seed_group]
         player_rho = float(
             over_subset["overperformance"].corr(
-                pd.Series(player_visual_edge(over_subset[f"{exp_slug}_vs_seed"])), method="spearman"
+                pd.Series(player_visual_edge(over_subset[f"{exp_slug}_vs_seed"]), index=over_subset.index),
+                method="spearman",
             )
         ) if len(over_subset) > 2 else 0.0
         coach_subset = coach_over_df[coach_over_df["seed_group"] == seed_group]
@@ -516,6 +523,7 @@ def build_seed_group_table(
             "seed_group": seed_group,
             "expected_finish_depth": float(subset["expected_finish_depth"].mean()),
             "team_count": int(len(subset)),
+            "coach_team_count": int(len(coach_subset)),
             "player_exp_rho": player_rho,
             "coach_exp_rho": coach_rho,
         })
@@ -529,27 +537,10 @@ def _over_with_seed_group(over_df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def build_champion_logo_table(tournament_df: pd.DataFrame, logo_cache_dir: Path) -> pd.DataFrame:
-    """One row per unique champion team with logo_lookup_key; cache logos and return Team, logo_path."""
-    champs = (
-        tournament_df.loc[tournament_df["finish"] == "CHAMPS", "Team"]
-        .astype(str)
-        .str.strip()
-        .unique()
-    )
-    if len(champs) == 0:
-        return pd.DataFrame(columns=["Team", "logo_lookup_key", "logo_path"])
-    champ_table = pd.DataFrame(
-        {"Team": champs, "logo_lookup_key": [normalize_team_key(t) for t in champs]}
-    )
-    return cache_logo_images(champ_table, logo_cache_dir)
-
-
 def plot_seed_group_player(
     seed_table: pd.DataFrame,
     over_df: pd.DataFrame,
     out_path: Path,
-    champ_logos: pd.DataFrame | None = None,
 ) -> None:
     exp_slug = metric_slug(PLAYER_SUPPORT_METRIC)
     over_with_group = _over_with_seed_group(over_df)
@@ -643,7 +634,6 @@ def plot_seed_group_coach(
     over_df: pd.DataFrame,
     coach_primary_metric: str,
     out_path: Path,
-    champ_logos: pd.DataFrame | None = None,
 ) -> None:
     coach_slug = metric_slug(coach_primary_metric)
     over_with_group = _over_with_seed_group(over_df)
@@ -693,7 +683,7 @@ def plot_seed_group_coach(
         ax.text(
             0.04,
             0.93,
-            f"rho = {row['coach_exp_rho']:+.3f}\nn = {int(row['team_count'])}",
+            f"rho = {row['coach_exp_rho']:+.3f}\nn = {int(row['coach_team_count'])}",
             transform=ax.transAxes,
             ha="left",
             va="top",
@@ -750,7 +740,9 @@ def write_seed_group_summary(
         f"- Weakest player Exp. seed band: `{weakest_player['seed_group']}` at `{weakest_player['player_exp_rho']:+.3f}`.",
         f"- Player Exp. positive seed bands: {', '.join(f'`{g}`' for g in player_positive) or '`none`'}.",
         f"- Coach Exp. positive seed bands: {', '.join(f'`{g}`' for g in coach_positive) or '`none`'}.",
-        "- Interpretation: experience is not uniform across seed tiers; where it matters depends on the metric and the seed band.",
+        f"- Player Exp. band rhos run from `{seed_table['player_exp_rho'].min():+.3f}` to `{seed_table['player_exp_rho'].max():+.3f}`; coach Exp. band rhos from `{seed_table['coach_exp_rho'].min():+.3f}` to `{seed_table['coach_exp_rho'].max():+.3f}`.",
+        f"- Coach Exp. uses `{COACH_ANALYSIS_START_YEAR}+` seasons only, so its band n is `coach_team_count`, not `team_count`.",
+        "- Interpretation: these are descriptive band correlations; `reports/robustness_summary.md` tests each one against a within-seed permutation null.",
         "",
         "## Table",
         "",
@@ -781,16 +773,12 @@ def main() -> int:
     plot_analysis_02(tournament_df, over_df, table_02, paths["fig_02"])
     plot_analysis_03(table_03, paths["fig_03"])
     plot_analysis_04(coach_tournament_df, coach_over_df, coach_primary_metric, paths["fig_04"])
-    champ_logos = build_champion_logo_table(tournament_df, paths["logo_cache"])
-    plot_seed_group_player(
-        table_sg, over_df, paths["fig_seed_group_player"], champ_logos=champ_logos
-    )
+    plot_seed_group_player(table_sg, over_df, paths["fig_seed_group_player"])
     plot_seed_group_coach(
         table_sg,
         coach_over_df,
         coach_primary_metric,
         paths["fig_seed_group_coach"],
-        champ_logos=champ_logos,
     )
 
     write_analysis_02_summary(paths["md_02"], table_02)
