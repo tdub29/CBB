@@ -39,8 +39,16 @@ The pipeline uses two Bart Torvik sources:
 
 | Source | Path / URL pattern | Description |
 |------|-------------|-------------|
-| Precompiled team tables | `data/raw/all_trank_team_tables.csv` | Base regular-season stats for all teams and years |
+| Precompiled team tables | `data/raw/assembled/all_trank_team_tables.csv` | Base regular-season stats for all teams and years, assembled from the per-year files below |
 | Team history | `https://barttorvik.com/team-history.php?team=Team+Name` | Year, coach, seed, finish, conf, records, and efficiency/four-factor history |
+
+The assembled table is built from these per-year Bart Torvik team-table exports (headerless, 40 columns; see [data_lineage.md](data_lineage.md)):
+
+| Files | Location | Export type | Notes |
+|-------|----------|-------------|-------|
+| `trank_team_table_data08.csv` … `trank_team_table_data25.csv` (no 20) | `data/raw/sources/` | `type=R` (regular season) | Read by `scripts/recompile_all_trank_team_tables.py` |
+| `trank_team_table_data2026.csv` | `data/raw/` | Current season | Read by the same script |
+| `trank_postseason_2008.csv` … `trank_postseason_2025.csv` (no 2020) | `data/raw/trank_postseason/` | `type=P` (postseason) | One season per file, named by the season's `YEAR` column. `scripts/append_postseason_final.py` concatenates them into `data/raw/trank_postseason_final.csv` and skips any file whose `YEAR` does not match its name |
 
 **Year range**: 2008–2025 with 2020 excluded (configurable in `configs/default.yaml`).
 
@@ -62,7 +70,7 @@ Place these in `data/external/`. The pipeline runs without them; they add featur
 
 ### 1. `trank_team_table_data*.csv`
 
-- **Pattern**: `trank_team_table_data (N).csv` or `trank_team_table_data*.csv`
+- **Pattern**: `trank_team_table_data_YYYY.csv` (one season per file) or `trank_team_table_data.csv` (combined), as written by `scripts/fetch_team_tables.py`
 - **Source**: Bart Torvik team-tables export from [team-tables_each.php](https://barttorvik.com/team-tables_each.php) (per year or combined). Fetched with `type=R` (regular season) by default; configurable via `ingestion.team_tables_type` in `configs/default.yaml`.
 - **Provides**: WINS, BLK%, BLKED%, AST%, OPAST%, 3PRATE, 3PRATED, EFFHGT, EXP., TALENT, ELITESOS.
 - **Usage**: Joined to master table by Team and Year.
@@ -92,7 +100,7 @@ If automation fails:
 1. Open [https://barttorvik.com/team-tables_each.php](https://barttorvik.com/team-tables_each.php)
 2. Select the year(s) if the page supports it
 3. Copy the table or use the site’s export, and save as CSV
-4. Save to `data/external/sources/` as `trank_team_table_data.csv` or `trank_team_table_data_YYYY.csv`
+4. Save to `data/external/sources/` as `trank_team_table_data_YYYY.csv` (rename browser downloads such as `trank_team_table_data (3).csv` to the season they contain)
 5. Ensure columns align with: TEAM, ADJOE, ADJDE, BARTHAG, RECORD, WINS, GAMES, EFG, EFGD., FTRATE, FTRATED, TOV%, TOV%D, OREB%, OPOREB%, RAWT, 2P%, 2P%D, 3P%, 3P%D, BLK%, BLKED%, AST%, OPAST%, 3PRATE, 3PRATED, ADJ.T, AVGHGT, EFFHGT, EXP., YEAR, PAKE, PASE, TALENT, blank, FT%, OPFT%, PPPOFF, PPPDEF, ELITESOS
 
 ### 2. `cleanteam.xlsx`
