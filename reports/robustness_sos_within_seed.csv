@@ -1,0 +1,2 @@
+family,topic,statistic,metric,seed_group,estimator,n,seasons,published_rho,published_team_count,rho,matches_published,rho_exact_seed_centered,ci_lo,ci_hi,season_ci_lo,season_ci_hi,null_mean_within_seed,null_mean_seed_season,p_perm,p_perm_seed_season,modal_finish_share,source,note
+a_sos_within_seed,sos,within_seed_rho,Elite SOS,all (seed-centered),exact-seed centered x and y,1088,17,0.060615,1088.0,0.060615,True,0.060615,-0.000758,0.122906,-0.001252,0.117088,-0.004551,0.031493,0.040796,0.290371,0.544118,reports/sos_vs_finish_seed_controlled_summary.md,
