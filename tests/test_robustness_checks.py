@@ -180,3 +180,73 @@ def test_misaligned_player_rho_reproduces_the_pandas_index_pitfall() -> None:
     assert rho == pytest.approx(0.5)
     aligned = frame["overperformance"].corr(pd.Series(edge, index=frame.index), method="spearman")
     assert aligned == pytest.approx(1.0)
+
+
+def test_benjamini_hochberg_within_matches_per_group_bh_and_is_never_stricter_than_pooled() -> None:
+    p = np.array([0.001, 0.02, 0.04, 0.3, 0.01, 0.5])
+    groups = np.array(["a", "a", "a", "a", "b", "b"])
+    within = rc.benjamini_hochberg_within(p, groups)
+
+    np.testing.assert_allclose(within[:4], rc.benjamini_hochberg(p[:4]))
+    np.testing.assert_allclose(within[4:], rc.benjamini_hochberg(p[4:]))
+    assert np.all(within <= rc.benjamini_hochberg(p) + 1e-15)
+
+
+def test_iid_bootstrap_collapses_without_upsets_while_the_within_seed_null_band_does_not() -> None:
+    # 16-seed line: most lose at once (overperformance -0.03), a few win a game (+0.97).
+    seeds = np.full(200, 16)
+    values = np.where(np.arange(200) < 6, 0.97, -0.03)
+    conference = np.arange(200) >= 190  # ten teams, none of which won a game
+    assert np.all(values[conference] < 0)
+
+    boot = rc.cluster_bootstrap_means(values[conference], np.arange(10), 2000, np.random.default_rng(16))
+    lo, hi = rc.percentile_ci(boot)
+    assert lo == hi < 0  # a degenerate interval entirely below zero
+
+    null = rc.permutation_group_means(values, conference[:, None].astype(float), seeds, 4000, np.random.default_rng(17))
+    observed = float(values[conference].mean())
+    null_hi = float(np.percentile(null[:, 0], 97.5))
+    assert null_hi > 0 and observed >= float(np.percentile(null[:, 0], 2.5)) - 1e-12
+    assert rc.permutation_pvalue(observed, null[:, 0]) > 0.5
+
+
+def test_conference_ci_note_flags_each_rule() -> None:
+    assert rc.conference_ci_note(0.3, 1.2, 17, 12) == ""
+    assert "cannot draw an upset" in rc.conference_ci_note(0.0, 0.2, 17, 12)
+    assert "bootstrap SD" in rc.conference_ci_note(0.1, rc.BOOT_SPREAD_FLOOR - 0.01, 17, 12)
+    note = rc.conference_ci_note(0.3, 1.0, rc.MIN_CLUSTERS - 1, rc.MIN_CLUSTERS - 5)
+    assert "season CI" in note and "program CI" in note
+
+
+def test_read_published_md_value_keeps_the_printed_precision(tmp_path: Path) -> None:
+    report = tmp_path / "summary.md"
+    report.write_text("- Headline finding: after controlling for seed, the within-seed Spearman relationship is `0.061`.\n")
+    value, tolerance = rc.read_published_md_value(report)
+    assert value == pytest.approx(0.061)
+    assert tolerance == pytest.approx(0.0005)
+    assert np.isnan(rc.read_published_md_value(tmp_path / "missing.md")[0])
+
+
+def test_sample_descriptions_are_derived_from_the_data() -> None:
+    assert rc.describe_years(np.array([2019, 2018, 2021, 2021, 2022])) == "4 tournaments (2018-2022, no 2020)"
+    assert rc.describe_years(np.array([2008, 2009])) == "2 tournaments (2008-2009)"
+    assert rc.describe_seed_season_strata(pd.Series([4, 4, 4])) == "the 4 same-seed teams of one season"
+    assert "3-5 per seed line" in rc.describe_seed_season_strata(pd.Series([3, 4, 5]))
+
+
+def test_published_conference_check_reads_the_published_csv(tmp_path: Path) -> None:
+    published = tmp_path / "conf.csv"
+    pd.DataFrame(
+        {"Conf": ["A", "B"], "team_count": [3, 2], "mean_overperformance": [0.5, -0.25], "median_overperformance": [0.1, -0.25]}
+    ).to_csv(published, index=False)
+    ours = pd.DataFrame(
+        {
+            "Conf": ["A", "B", "A excl. X"],
+            "n": [3, 2, 2],
+            "mean_overperformance": [0.5000004, -0.2, 0.0],
+            "median_overperformance": [0.1, -0.25, 0.0],
+        }
+    )
+    checked = rc.published_conference_check(ours, published)
+    assert checked["matches_published"].iloc[:2].tolist() == [True, False]
+    assert pd.isna(checked["matches_published"].iloc[2])
