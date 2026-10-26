@@ -28,10 +28,10 @@
 | round | 0.9844 | 1.3410 | 0.0000 | 0.0000 | 0.5000 | 1.2500 | 6.0000 |
 
 ### Missingness (candidate feature columns)
-![Missingness Heatmap](../figures/missingness_heatmap.png)
+![Missingness Heatmap](figures/missingness_heatmap.png)
 
 ### Correlation Matrix
-![Correlation Matrix](../figures/correlation_matrix.png)
+![Correlation Matrix](figures/correlation_matrix.png)
 
 ### Collinearity Note
 - corr(Barthag, AdjOE) = `0.8594`, corr(Barthag, AdjDE) = `-0.8258`, corr(AdjOE, AdjDE) = `-0.4603`.
@@ -141,7 +141,7 @@
 | 6 | lasso | alpha=10.0 | 1.796640 | 0.984372 | 0.027951 | 3 | inf | inf |
 | 9 | elasticnet | alpha=10.0, l1_ratio=0.5 | 1.796640 | 0.984372 | 0.027951 | 3 | inf | inf |
 
-![Model Comparison](../figures/model_comparison.png)
+![Model Comparison](figures/model_comparison.png)
 
 - winning_algorithm: `gbr`
 - winning_params: `n_estimators=100, max_depth=3, learning_rate=0.1`
@@ -156,7 +156,7 @@
 - final_retrain_rows: `1088`
 - model_artifact: `models\analysis_best_model_20260306.joblib`
 
-![Holdout Actual vs Predicted](../figures/holdout_2025_actual_vs_pred.png)
+![Holdout Actual vs Predicted](figures/holdout_2025_actual_vs_pred.png)
 
 ### Holdout Prediction Table
 | Team | year | seed | actual_round | pred_round |
@@ -188,7 +188,7 @@
 | Louisville | 2025 | 8.0000 | 0.0000 | 0.1063 |
 
 ### Winner Feature Importance
-![Feature Importance](../figures/feature_importance.png)
+![Feature Importance](figures/feature_importance.png)
 
 | feature | importance |
 | --- | --- |

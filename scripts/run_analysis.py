@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import yaml
+from scipy import stats
 from sklearn.base import clone
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.impute import SimpleImputer
@@ -80,7 +81,7 @@ DEFAULT_HOLDOUT_YEAR = 2025
 DEFAULT_CV_FOLDS = 10
 DEFAULT_RANDOM_STATE = 42
 DEFAULT_SEARCH_DEPTH = "balanced"
-DEFAULT_BOOTSTRAP_DRAWS = 10000
+CI_LEVEL = 0.95
 
 RIDGE_ALPHA_GRID = [0.01, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0]
 
@@ -95,11 +96,28 @@ TARGET_COL = "round"
 OUTCOME_COLUMNS = {"round", "Round2", "S16", "E8", "F4", "Ship", "Champ", "result", "predround", PREDROUND_OOF_COL}
 # anything derived from the outcome is excluded from every feature set, not just the target
 EXCLUDE_FROM_FEATURES = OUTCOME_COLUMNS | LEAKY_COLUMNS
+# Parse artifacts of the raw T-Rank tables, not statistics: `blank` is all NaN and the
+# `_extra_*` columns are unnamed trailing cells (`_extra_42` repeats seed).
+PARSE_ARTIFACT_PREFIX = "_extra_"
+PARSE_ARTIFACT_COLUMNS = {"blank"}
 
 SEED_GROUPS = [(1, 4), (5, 8), (9, 12), (13, 16)]
-BASELINE_NAME = "seed_baseline"
+# Two seed-only baselines, one per metric. Every model here is fit by least squares, so
+# its fair opponent on RMSE is the per-seed mean. MAE is minimised by the median, and
+# round is mostly 0 for seeds 9-16, so against the per-seed mean a least-squares model's
+# MAE gain mostly measures the mean's mismatch with the metric. MAE is scored against
+# the per-seed median instead.
+BASELINE_NAME = "seed_mean_baseline"
+MEDIAN_BASELINE_NAME = "seed_median_baseline"
+BASELINE_NAMES = (BASELINE_NAME, MEDIAN_BASELINE_NAME)
 GENERAL_NAME = "general_ridge"
 STACK_NAME = "seed_stratified_stack"
+# Ablation for the holdout's provenance: the coach features entered GEN_FEATURES after the
+# 2025 tournament. Without them the list is the predround model in madness.R at commit
+# 21a1e96 (2025-01-16) minus WAB, which the current training data does not have.
+NO_COACH_NAME = "general_ridge_no_coach"
+COACH_FEATURES = [f for f in GEN_FEATURES if f.startswith("coach_")]
+NO_COACH_FEATURES = [f for f in GEN_FEATURES if f not in COACH_FEATURES]
 
 # A recipe fits on a training frame and predicts a test frame; nothing else is shared.
 Recipe = Callable[[pd.DataFrame, pd.DataFrame], np.ndarray]
@@ -134,7 +152,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input-csv", default=DEFAULT_INPUT, help="Path to cleaned training CSV.")
     parser.add_argument("--report-dir", default=DEFAULT_REPORT_DIR, help="Directory for markdown reports.")
     parser.add_argument("--figures-dir", default=DEFAULT_FIGURES_DIR, help="Directory for PNG outputs.")
-    parser.add_argument("--holdout-year", type=int, default=DEFAULT_HOLDOUT_YEAR, help="Final blind holdout year.")
+    parser.add_argument(
+        "--holdout-year",
+        type=int,
+        default=DEFAULT_HOLDOUT_YEAR,
+        help="Held-out season: excluded from every fit and selection step, scored once at the end.",
+    )
     parser.add_argument(
         "--cv-folds",
         type=int,
@@ -267,8 +290,12 @@ def build_feature_specs(df: pd.DataFrame, rank_cols: list[str]) -> list[FeatureS
     rank_only = unique_keep_order(rank_baseline + rank_unused)
     raw_plus_rank = unique_keep_order(baseline + rank_only)
 
-    exclude = EXCLUDE_FROM_FEATURES | {"year"}
-    numeric_cols = [c for c in df.select_dtypes(include=[np.number]).columns if c not in exclude]
+    exclude = EXCLUDE_FROM_FEATURES | PARSE_ARTIFACT_COLUMNS | {"year"}
+    numeric_cols = [
+        c
+        for c in df.select_dtypes(include=[np.number]).columns
+        if c not in exclude and not c.startswith(PARSE_ARTIFACT_PREFIX)
+    ]
     kitchen_sink = unique_keep_order(numeric_cols)
 
     return [
@@ -323,8 +350,8 @@ def prepare_design(
 
 def build_estimator(algorithm: str, params: dict[str, Any], random_state: int) -> Pipeline:
     if algorithm == "ridge":
-        # fit_intercept=False after StandardScaler forced every prediction to average 0
-        # instead of the mean round (0.98); see _build_regression_model in madness.py.
+        # fit_intercept=False after StandardScaler forces every prediction to average 0
+        # instead of the mean round; see _build_regression_model in madness.py.
         model = Ridge(alpha=float(params["alpha"]), random_state=random_state, fit_intercept=True)
         return Pipeline(
             steps=[
@@ -463,8 +490,13 @@ def evaluate_recipe(
 
 
 def seed_baseline_recipe(train_df: pd.DataFrame, test_df: pd.DataFrame) -> np.ndarray:
-    """Expected round given seed, from the training seasons only."""
-    return predict_seed_baseline(fit_seed_baseline(train_df, TARGET_COL), test_df)
+    """Mean round of each seed in the training seasons only (the RMSE baseline)."""
+    return predict_seed_baseline(fit_seed_baseline(train_df, TARGET_COL, stat="mean"), test_df)
+
+
+def seed_median_baseline_recipe(train_df: pd.DataFrame, test_df: pd.DataFrame) -> np.ndarray:
+    """Median round of each seed in the training seasons only (the MAE baseline)."""
+    return predict_seed_baseline(fit_seed_baseline(train_df, TARGET_COL, stat="median"), test_df)
 
 
 def ridge_recipe(spec: FeatureSpec, features: list[str], cv_folds: int, random_state: int) -> Recipe:
@@ -501,37 +533,59 @@ def estimator_recipe(
     return fit_predict
 
 
-def paired_season_bootstrap(
+def paired_season_test(
     model_per_season: pd.DataFrame,
-    base_per_season: pd.DataFrame,
-    n_draws: int,
-    random_state: int,
+    ref_per_season: pd.DataFrame,
+    metric: str,
+    level: float = CI_LEVEL,
 ) -> dict[str, float]:
     """
-    Model minus baseline on per-season MAE and pooled RMSE, with a 95% interval from
-    resampling seasons (the independent unit) with replacement.
+    Model minus reference on one per-season metric ("mae" or "mse").
+
+    The season is the independent unit, so the interval is a Student-t interval on the
+    per-season differences (n - 1 df) and the p-value a one-sample t-test on them. A
+    percentile bootstrap over ~11 seasons gives intervals that are too narrow. Seasons
+    all have 64 rows, so the mean per-season MSE gap equals the pooled MSE gap.
     """
-    merged = model_per_season[["split", "mae", "mse"]].merge(
-        base_per_season[["split", "mae", "mse"]], on="split", suffixes=("_model", "_base")
+    merged = model_per_season[["split", metric]].merge(
+        ref_per_season[["split", metric]], on="split", suffixes=("_model", "_ref")
     )
-    n = len(merged)
-    d_mae = (merged["mae_model"] - merged["mae_base"]).to_numpy(dtype=float)
-    mse_model = merged["mse_model"].to_numpy(dtype=float)
-    mse_base = merged["mse_base"].to_numpy(dtype=float)
-    rng = np.random.default_rng(random_state)
-    draws = rng.integers(0, n, size=(n_draws, n))
-    boot_mae = d_mae[draws].mean(axis=1)
-    boot_rmse = np.sqrt(mse_model[draws].mean(axis=1)) - np.sqrt(mse_base[draws].mean(axis=1))
+    d = (merged[f"{metric}_model"] - merged[f"{metric}_ref"]).to_numpy(dtype=float)
+    n = len(d)
+    mean = float(d.mean())
+    se = float(d.std(ddof=1) / math.sqrt(n)) if n > 1 else float("nan")
+    if n > 1 and se > 0:
+        half = float(stats.t.ppf(0.5 + level / 2, n - 1) * se)
+        p_t = float(2 * stats.t.sf(abs(mean / se), n - 1))
+    else:
+        half, p_t = float("nan"), float("nan")
+    better, worse = int((d < 0).sum()), int((d > 0).sum())
+    p_sign = float(stats.binomtest(better, better + worse, 0.5).pvalue) if better + worse else float("nan")
     return {
-        "d_mae": float(d_mae.mean()),
-        "d_mae_lo": float(np.percentile(boot_mae, 2.5)),
-        "d_mae_hi": float(np.percentile(boot_mae, 97.5)),
-        "d_rmse": float(np.sqrt(mse_model.mean()) - np.sqrt(mse_base.mean())),
-        "d_rmse_lo": float(np.percentile(boot_rmse, 2.5)),
-        "d_rmse_hi": float(np.percentile(boot_rmse, 97.5)),
-        "seasons_better_mae": int((d_mae < 0).sum()),
+        "d": mean,
+        "lo": mean - half,
+        "hi": mean + half,
+        "p_t": p_t,
+        "seasons_better": better,
         "n_seasons": int(n),
+        "p_sign": p_sign,
     }
+
+
+def holm_adjust(p_values: list[float]) -> list[float]:
+    """Holm step-down adjustment for a family of p-values (controls family-wise error)."""
+    p = np.asarray(p_values, dtype=float)
+    m = len(p)
+    adjusted = np.empty(m)
+    running = 0.0
+    for rank, idx in enumerate(np.argsort(p)):
+        running = max(running, min(1.0, float((m - rank) * p[idx])))
+        adjusted[idx] = running
+    return adjusted.tolist()
+
+
+def format_ci(test: dict[str, float]) -> str:
+    return f"[{test['lo']:+.4f}, {test['hi']:+.4f}]"
 
 
 def pct_better(model_value: float, base_value: float) -> float:
@@ -731,7 +785,8 @@ def save_report_figure(fig: Any, path: Path) -> None:
         # The full-figure background axes sits outside the layout on purpose.
         warnings.filterwarnings("ignore", message=".*not compatible with tight_layout.*")
         fig.tight_layout()
-    fig.savefig(path, dpi=160)
+    # The grain background does not compress, so file size tracks pixel count.
+    fig.savefig(path, dpi=100)
     plt.close(fig)
 
 
@@ -794,35 +849,44 @@ def save_model_comparison(df: pd.DataFrame, path: Path) -> None:
 
 
 def save_walk_forward_plot(per_season: pd.DataFrame, path: Path) -> None:
-    """Per-season walk-forward MAE, one line per model."""
+    """Per-season walk-forward RMSE and MAE, one line per model."""
     if per_season.empty:
         return
-    colors = [
-        PROJECT_PALETTE["steel"],
-        PROJECT_PALETTE["lake_blue"],
-        PROJECT_PALETTE["sage"],
-        PROJECT_PALETTE["sky_blue"],
-        PROJECT_PALETTE["fog"],
-    ]
-    fig, ax = report_axes((11, 6))
+    # color, linestyle, marker: each model differs on all three, not just a shade of blue.
+    styles = {
+        BASELINE_NAME: (PROJECT_PALETTE["steel"], "--", "o"),
+        MEDIAN_BASELINE_NAME: (PROJECT_PALETTE["sage"], ":", "^"),
+        GENERAL_NAME: (PROJECT_PALETTE["lake_blue"], "-", "s"),
+        STACK_NAME: (PROJECT_PALETTE["paper"], "-", "D"),
+    }
+    fig, axes = plt.subplots(1, 2, figsize=(15, 5.8), constrained_layout=False)
+    apply_report_background(fig, list(axes))
     seasons = sorted(per_season["season"].unique())
     positions = {season: i for i, season in enumerate(seasons)}
-    for i, model in enumerate(per_season["model"].unique()):
-        view = per_season[per_season["model"] == model].sort_values("season")
-        ax.plot(
-            view["season"].map(positions),
-            view["mae"],
-            marker="o",
-            linewidth=2.2 if model == BASELINE_NAME else 1.6,
-            linestyle="--" if model == BASELINE_NAME else "-",
-            color=colors[i % len(colors)],
-            label=model,
-        )
-    ax.set_xticks(range(len(seasons)), [str(s) for s in seasons])
-    ax.set_title("Walk-Forward MAE by Test Season (train on all earlier seasons)")
-    ax.set_xlabel("Test season")
-    ax.set_ylabel("MAE (rounds)")
-    ax.legend(loc="best")
+    panels = [
+        (axes[0], "rmse", "RMSE (rounds)", "RMSE (reference: seed mean)"),
+        (axes[1], "mae", "MAE (rounds)", "MAE (reference: seed median)"),
+    ]
+    for ax, metric, ylabel, title in panels:
+        for model, (color, linestyle, marker) in styles.items():
+            view = per_season[per_season["model"] == model].sort_values("season")
+            if view.empty:
+                continue
+            ax.plot(
+                view["season"].map(positions),
+                view[metric],
+                marker=marker,
+                markersize=5,
+                linewidth=1.8,
+                linestyle=linestyle,
+                color=color,
+                label=model,
+            )
+        ax.set_xticks(range(len(seasons)), [str(s) for s in seasons], rotation=45)
+        ax.set_title(f"Walk-Forward {title}")
+        ax.set_xlabel("Test season (fit on every earlier season)")
+        ax.set_ylabel(ylabel)
+    axes[0].legend(loc="best")
     save_report_figure(fig, path)
 
 
@@ -1047,7 +1111,7 @@ def main() -> int:
     correlation_path = figures_dir / "correlation_matrix.png"
     feature_importance_path = figures_dir / "feature_importance.png"
     model_comparison_path = figures_dir / "model_comparison.png"
-    walk_forward_path = figures_dir / "walk_forward_mae_by_season.png"
+    walk_forward_path = figures_dir / "walk_forward_error_by_season.png"
     holdout_scatter_path = figures_dir / f"holdout_{args.holdout_year}_actual_vs_pred.png"
     missingness_path = figures_dir / "missingness_heatmap.png"
     model_artifact_path = models_dir / f"analysis_best_model_{run_tag}.joblib"
@@ -1162,12 +1226,15 @@ def main() -> int:
     save_model_comparison(model_results.copy(), model_comparison_path)
 
     # Section 4: Head-to-head on identical folds.
-    print("[Run] Section 4: Head-to-Head vs Seed Baseline", flush=True)
+    print("[Run] Section 4: Head-to-Head vs the Seed-Only Baselines", flush=True)
+    hy = args.holdout_year
     feature_ridge_name = f"ridge_{best_feature_name}"
     winner_name = f"search_winner_{winner_algorithm}"
     candidates: dict[str, Recipe] = {
         BASELINE_NAME: seed_baseline_recipe,
+        MEDIAN_BASELINE_NAME: seed_median_baseline_recipe,
         GENERAL_NAME: partial(fit_predict_general, **pipeline_kwargs),
+        NO_COACH_NAME: partial(fit_predict_general, features=NO_COACH_FEATURES, **pipeline_kwargs),
         STACK_NAME: partial(fit_predict_stack, **pipeline_kwargs),
         feature_ridge_name: ridge_recipe(best_feature_spec, best_feature_list, args.cv_folds, args.random_state),
         winner_name: estimator_recipe(
@@ -1184,6 +1251,7 @@ def main() -> int:
         }
 
     base = evals[BASELINE_NAME]
+    med = evals[MEDIAN_BASELINE_NAME]
     h2h_rows = []
     for name, ev in evals.items():
         h2h_rows.append(
@@ -1195,37 +1263,71 @@ def main() -> int:
                 "wf_mae": ev["wf"]["mae"],
                 "wf_rmse": ev["wf"]["rmse"],
                 "wf_spearman": ev["wf"]["spearman_within_season"],
-                f"holdout_{args.holdout_year}_mae": ev["holdout"]["mae"],
-                f"holdout_{args.holdout_year}_rmse": ev["holdout"]["rmse"],
-                f"holdout_{args.holdout_year}_spearman": ev["holdout"]["spearman_within_season"],
+                f"holdout_{hy}_mae": ev["holdout"]["mae"],
+                f"holdout_{hy}_rmse": ev["holdout"]["rmse"],
+                f"holdout_{hy}_spearman": ev["holdout"]["spearman_within_season"],
             }
         )
     h2h_df = pd.DataFrame(h2h_rows)
 
-    vs_rows = []
-    boot: dict[str, dict[str, float]] = {}
-    for name, ev in evals.items():
-        if name == BASELINE_NAME:
-            continue
-        boot[name] = paired_season_bootstrap(
-            ev["wf"]["per_split"], base["wf"]["per_split"], DEFAULT_BOOTSTRAP_DRAWS, args.random_state
-        )
-        b = boot[name]
-        vs_rows.append(
+    # Per-season paired tests on walk-forward. Two families, each Holm-adjusted on its own:
+    # primary = MSE vs the seed mean for every model, stack vs general, and general with vs
+    # without the coach features; secondary = the same comparisons on MAE, vs the seed median.
+    non_baseline = [n for n in evals if n not in BASELINE_NAMES]
+    wf_per = {name: evals[name]["wf"]["per_split"] for name in evals}
+    mse_tests = {n: paired_season_test(wf_per[n], wf_per[BASELINE_NAME], "mse") for n in non_baseline}
+    mae_tests = {n: paired_season_test(wf_per[n], wf_per[MEDIAN_BASELINE_NAME], "mae") for n in non_baseline}
+    stack_vs_general_mse = paired_season_test(wf_per[STACK_NAME], wf_per[GENERAL_NAME], "mse")
+    stack_vs_general_mae = paired_season_test(wf_per[STACK_NAME], wf_per[GENERAL_NAME], "mae")
+    coach_vs_no_coach_mse = paired_season_test(wf_per[GENERAL_NAME], wf_per[NO_COACH_NAME], "mse")
+    coach_vs_no_coach_mae = paired_season_test(wf_per[GENERAL_NAME], wf_per[NO_COACH_NAME], "mae")
+    families = (
+        (mse_tests, (stack_vs_general_mse, coach_vs_no_coach_mse)),
+        (mae_tests, (stack_vs_general_mae, coach_vs_no_coach_mae)),
+    )
+    for family, extras in families:
+        adjusted = holm_adjust([family[n]["p_t"] for n in non_baseline] + [e["p_t"] for e in extras])
+        for n, p_holm in zip(non_baseline, adjusted):
+            family[n]["p_holm"] = p_holm
+        for extra, p_holm in zip(extras, adjusted[len(non_baseline):]):
+            extra["p_holm"] = p_holm
+    n_primary = len(non_baseline) + len(families[0][1])
+
+    rmse_rows = []
+    mae_rows = []
+    for name in non_baseline:
+        ev, t_mse, t_mae = evals[name], mse_tests[name], mae_tests[name]
+        rmse_rows.append(
             {
                 "model": name,
-                "wf_mae_pct_better": pct_better(ev["wf"]["mae"], base["wf"]["mae"]),
+                "wf_rmse": ev["wf"]["rmse"],
                 "wf_rmse_pct_better": pct_better(ev["wf"]["rmse"], base["wf"]["rmse"]),
-                "wf_d_mae": b["d_mae"],
-                "wf_d_mae_95ci": f"[{b['d_mae_lo']:+.4f}, {b['d_mae_hi']:+.4f}]",
-                "wf_d_rmse": b["d_rmse"],
-                "wf_d_rmse_95ci": f"[{b['d_rmse_lo']:+.4f}, {b['d_rmse_hi']:+.4f}]",
-                "seasons_beating_baseline_mae": f"{b['seasons_better_mae']}/{b['n_seasons']}",
-                f"holdout_{args.holdout_year}_mae_pct_better": pct_better(ev["holdout"]["mae"], base["holdout"]["mae"]),
-                f"holdout_{args.holdout_year}_rmse_pct_better": pct_better(ev["holdout"]["rmse"], base["holdout"]["rmse"]),
+                "wf_d_mse": t_mse["d"],
+                "wf_d_mse_95ci": format_ci(t_mse),
+                "p_t": t_mse["p_t"],
+                "p_holm": t_mse["p_holm"],
+                "seasons_better": f"{t_mse['seasons_better']}/{t_mse['n_seasons']}",
+                "p_sign": t_mse["p_sign"],
+                f"holdout_{hy}_rmse_pct_better": pct_better(ev["holdout"]["rmse"], base["holdout"]["rmse"]),
             }
         )
-    vs_df = pd.DataFrame(vs_rows)
+        mae_rows.append(
+            {
+                "model": name,
+                "wf_mae": ev["wf"]["mae"],
+                "wf_mae_pct_better": pct_better(ev["wf"]["mae"], med["wf"]["mae"]),
+                "wf_d_mae": t_mae["d"],
+                "wf_d_mae_95ci": format_ci(t_mae),
+                "p_t": t_mae["p_t"],
+                "p_holm": t_mae["p_holm"],
+                "seasons_better": f"{t_mae['seasons_better']}/{t_mae['n_seasons']}",
+                "p_sign": t_mae["p_sign"],
+                f"holdout_{hy}_mae_pct_better": pct_better(ev["holdout"]["mae"], med["holdout"]["mae"]),
+                "wf_mae_pct_vs_seed_mean": pct_better(ev["wf"]["mae"], base["wf"]["mae"]),
+            }
+        )
+    rmse_vs_df = pd.DataFrame(rmse_rows)
+    mae_vs_df = pd.DataFrame(mae_rows)
 
     per_season_rows = []
     for name, ev in evals.items():
@@ -1237,67 +1339,77 @@ def main() -> int:
     for table in (per_season_mae, per_season_rmse):
         table["season"] = table["season"].astype(int).astype(str)
         table.columns.name = None
-    save_walk_forward_plot(
-        per_season_long[per_season_long["model"].isin([BASELINE_NAME, GENERAL_NAME, STACK_NAME, winner_name])],
-        walk_forward_path,
-    )
+    save_walk_forward_plot(per_season_long, walk_forward_path)
 
-    # Recommendation is decided on pre-holdout walk-forward only; the holdout is just scored.
-    non_baseline = [n for n in evals if n != BASELINE_NAME]
-    recommended = min(non_baseline, key=lambda n: evals[n]["wf"]["mse"])
-    rec_ev = evals[recommended]
-    rec_beats_baseline = rec_ev["wf"]["mse"] < base["wf"]["mse"]
+    # Lowest walk-forward MSE is reported, but it is a max over candidates scored on the
+    # same seasons, so it carries a winner's-curse bias; the holdout is its clean number.
+    lowest_mse = min(non_baseline, key=lambda n: evals[n]["wf"]["mse"])
 
     # Section 5: Seed-stratified stack verdict.
     print("[Run] Section 5: Seed-Stratified Models", flush=True)
-    stack_vs_general = paired_season_bootstrap(
-        evals[STACK_NAME]["wf"]["per_split"], evals[GENERAL_NAME]["wf"]["per_split"],
-        DEFAULT_BOOTSTRAP_DRAWS, args.random_state,
-    )
-    seed_group_rows = []
-    wf_rows_mask = ~np.isnan(evals[BASELINE_NAME]["wf"]["pred"])
-    wf_actual = pd.to_numeric(pre_holdout_df[TARGET_COL], errors="coerce").to_numpy(dtype=float)[wf_rows_mask]
-    wf_groups = pd.to_numeric(pre_holdout_df["seed"], errors="coerce").to_numpy(dtype=float)[wf_rows_mask]
-    group_labels = np.array([seed_group_label(s) for s in wf_groups])
-    for lo, hi in SEED_GROUPS:
-        label = f"{lo}-{hi}"
-        mask = group_labels == label
-        row: dict[str, Any] = {"seeds": label, "n_rows": int(mask.sum())}
-        for name in [BASELINE_NAME, GENERAL_NAME, STACK_NAME]:
-            pred = evals[name]["wf"]["pred"][wf_rows_mask][mask]
-            row[f"{name}_mae"] = float(np.mean(np.abs(pred - wf_actual[mask])))
-        seed_group_rows.append(row)
-    seed_group_df = pd.DataFrame(seed_group_rows)
-    predround_df = compare_predround_sources(pre_holdout_df, pipeline_kwargs)
-
-    # Rule for model.use_seed_models: keep the stack only if it has lower walk-forward MAE
-    # AND MSE than the general model and at least one season-bootstrap interval excludes 0.
+    # Rule for model.use_seed_models, on MSE: the loss every model is fit with and the metric
+    # candidates are ranked by. The stack (general model + 14 hand-picked per-band models)
+    # has to have lower walk-forward MSE than the general model alone AND a 95% t-interval
+    # on the per-season MSE gap that lies below zero. This rule was written after the
+    # walk-forward results had been seen (an earlier rule on MAE kept the stack).
     stack_wf, general_wf = evals[STACK_NAME]["wf"], evals[GENERAL_NAME]["wf"]
-    mae_clear = stack_vs_general["d_mae_hi"] < 0
-    rmse_clear = stack_vs_general["d_rmse_hi"] < 0
-    better_both = stack_wf["mae"] < general_wf["mae"] and stack_wf["mse"] < general_wf["mse"]
-    stack_helps = bool(better_both and (mae_clear or rmse_clear))
-    if better_both and mae_clear and rmse_clear:
+    stack_lower_mse = bool(stack_wf["mse"] < general_wf["mse"])
+    stack_helps = bool(stack_lower_mse and stack_vs_general_mse["hi"] < 0)
+    default_model = STACK_NAME if stack_helps else GENERAL_NAME
+    if stack_helps:
         stack_verdict = (
-            "beats the general model on both walk-forward MAE and RMSE, and both season-bootstrap "
-            "intervals exclude zero."
+            "has lower walk-forward MSE than the general model, and the 95% interval on the per-season MSE gap "
+            "excludes zero, so the seed models earn their place."
         )
-    elif stack_helps:
-        clear, unclear = ("MAE", "RMSE") if mae_clear else ("RMSE", "MAE")
+    elif stack_lower_mse:
         stack_verdict = (
-            f"beats the general model on both walk-forward MAE and RMSE. The {clear} interval excludes "
-            f"zero; the {unclear} interval does not. A modest gain, not a large one."
-        )
-    elif better_both:
-        stack_verdict = (
-            "is nominally better than the general model in walk-forward, but both season-bootstrap "
-            "intervals include zero, so the 14 hand-picked feature lists are not shown to help."
+            "has nominally lower walk-forward MSE than the general model, but the 95% interval on the per-season "
+            "MSE gap includes zero: the 14 hand-picked per-band feature lists are not shown to help."
         )
     else:
         stack_verdict = (
-            "does not beat the general model on both walk-forward MAE and RMSE; the 14 hand-picked "
-            "per-band feature lists add variance, not accuracy."
+            "does not have lower walk-forward MSE than the general model: the 14 hand-picked per-band feature "
+            "lists add variance, not accuracy."
         )
+
+    wf_rows_mask = ~np.isnan(base["wf"]["pred"])
+    wf_actual = pd.to_numeric(pre_holdout_df[TARGET_COL], errors="coerce").to_numpy(dtype=float)[wf_rows_mask]
+    wf_seeds = pd.to_numeric(pre_holdout_df["seed"], errors="coerce").to_numpy(dtype=float)[wf_rows_mask]
+    group_labels = np.array([seed_group_label(s) for s in wf_seeds])
+    group_models = [BASELINE_NAME, MEDIAN_BASELINE_NAME, GENERAL_NAME, STACK_NAME]
+    level_models = [MEDIAN_BASELINE_NAME, GENERAL_NAME, STACK_NAME]
+    seed_mae_rows, seed_mse_rows, seed_level_rows = [], [], []
+    n_wf_rows = int(wf_rows_mask.sum())
+    total_mae_gap = (stack_wf["mae"] - general_wf["mae"]) * n_wf_rows
+    for lo, hi in SEED_GROUPS:
+        label = f"{lo}-{hi}"
+        mask = group_labels == label
+        actual = wf_actual[mask]
+        preds = {name: evals[name]["wf"]["pred"][wf_rows_mask][mask] for name in group_models}
+        mae_row: dict[str, Any] = {"seeds": label, "n_rows": int(mask.sum())}
+        mse_row: dict[str, Any] = {"seeds": label, "n_rows": int(mask.sum())}
+        for name in group_models:
+            mae_row[name] = float(np.mean(np.abs(preds[name] - actual)))
+            mse_row[name] = float(np.mean((preds[name] - actual) ** 2))
+        group_gap = float(np.sum(np.abs(preds[STACK_NAME] - actual)) - np.sum(np.abs(preds[GENERAL_NAME] - actual)))
+        mae_row["share_of_stack_mae_gain"] = group_gap / total_mae_gap if total_mae_gap < 0 else float("nan")
+        level_row: dict[str, Any] = {
+            "seeds": label,
+            "actual_mean": float(actual.mean()),
+            "actual_share_at_0": float(np.mean(actual == 0)),
+        }
+        for name in level_models:
+            level_row[f"{name}_mean"] = float(preds[name].mean())
+            level_row[f"{name}_share_at_0"] = float(np.mean(preds[name] <= 0))
+        seed_mae_rows.append(mae_row)
+        seed_mse_rows.append(mse_row)
+        seed_level_rows.append(level_row)
+    seed_mae_df = pd.DataFrame(seed_mae_rows)
+    seed_mse_df = pd.DataFrame(seed_mse_rows)
+    seed_level_df = pd.DataFrame(seed_level_rows)
+    low_seeds = seed_mae_df.iloc[-1]
+    low_level = seed_level_df.iloc[-1]
+    predround_df = compare_predround_sources(pre_holdout_df, pipeline_kwargs)
 
     # Section 6: Holdout detail + final retrain of the search winner.
     print("[Run] Section 6: Holdout + Final Retrain", flush=True)
@@ -1312,16 +1424,18 @@ def main() -> int:
     save_feature_importance_plot(
         winner_importance_df,
         feature_importance_path,
-        title=f"Feature Importance ({winner_algorithm}, fit on seasons < {args.holdout_year})",
+        title=f"Feature Importance ({winner_algorithm}, fit on seasons < {hy})",
     )
 
-    holdout_rows = holdout_frame.index[season_years(holdout_frame) == args.holdout_year]
+    holdout_rows = holdout_frame.index[season_years(holdout_frame) == hy]
     holdout_output = holdout_frame.loc[holdout_rows, ["Team", "year", "seed", "round"]].copy()
     holdout_output = holdout_output.rename(columns={"round": "actual_round"})
-    holdout_output["pred_round"] = rec_ev["holdout"]["pred"][holdout_rows]
-    holdout_output["seed_baseline"] = base["holdout"]["pred"][holdout_rows]
-    holdout_output = holdout_output.sort_values("pred_round", ascending=False)
-    save_holdout_scatter(holdout_output, holdout_scatter_path, args.holdout_year, recommended)
+    for name in [GENERAL_NAME, STACK_NAME, BASELINE_NAME, MEDIAN_BASELINE_NAME]:
+        holdout_output[name] = evals[name]["holdout"]["pred"][holdout_rows]
+    holdout_output = holdout_output.sort_values(default_model, ascending=False)
+    save_holdout_scatter(
+        holdout_output.rename(columns={default_model: "pred_round"}), holdout_scatter_path, hy, default_model
+    )
 
     X_all, y_all, _ = prepare_design(model_df, best_feature_spec, fixed_features=best_feature_list)
     final_estimator = build_estimator(winner_algorithm, winner_params, random_state=args.random_state)
@@ -1335,8 +1449,8 @@ def main() -> int:
             "features": best_feature_list,
             "poly": best_feature_spec.poly,
             "train_rows": int(len(y_all)),
-            "holdout_year": int(args.holdout_year),
-            "recommended_model": recommended,
+            "holdout_year": int(hy),
+            "pipeline_default_model": default_model,
             "created_at": datetime.now().isoformat(timespec="seconds"),
         },
         model_artifact_path,
@@ -1347,43 +1461,107 @@ def main() -> int:
     b_a = float(corr_triplet.loc["Barthag", "AdjOE"])
     b_d = float(corr_triplet.loc["Barthag", "AdjDE"])
     od = float(corr_triplet.loc["AdjOE", "AdjDE"])
-    hy = args.holdout_year
-    rec_boot = boot[recommended]
     n_pre_seasons = len(np.unique(pre_years))
+    n_wf = len(wf_years)
+    config_matches = bool(pipeline_cfg["use_seed_models"]) == stack_helps
+
+    def includes_zero(test: dict[str, float]) -> str:
+        return "includes zero" if test["lo"] <= 0 <= test["hi"] else "excludes zero"
+
+    def model_line(name: str) -> str:
+        ev, t_mse, t_mae = evals[name], mse_tests[name], mae_tests[name]
+        return (
+            f"walk-forward RMSE `{ev['wf']['rmse']:.4f}` ({pct_better(ev['wf']['rmse'], base['wf']['rmse']):+.1f}% vs "
+            f"seed mean; per-season MSE gap `{t_mse['d']:+.4f}` {format_ci(t_mse)}, which {includes_zero(t_mse)}; "
+            f"Holm p `{t_mse['p_holm']:.3f}`), MAE `{ev['wf']['mae']:.4f}` "
+            f"({pct_better(ev['wf']['mae'], med['wf']['mae']):+.1f}% vs seed median; gap {format_ci(t_mae)}, which "
+            f"{includes_zero(t_mae)}). {hy} holdout RMSE `{ev['holdout']['rmse']:.4f}` "
+            f"({pct_better(ev['holdout']['rmse'], base['holdout']['rmse']):+.1f}%), MAE `{ev['holdout']['mae']:.4f}` "
+            f"({pct_better(ev['holdout']['mae'], med['holdout']['mae']):+.1f}%)."
+        )
+
+    n_mse_holm_sig = sum(mse_tests[n]["p_holm"] < 0.05 for n in non_baseline) + sum(
+        e["p_holm"] < 0.05 for e in families[0][1]
+    )
+    coach_lower_mse = bool(evals[GENERAL_NAME]["wf"]["mse"] < evals[NO_COACH_NAME]["wf"]["mse"])
+    coach_helps = bool(coach_lower_mse and coach_vs_no_coach_mse["hi"] < 0)
+    general_terms = set(GEN_FEATURES) | {f"{b}_2" for b in GEN_POLY} | {f"{b}_3" for b, d in GEN_POLY.items() if d >= 3}
+    feature_ridge_matches_general = set(best_feature_list) == general_terms
 
     lines: list[str] = []
     lines.append(f"# Predictive Analysis Report ({run_tag})")
     lines.append("")
     lines.append("## Headline")
     lines.append(
-        f"- Seed-only baseline (mean round of each seed in the training seasons): walk-forward "
-        f"{wf_years[0]}-{wf_years[-1]} MAE `{base['wf']['mae']:.4f}`, RMSE `{base['wf']['rmse']:.4f}`; "
-        f"{hy} holdout MAE `{base['holdout']['mae']:.4f}`, RMSE `{base['holdout']['rmse']:.4f}`."
+        "- **Metrics.** Every model is fit by least squares, so the headline is walk-forward RMSE against the "
+        "per-seed **mean**, the best seed-only predictor under squared error. MAE is minimised by the median, so "
+        "MAE is scored against the per-seed **median**. Scored against the seed mean instead, a least-squares "
+        "model's MAE gain mostly measures the mean's mismatch with the metric (Section 4 shows both)."
     )
     lines.append(
-        f"- Best model by pre-holdout walk-forward MSE: `{recommended}`. Walk-forward MAE "
-        f"`{rec_ev['wf']['mae']:.4f}` ({pct_better(rec_ev['wf']['mae'], base['wf']['mae']):+.1f}% vs baseline), "
-        f"RMSE `{rec_ev['wf']['rmse']:.4f}` ({pct_better(rec_ev['wf']['rmse'], base['wf']['rmse']):+.1f}%); "
-        f"{hy} holdout MAE `{rec_ev['holdout']['mae']:.4f}` "
-        f"({pct_better(rec_ev['holdout']['mae'], base['holdout']['mae']):+.1f}%), RMSE "
-        f"`{rec_ev['holdout']['rmse']:.4f}` ({pct_better(rec_ev['holdout']['rmse'], base['holdout']['rmse']):+.1f}%)."
+        f"- **Seed-only baselines** (fit on training seasons only), walk-forward {wf_years[0]}-{wf_years[-1]}: "
+        f"seed mean RMSE `{base['wf']['rmse']:.4f}` (MAE `{base['wf']['mae']:.4f}`); seed median MAE "
+        f"`{med['wf']['mae']:.4f}` (RMSE `{med['wf']['rmse']:.4f}`). {hy} holdout: seed mean RMSE "
+        f"`{base['holdout']['rmse']:.4f}`, seed median MAE `{med['holdout']['mae']:.4f}`."
+    )
+    rmse_gains = [pct_better(evals[n]["wf"]["rmse"], base["wf"]["rmse"]) for n in non_baseline]
+    mse_clear = [n for n in non_baseline if mse_tests[n]["hi"] < 0]
+    mse_holm = [n for n in non_baseline if mse_tests[n]["p_holm"] < 0.05]
+    mae_clear = [n for n in non_baseline if mae_tests[n]["hi"] < 0]
+
+    def name_list(names: list[str]) -> str:
+        return ", ".join(f"`{n}`" for n in names) if names else "none"
+
+    lines.append(
+        f"- **Bottom line.** On walk-forward RMSE the {len(non_baseline)} candidates are "
+        f"{min(rmse_gains):+.1f}% to {max(rmse_gains):+.1f}% against the seed mean. The 95% interval on the "
+        f"per-season MSE gap excludes zero for {len(mse_clear)} of them ({name_list(mse_clear)}); after Holm "
+        f"adjustment, {len(mse_holm)} keep p < 0.05. On MAE, the candidates that beat the per-seed median with an "
+        f"interval below zero: {name_list(mae_clear)}."
+    )
+    lines.append(f"- **`{GENERAL_NAME}`** (pipeline default when the stack is off): {model_line(GENERAL_NAME)}")
+    lines.append(f"- **`{STACK_NAME}`** (general model + 14 seed-band models): {model_line(STACK_NAME)}")
+    lines.append(
+        f"- **Do the seed models help?** Stack minus general, walk-forward per-season MSE gap "
+        f"`{stack_vs_general_mse['d']:+.4f}` {format_ci(stack_vs_general_mse)}, lower in "
+        f"{stack_vs_general_mse['seasons_better']} of {stack_vs_general_mse['n_seasons']} seasons. The stack "
+        f"{stack_verdict} Pipeline default: `{default_model}` (`model.use_seed_models: {str(stack_helps).lower()}`)."
+    )
+    lowest_ev = evals[lowest_mse]
+    lines.append(
+        f"- **Lowest walk-forward MSE: `{lowest_mse}`** (RMSE `{lowest_ev['wf']['rmse']:.4f}`). It is the best of "
+        f"{len(non_baseline)} candidates on the same {n_wf} seasons it is scored on, so that walk-forward number is "
+        f"optimistic (winner's curse). Its {hy} holdout score is the clean one: RMSE `{lowest_ev['holdout']['rmse']:.4f}` "
+        f"({pct_better(lowest_ev['holdout']['rmse'], base['holdout']['rmse']):+.1f}% vs seed mean)."
     )
     lines.append(
-        f"- Walk-forward gap to the baseline, 95% season-bootstrap interval: MAE "
-        f"`{rec_boot['d_mae']:+.4f}` [{rec_boot['d_mae_lo']:+.4f}, {rec_boot['d_mae_hi']:+.4f}], RMSE "
-        f"`{rec_boot['d_rmse']:+.4f}` [{rec_boot['d_rmse_lo']:+.4f}, {rec_boot['d_rmse_hi']:+.4f}]; lower MAE than "
-        f"the baseline in {rec_boot['seasons_better_mae']} of {rec_boot['n_seasons']} test seasons."
+        f"- **Multiplicity.** After Holm adjustment over the {n_primary} primary (MSE) comparisons, "
+        f"{n_mse_holm_sig} of {n_primary} gaps have adjusted p < 0.05. Intervals in this report are unadjusted "
+        "95% Student-t intervals over seasons."
     )
-    if recommended == winner_name:
-        lines.append(
-            f"- `{winner_name}` kept its grouped-CV hyperparameters in walk-forward, so its walk-forward score is "
-            f"mildly optimistic; the {hy} holdout is the clean number for it."
+    lines.append(
+        f"- **Holdout provenance.** {hy} is excluded from every fit and every selection step in this script and "
+        f"scored once. It is not blind to feature design: the {len(COACH_FEATURES)} coach features in `GEN_FEATURES` "
+        "were added after the 2025 tournament (absent at commit 0f6eb0c, 2026-01-31; the decision log in "
+        "`docs/modeling_plan.md` dates them 2026-03), and every seed model consumes the general model's `predround`. "
+        f"`{NO_COACH_NAME}` drops them, which leaves the `predround` model of `madness.R` at commit 21a1e96 "
+        "(2025-01-16) minus `WAB`, a column the current data does not have: "
+        f"{model_line(NO_COACH_NAME)} The 14 seed-band lists come from the same commit, less `WAB` (Section 5)."
+    )
+    lines.append(
+        f"- **Do the coach features help?** `{GENERAL_NAME}` minus `{NO_COACH_NAME}`, walk-forward per-season MSE gap "
+        f"`{coach_vs_no_coach_mse['d']:+.4f}` {format_ci(coach_vs_no_coach_mse)} (Holm p "
+        f"`{coach_vs_no_coach_mse['p_holm']:.3f}`), lower with them in {coach_vs_no_coach_mse['seasons_better']} of "
+        f"{coach_vs_no_coach_mse['n_seasons']} seasons; {hy} holdout RMSE `{evals[GENERAL_NAME]['holdout']['rmse']:.4f}` "
+        f"with them vs `{evals[NO_COACH_NAME]['holdout']['rmse']:.4f}` without. "
+        + (
+            "They earn their place by the same MSE rule as the seed models."
+            if coach_helps
+            else "By the same MSE rule used for the seed models, they are not shown to help."
         )
-    if not rec_beats_baseline:
-        lines.append("- **No model beats the seed-only baseline on walk-forward MSE.**")
-    lines.append(f"- Seed-stratified stack {stack_verdict}")
+    )
     lines.append(
-        "- Positive % = lower error than the baseline. Error is in rounds won (0-6). "
+        "- Positive % = lower error than the reference baseline. Error is in rounds won (0-6). "
         f"The {hy} holdout is one bracket of {len(holdout_df)} teams, so it is a single noisy draw."
     )
     lines.append("")
@@ -1395,7 +1573,8 @@ def main() -> int:
     lines.append(f"- search_depth: `{args.search_depth}`")
     lines.append(f"- random_state: `{args.random_state}`")
     lines.append(f"- pipeline_ridge_alpha_grid (configs/default.yaml): `{pipeline_cfg['ridge_alpha_grid']}`")
-    lines.append(f"- bootstrap_draws: `{DEFAULT_BOOTSTRAP_DRAWS}`")
+    lines.append(f"- pipeline_use_seed_models (configs/default.yaml): `{str(pipeline_cfg['use_seed_models']).lower()}`")
+    lines.append(f"- interval: `{int(CI_LEVEL * 100)}% Student-t over walk-forward seasons, Holm within each family`")
     lines.append("")
     lines.append("## Validation Protocol")
     lines.append(
@@ -1409,20 +1588,32 @@ def main() -> int:
     )
     lines.append(
         f"- **Walk-forward**: for each test season Y in {wf_years[0]}-{wf_years[-1]}, fit on every season before Y "
-        "and predict Y. Ridge alphas are re-tuned inside each training window. The search winner's "
-        "hyperparameters stay at the values grouped CV picked on all pre-holdout seasons, which include these "
-        "test seasons, so its walk-forward score is mildly optimistic; the baseline, general ridge and stack "
-        "select nothing outside the window."
-    )
-    lines.append(f"- **Blind holdout**: {hy}, fit on every season before it and scored once. Nothing is selected on it.")
-    lines.append(
-        "- **Seed-only baseline**: predicted round = mean round of that seed in the training seasons only."
+        "and predict Y. Ridge alphas are re-tuned inside each training window. The baselines, `general_ridge` and "
+        "the stack select nothing outside the window. Two candidates do: the feature set behind "
+        f"`{feature_ridge_name}` and `{winner_name}`, and the search winner's hyperparameters, were chosen by "
+        "grouped CV over all pre-holdout seasons, which include these test seasons, so their walk-forward scores "
+        "are mildly optimistic."
     )
     lines.append(
-        f"- **Stack**: seed-model training rows get out-of-fold `predround` (general model refit without that "
+        f"- **Holdout**: {hy}, fit on every season before it and scored once. Nothing in this script is selected "
+        "on it; see Holdout provenance above for what was decided outside the script after that tournament."
+    )
+    lines.append(
+        "- **Seed-only baselines**: predicted round = mean (RMSE reference) or median (MAE reference) round of "
+        "that seed in the training seasons only."
+    )
+    lines.append(
+        "- **Stack**: seed-model training rows get out-of-fold `predround` (general model refit without that "
         "season, inside the training window); test rows get `predround` from the general model fit on the "
         "whole window. `general_ridge` and `seed_stratified_stack` call the pipeline code in "
         "`src/pipelines/madness.py` directly."
+    )
+    lines.append(
+        f"- **Uncertainty**: every gap is a mean of per-season differences over the {n_wf} walk-forward seasons, "
+        f"with a {int(CI_LEVEL * 100)}% Student-t interval ({n_wf - 1} df), a t-test p-value, a Holm-adjusted p "
+        "within its family, and a two-sided sign test on the season count. Primary family: MSE vs the seed mean "
+        "for each model, stack vs general, and the general model with vs without the coach features. Secondary "
+        "family: the same comparisons on MAE, with the seed median as the baseline."
     )
     lines.append(
         "- All predictions are clipped to [0, 6] before scoring. Spearman is the mean within-season rank "
@@ -1458,6 +1649,10 @@ def main() -> int:
     lines.append("")
     lines.append("## Section 2: Feature Optimization (ridge, season-grouped CV)")
     lines.append("`wf_*` columns are walk-forward scores for the top 3 sets by CV MSE (alpha re-tuned per window).")
+    lines.append(
+        "The kitchen-sink set is every numeric column except outcomes, `PAKE`/`PASE`, `year` and table-parse "
+        "artifacts (`blank`, `_extra_*`)."
+    )
     lines.append("")
     lines.append(markdown_table(feature_results, max_rows=None, float_digits=4))
     lines.append("")
@@ -1485,7 +1680,7 @@ def main() -> int:
     lines.append(f"- winning_cv_mse: `{float(winner_row['cv_mse']):.6f}`")
     lines.append(f"- winning_cv_mae: `{float(winner_row['cv_mae']):.6f}`")
     lines.append("")
-    lines.append("## Section 4: Head-to-Head vs the Seed-Only Baseline (identical folds)")
+    lines.append("## Section 4: Head-to-Head vs the Seed-Only Baselines (identical folds)")
     lines.append(
         f"Every row is fit and scored on the same splits: `cv_*` = {cv_label} on seasons < {hy}; "
         f"`wf_*` = walk-forward {wf_years[0]}-{wf_years[-1]}; `holdout_{hy}_*` = fit on seasons < {hy}, scored on {hy}."
@@ -1493,27 +1688,46 @@ def main() -> int:
     lines.append("")
     lines.append(markdown_table(h2h_df, max_rows=None, float_digits=4))
     lines.append("")
-    lines.append("### Gap to the Baseline")
+    lines.append("### RMSE vs the Seed-Mean Baseline (primary)")
     lines.append(
-        "`d_*` = model minus baseline (negative = better). Intervals resample the walk-forward test seasons with "
-        f"replacement ({DEFAULT_BOOTSTRAP_DRAWS} draws); with {len(wf_years)} seasons they are wide."
+        "`wf_d_mse` = mean over walk-forward seasons of (model MSE - seed-mean MSE); negative = better. "
+        f"`p_holm` is adjusted over {n_primary} comparisons: these rows, stack vs general (Section 5) and "
+        f"`{GENERAL_NAME}` vs `{NO_COACH_NAME}` (Headline). "
+        "`p_sign` is a two-sided sign test on `seasons_better`."
     )
     lines.append("")
-    lines.append(markdown_table(vs_df, max_rows=None, float_digits=4))
+    lines.append(markdown_table(rmse_vs_df, max_rows=None, float_digits=4))
+    lines.append("")
+    lines.append("### MAE vs the Seed-Median Baseline (secondary)")
+    lines.append(
+        "`wf_d_mae` = mean over walk-forward seasons of (model MAE - seed-median MAE). The last column scores the "
+        "same MAE against the seed mean instead, to show how much a mean baseline flatters a least-squares model "
+        "on MAE."
+    )
+    lines.append("")
+    lines.append(markdown_table(mae_vs_df, max_rows=None, float_digits=4))
     lines.append("")
     lines.append(
-        f"- `{winner_name}`: hyperparameters chosen by grouped CV over seasons that include the walk-forward test "
-        "seasons (see Validation Protocol)."
+        f"- `{winner_name}` and `{feature_ridge_name}`: feature set (and, for the search winner, hyperparameters) "
+        "chosen by grouped CV over seasons that include the walk-forward test seasons (see Validation Protocol)."
     )
-    lines.append(f"- `{feature_ridge_name}`: the CV-selected feature set; its alpha is re-tuned inside each window.")
+    if feature_ridge_matches_general:
+        lines.append(
+            f"- `{feature_ridge_name}` uses the same features as `{GENERAL_NAME}`. They differ in the alpha grid, the "
+            "CV used to tune alpha, and missing values (median imputation here, 0 in the pipeline)."
+        )
+    lines.append(
+        f"- `{NO_COACH_NAME}` is `{GENERAL_NAME}` without the {len(COACH_FEATURES)} coach features (see Holdout "
+        "provenance)."
+    )
     lines.append("")
-    lines.append(f"![Walk-forward MAE by season]({figures_rel}/{walk_forward_path.name})")
-    lines.append("")
-    lines.append("### Walk-Forward MAE by Test Season")
-    lines.append(markdown_table(per_season_mae, max_rows=None, float_digits=4))
+    lines.append(f"![Walk-forward error by season]({figures_rel}/{walk_forward_path.name})")
     lines.append("")
     lines.append("### Walk-Forward RMSE by Test Season")
     lines.append(markdown_table(per_season_rmse, max_rows=None, float_digits=4))
+    lines.append("")
+    lines.append("### Walk-Forward MAE by Test Season")
+    lines.append(markdown_table(per_season_mae, max_rows=None, float_digits=4))
     lines.append("")
     lines.append("## Section 5: Do the Seed-Stratified Models Help?")
     lines.append(
@@ -1527,33 +1741,66 @@ def main() -> int:
     )
     lines.append("")
     lines.append(
-        "Rule for `model.use_seed_models`: keep the stack only if it has lower walk-forward MAE and MSE than the "
-        "general model and at least one season-bootstrap interval for the gap excludes zero."
+        "Rule for `model.use_seed_models`, decided on MSE (the loss every model is fit with and the metric "
+        "candidates are ranked by): keep the stack only if its walk-forward MSE is lower than the general model's "
+        "AND the 95% t-interval on the per-season MSE gap lies below zero. This rule was written after the "
+        "walk-forward results had been seen. An earlier version of this report used an MAE-based rule and kept "
+        "the stack; MAE favours models that shrink seeds 13-16 toward 0 (the median), which is not evidence that "
+        "the hand-picked lists add signal."
     )
     lines.append("")
     lines.append(f"- The stack {stack_verdict}")
     lines.append(
-        f"- Stack minus general, walk-forward: MAE `{stack_vs_general['d_mae']:+.4f}` "
-        f"[{stack_vs_general['d_mae_lo']:+.4f}, {stack_vs_general['d_mae_hi']:+.4f}], RMSE "
-        f"`{stack_vs_general['d_rmse']:+.4f}` [{stack_vs_general['d_rmse_lo']:+.4f}, "
-        f"{stack_vs_general['d_rmse_hi']:+.4f}]; stack has the lower MAE in "
-        f"{stack_vs_general['seasons_better_mae']} of {stack_vs_general['n_seasons']} seasons."
+        f"- Stack minus general, walk-forward: MSE `{stack_vs_general_mse['d']:+.4f}` {format_ci(stack_vs_general_mse)} "
+        f"(t-test p `{stack_vs_general_mse['p_t']:.3f}`, Holm p `{stack_vs_general_mse['p_holm']:.3f}`; lower in "
+        f"{stack_vs_general_mse['seasons_better']} of {stack_vs_general_mse['n_seasons']} seasons, sign-test p "
+        f"`{stack_vs_general_mse['p_sign']:.3f}`); MAE `{stack_vs_general_mae['d']:+.4f}` "
+        f"{format_ci(stack_vs_general_mae)} (Holm p `{stack_vs_general_mae['p_holm']:.3f}`; lower in "
+        f"{stack_vs_general_mae['seasons_better']} of {stack_vs_general_mae['n_seasons']} seasons, sign-test p "
+        f"`{stack_vs_general_mae['p_sign']:.3f}`)."
     )
-    lines.append(
-        f"- Stack vs baseline, walk-forward: MAE {pct_better(stack_wf['mae'], base['wf']['mae']):+.1f}%, "
-        f"RMSE {pct_better(stack_wf['rmse'], base['wf']['rmse']):+.1f}%. General vs baseline: MAE "
-        f"{pct_better(general_wf['mae'], base['wf']['mae']):+.1f}%, RMSE "
-        f"{pct_better(general_wf['rmse'], base['wf']['rmse']):+.1f}%."
-    )
+    if stack_wf["mae"] < general_wf["mae"]:
+        lines.append(
+            f"- Where the MAE edge comes from: seeds {low_seeds['seeds']} contribute "
+            f"`{100 * low_seeds['share_of_stack_mae_gain']:.0f}%` of the stack's walk-forward MAE gain over the general "
+            f"model. There the stack predicts exactly 0 for `{100 * low_level[f'{STACK_NAME}_share_at_0']:.0f}%` of "
+            f"teams (general: `{100 * low_level[f'{GENERAL_NAME}_share_at_0']:.0f}%`) and averages "
+            f"`{low_level[f'{STACK_NAME}_mean']:.3f}` against an actual mean of `{low_level['actual_mean']:.3f}` "
+            f"(general: `{low_level[f'{GENERAL_NAME}_mean']:.3f}`). The seed median, which predicts 0 for "
+            f"`{100 * low_level[f'{MEDIAN_BASELINE_NAME}_share_at_0']:.0f}%` of them, has MAE "
+            f"`{low_seeds[MEDIAN_BASELINE_NAME]:.4f}` there vs the stack's `{low_seeds[STACK_NAME]:.4f}`."
+        )
     lines.append("")
     lines.append("### Walk-Forward MAE by Seed Group")
-    lines.append(markdown_table(seed_group_df, max_rows=None, float_digits=4))
+    lines.append(
+        "`share_of_stack_mae_gain` = the group's part of the stack's total MAE gain over the general model "
+        "(groups are equal-sized; a negative share means the stack is worse there)."
+    )
+    lines.append("")
+    lines.append(markdown_table(seed_mae_df, max_rows=None, float_digits=4))
+    lines.append("")
+    lines.append("### Walk-Forward MSE by Seed Group")
+    lines.append(markdown_table(seed_mse_df, max_rows=None, float_digits=4))
+    lines.append("")
+    lines.append("### Prediction Level by Seed Group (walk-forward)")
+    lines.append(
+        "Mean prediction and share of predictions at exactly 0 (after clipping to [0, 6]), next to the actual "
+        "mean round and the share of teams that actually won 0 games."
+    )
+    lines.append("")
+    lines.append(markdown_table(seed_level_df, max_rows=None, float_digits=4))
     lines.append("")
     lines.append("### Why predround Must Be Out-of-Fold")
     lines.append(
         f"Seed-model leave-one-season-out MSE on seasons < {hy}, with `predround` from the in-sample general fit "
         "(the old pipeline) vs out-of-fold by season (now). `optimism` = how much the in-sample version flatters "
         "the score."
+    )
+    lines.append(
+        "Caveat: the out-of-fold column is built once over all these seasons, so when season s is held out of a "
+        "seed model's CV, its training rows' `predround` came from general models that saw s. That second-order "
+        "leak can make the `oof` column slightly optimistic, which would understate `optimism`. Walk-forward and "
+        "holdout scores rebuild the column inside each training window and are not affected."
     )
     lines.append("")
     lines.append(markdown_table(predround_df, max_rows=None, float_digits=4))
@@ -1565,13 +1812,13 @@ def main() -> int:
     lines.append("")
     lines.append(f"## Section 6: Holdout {hy} Detail + Final Retrain")
     lines.append(f"- holdout_rows_scored: `{len(holdout_output)}`")
-    lines.append(f"- recommended model on the holdout: `{recommended}`")
+    lines.append(f"- pipeline default model: `{default_model}`")
     lines.append(f"- final_retrain_rows (search winner, all seasons): `{len(y_all)}`")
     lines.append(f"- model_artifact (search winner, not committed): `{model_artifact_path.relative_to(REPO_ROOT)}`")
     lines.append("")
     lines.append(f"![Holdout Actual vs Predicted]({figures_rel}/{holdout_scatter_path.name})")
     lines.append("")
-    lines.append(f"### Holdout Prediction Table (`{recommended}`, top 20 by predicted round)")
+    lines.append(f"### Holdout Prediction Table (top 20 by `{default_model}`)")
     lines.append(markdown_table(holdout_output.head(20), max_rows=None, float_digits=4))
     lines.append("")
     lines.append(f"### Search Winner Feature Importance ({winner_algorithm})")
@@ -1580,23 +1827,35 @@ def main() -> int:
     lines.append(markdown_table(winner_importance_df.head(25), max_rows=None, float_digits=6))
     lines.append("")
     lines.append("## Recommendation")
-    if rec_beats_baseline:
-        lines.append(
-            f"Use `{recommended}`: lowest walk-forward MSE on seasons before {hy}, ahead of the seed-only baseline by "
-            f"{pct_better(rec_ev['wf']['mae'], base['wf']['mae']):+.1f}% MAE and "
-            f"{pct_better(rec_ev['wf']['rmse'], base['wf']['rmse']):+.1f}% RMSE. Read the gap against the bootstrap "
-            "interval above before calling it real."
-        )
-    else:
-        lines.append(
-            f"None of the models beats the seed-only baseline on walk-forward MSE. `{recommended}` comes closest; "
-            "treat the stats-based models as no better than seed until a feature set clears the baseline."
-        )
-    lines.append("")
+    default_mse = mse_tests[default_model]
+    default_mae = mae_tests[default_model]
     lines.append(
-        f"Seed-stratified models: the walk-forward evidence says {'keep them' if stack_helps else 'leave them off'}. "
-        f"`model.use_seed_models` in `configs/default.yaml` is currently "
-        f"`{str(pipeline_cfg['use_seed_models']).lower()}`."
+        f"- Pipeline default: `{default_model}` (`model.use_seed_models: {str(stack_helps).lower()}`), from the MSE "
+        f"rule in Section 5. `configs/default.yaml` currently has `use_seed_models: "
+        f"{str(pipeline_cfg['use_seed_models']).lower()}`"
+        + (", which matches." if config_matches else ", which does NOT match; change it.")
+    )
+    lines.append(
+        f"- Against seed alone, `{default_model}` is {pct_better(evals[default_model]['wf']['rmse'], base['wf']['rmse']):+.1f}% "
+        f"on walk-forward RMSE (per-season MSE gap interval {includes_zero(default_mse)}) and "
+        f"{pct_better(evals[default_model]['wf']['mae'], med['wf']['mae']):+.1f}% on walk-forward MAE vs the seed "
+        f"median (interval {includes_zero(default_mae)})."
+    )
+    lines.append(
+        f"- Lowest walk-forward MSE: `{lowest_mse}`, "
+        f"{pct_better(evals[lowest_mse]['wf']['rmse'], base['wf']['rmse']):+.1f}% RMSE vs seed mean in walk-forward "
+        f"(unadjusted interval {includes_zero(mse_tests[lowest_mse])}; Holm p `{mse_tests[lowest_mse]['p_holm']:.3f}`; "
+        "optimistic as the best of several) and "
+        f"{pct_better(evals[lowest_mse]['holdout']['rmse'], base['holdout']['rmse']):+.1f}% on the {hy} holdout."
+    )
+    lines.append(
+        f"- Coach features: {'kept by' if coach_helps else 'not supported by'} the same walk-forward MSE rule "
+        f"(gap {format_ci(coach_vs_no_coach_mse)}). `GEN_FEATURES` still includes them; this script reports the "
+        "ablation and does not change the pipeline's feature list."
+    )
+    lines.append(
+        "- Read every gap here against its interval: with "
+        f"{n_wf} walk-forward seasons, a few percent is within season-to-season noise."
     )
 
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")

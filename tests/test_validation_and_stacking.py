@@ -175,3 +175,119 @@ def test_run_analysis_recipes_only_see_earlier_or_other_seasons() -> None:
         assert max(train_years) < min(test_years)
     assert result["n_seasons"] == 5  # 2013-2017
     assert set(result["per_split"]["split"]) == {2013, 2014, 2015, 2016, 2017}
+
+
+def test_seed_median_baseline_is_the_mae_reference() -> None:
+    train = pd.DataFrame(
+        {"year": [2010] * 3 + [2011] * 3, "seed": [16.0, 16.0, 1.0, 16.0, 1.0, 1.0], "round": [0, 0, 6, 1, 2, 4]}
+    )
+    test = pd.DataFrame({"seed": [1.0, 16.0]})
+    mean = madness.predict_seed_baseline(madness.fit_seed_baseline(train, stat="mean"), test)
+    median = madness.predict_seed_baseline(madness.fit_seed_baseline(train, stat="median"), test)
+    assert mean.tolist() == pytest.approx([4.0, 1 / 3])
+    assert median.tolist() == [4.0, 0.0]  # mostly-zero seeds: the median says 0, the mean does not
+    with pytest.raises(ValueError):
+        madness.fit_seed_baseline(train, stat="mode")
+
+
+def test_paired_season_test_uses_a_t_interval_over_seasons() -> None:
+    from scipy import stats
+
+    run_analysis = _load_run_analysis()
+    seasons = list(range(2013, 2021))
+    ref = pd.DataFrame({"split": seasons, "mse": [1.0] * 8, "mae": [0.7] * 8})
+    gaps = np.array([-0.10, -0.05, 0.02, -0.08, -0.01, 0.03, -0.06, -0.04])
+    model = ref.assign(mse=ref["mse"] + gaps)
+    out = run_analysis.paired_season_test(model, ref, "mse")
+    ci = stats.ttest_1samp(gaps, 0.0).confidence_interval(0.95)
+    assert out["d"] == pytest.approx(gaps.mean())
+    assert (out["lo"], out["hi"]) == (pytest.approx(ci.low), pytest.approx(ci.high))
+    assert out["p_t"] == pytest.approx(stats.ttest_1samp(gaps, 0.0).pvalue)
+    assert (out["seasons_better"], out["n_seasons"]) == (6, 8)
+    assert out["p_sign"] == pytest.approx(stats.binomtest(6, 8, 0.5).pvalue)
+
+
+def test_holm_adjust_matches_the_step_down_rule() -> None:
+    run_analysis = _load_run_analysis()
+    adjusted = run_analysis.holm_adjust([0.01, 0.04, 0.03, 0.5])
+    # sorted: 0.01*4=0.04, 0.03*3=0.09, 0.04*2=0.08 -> 0.09 (monotone), 0.5*1=0.5
+    assert adjusted == pytest.approx([0.04, 0.09, 0.09, 0.5])
+
+
+def test_kitchen_sink_drops_outcomes_leaks_and_parse_artifacts() -> None:
+    run_analysis = _load_run_analysis()
+    df = _synthetic_seasons(n_seasons=3)
+    df["PAKE"] = 0.0
+    df["blank"] = np.nan
+    df["_extra_42"] = df["seed"]
+    df["Champ"] = 0.0
+    specs = {s.name: s for s in run_analysis.build_feature_specs(df, rank_cols=[])}
+    sink = set(specs["kitchen_sink_numeric_no_leakage"].features)
+    assert {"Barthag", "seed"} <= sink
+    assert not sink & {"round", "Champ", "PAKE", "blank", "_extra_42", "year"}
+
+
+def test_tournament_model_frame_keeps_scored_tournament_rows_only() -> None:
+    df = pd.DataFrame(
+        {
+            "year": [2019, 2019, 2020, 2021, 2021],
+            "seed": [1.0, np.nan, 2.0, 3.0, 4.0],
+            "round": [2.0, 0.0, 1.0, np.nan, 0.0],
+        }
+    )
+    out = madness.tournament_model_frame(df, exclude_years=(2020,))
+    assert out[["year", "seed"]].values.tolist() == [[2019, 1.0], [2021, 4.0]]
+
+
+@pytest.mark.parametrize("use_seed_models", [False, True])
+def test_train_pipeline_models_fits_on_tournament_rows(use_seed_models: bool, monkeypatch) -> None:
+    # Smoke test for run_pipeline's modeling step, which used to end on an unfitted model:
+    # tournament_model_frame -> general model -> (OOF predround -> seed models) or nothing.
+    df = _synthetic_seasons(n_seasons=5)
+    df = pd.concat([df, df.head(4).assign(seed=np.nan, round=np.nan)], ignore_index=True)  # non-tournament rows
+    cfg = madness._validate_runtime_config(
+        {"model": {"use_seed_models": use_seed_models, "ridge_alpha_grid": [0.1, 1.0, 10.0]}}
+    )
+    model_data = madness.tournament_model_frame(df)
+    assert len(model_data) == len(df) - 4
+
+    seen: dict[str, pd.DataFrame] = {}
+    real_train_seed_models = madness.train_seed_models
+
+    def spy(frame: pd.DataFrame, **kwargs):
+        seen["frame"] = frame.copy()
+        return real_train_seed_models(frame, **kwargs)
+
+    monkeypatch.setattr(madness, "train_seed_models", spy)
+    columns_before = list(model_data.columns)
+    gen_model, gen_feats, gen_meta, seed_models, seed_meta = madness.train_pipeline_models(model_data, cfg)
+
+    assert list(model_data.columns) == columns_before  # the caller's frame is not modified
+    strength = madness.compute_strength(model_data, gen_model, gen_feats)
+    assert strength.notna().all() and abs(strength.mean() - model_data["round"].mean()) < 0.5
+    assert np.isfinite(gen_meta["mse"])
+    if use_seed_models:
+        # Seed models saw out-of-fold predround (general model refit without each season), not the in-sample fit.
+        expected = madness.oof_predround(model_data, ridge_alpha=gen_meta["ridge_alpha"])
+        np.testing.assert_allclose(seen["frame"][madness.PREDROUND_OOF_COL].to_numpy(), expected.to_numpy())
+        in_sample = madness.compute_strength(model_data, gen_model, gen_feats).to_numpy()
+        assert not np.allclose(seen["frame"][madness.PREDROUND_OOF_COL].to_numpy(), in_sample)
+        assert len(seed_models) == len(madness.SEED_MODELS)
+        assert all(np.isfinite(m["season_cv_mse"]) for m in seed_meta.values())
+    else:
+        assert "frame" not in seen  # seed models are never trained
+        assert seed_models == {} and seed_meta == {}
+
+
+def test_general_model_features_override_drops_columns() -> None:
+    df = _synthetic_seasons(n_seasons=4)
+    no_coach = [f for f in madness.GEN_FEATURES if not f.startswith("coach_")]
+    assert len(no_coach) < len(madness.GEN_FEATURES)
+    _, default_feats, _ = madness.train_general_model(df, ridge_alpha_grid=[1.0])
+    _, ablated_feats, _ = madness.train_general_model(df, ridge_alpha_grid=[1.0], features=no_coach)
+    assert any(f.startswith("coach_") for f in default_feats)
+    assert not any(f.startswith("coach_") for f in ablated_feats)
+    assert {"Barthag_2", "AdjDE_2", "seed_2", "seed_3"} <= set(ablated_feats)  # GEN_POLY still applies
+    test = df[df["year"] == df["year"].max()]
+    pred = madness.fit_predict_general(df, test, ridge_alpha_grid=[1.0], features=no_coach)
+    assert pred.shape == (len(test),) and np.isfinite(pred).all()
