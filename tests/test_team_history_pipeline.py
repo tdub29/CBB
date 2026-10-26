@@ -160,10 +160,42 @@ def test_compute_coach_stats_skips_2020_and_counts_tournament_only() -> None:
     out = madness.compute_coach_stats_from_history(team_year, history, exclude_years=(2020,))
     row = out.iloc[0]
     assert row["coach"] == "Coach A"
-    assert row["coach_tourn_appearances_5y"] == 4
-    assert row["coach_tourn_wins_5y"] == 4
-    assert row["coach_tourn_losses_5y"] == 4
+    # Window is 2019, 2021-2023: 2019 E8 (3-1), 2021 R64 (0-1), 2023 R64 (0-1). The 2024 R32 is the
+    # season being predicted, 2020 is excluded, and the empty 2022 finish is not a tournament.
+    assert row["coach_tourn_appearances_5y"] == 3
+    assert row["coach_tourn_wins_5y"] == 3
+    assert row["coach_tourn_losses_5y"] == 3
     assert row["coach_years_with_program"] == 2
+
+
+def test_years_last_5_tournaments_excludes_current_and_2020() -> None:
+    assert madness._years_last_5_tournaments(2024, (2020,)) == [2019, 2021, 2022, 2023]
+    assert madness._years_last_5_tournaments(2021, (2020,)) == [2016, 2017, 2018, 2019]
+    assert madness._years_last_5_tournaments(2026, (2020,)) == [2021, 2022, 2023, 2024, 2025]
+
+
+def test_compute_coach_stats_ignores_current_season_finish() -> None:
+    # Coach features feed models that predict the current season's round, so the
+    # current finish must not move them (a deep run would otherwise leak the target).
+    def _stats(current_finish: str) -> pd.Series:
+        history = pd.DataFrame(
+            [
+                {"team": "Alpha", "year": 2024, "coach": "Coach A", "finish": current_finish},
+                {"team": "Alpha", "year": 2023, "coach": "Coach A", "finish": "Sweet Sixteen"},
+                {"team": "Alpha", "year": 2018, "coach": "Coach A", "finish": "CHAMPS"},
+            ]
+        )
+        team_year = pd.DataFrame([{"Team": "Alpha", "year": 2024}])
+        return madness.compute_coach_stats_from_history(team_year, history, exclude_years=(2020,)).iloc[0]
+
+    lost_early = _stats("R64")
+    champion = _stats("CHAMPS")
+    for c in ["coach_tourn_appearances_5y", "coach_tourn_wins_5y", "coach_tourn_losses_5y", "coach_years_with_program"]:
+        assert lost_early[c] == champion[c]
+    # Only 2023 is inside the window; 2018 is six seasons back.
+    assert champion["coach_tourn_appearances_5y"] == 1
+    assert champion["coach_tourn_wins_5y"] == 2
+    assert champion["coach_tourn_losses_5y"] == 1
 
 
 def test_build_training_from_all_tables_integration(monkeypatch, tmp_path: Path) -> None:
