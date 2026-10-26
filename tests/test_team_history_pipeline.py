@@ -198,6 +198,67 @@ def test_compute_coach_stats_ignores_current_season_finish() -> None:
     assert champion["coach_tourn_losses_5y"] == 1
 
 
+def test_compute_coach_stats_tenure_spans_excluded_2020() -> None:
+    # 2020 lost only its tournament; the season was played, so it counts toward tenure.
+    def _tenure(rows: list[tuple[int, str]]) -> int:
+        history = pd.DataFrame([{"team": "Alpha", "year": y, "coach": c, "finish": ""} for y, c in rows])
+        team_year = pd.DataFrame([{"Team": "Alpha", "year": 2021}])
+        out = madness.compute_coach_stats_from_history(team_year, history, exclude_years=(2020,))
+        return int(out.iloc[0]["coach_years_with_program"])
+
+    # Same coach 2018-2021: 4 seasons whether or not history has a 2020 row.
+    assert _tenure([(2018, "Coach A"), (2019, "Coach A"), (2020, "Coach A"), (2021, "Coach A")]) == 4
+    assert _tenure([(2018, "Coach A"), (2019, "Coach A"), (2021, "Coach A")]) == 4
+    # A missing 2020 row is only bridged when the same coach is on both sides.
+    assert _tenure([(2019, "Coach Z"), (2021, "Coach A")]) == 1
+    assert _tenure([(2019, "Coach Z"), (2020, "Coach A"), (2021, "Coach A")]) == 2
+
+
+def test_build_training_from_all_tables_keeps_2020_for_coach_tenure(monkeypatch, tmp_path: Path) -> None:
+    all_tables = tmp_path / "all_trank_team_tables.csv"
+    _make_all_tables_csv(all_tables, [{"TEAM": "Alpha", "YEAR": 2021}, {"TEAM": "Beta", "YEAR": 2021}])
+
+    def _mock_history(**kwargs):
+        hist = pd.DataFrame(
+            [
+                {"team": "Alpha", "year": 2021, "coach": "Coach A", "seed": 3, "finish": "R64", "conf": "ACC"},
+                {"team": "Alpha", "year": 2020, "coach": "Coach A", "finish": "", "conf": "ACC"},
+                {"team": "Alpha", "year": 2019, "coach": "Coach A", "seed": 5, "finish": "R32", "conf": "ACC"},
+                {"team": "Beta", "year": 2021, "coach": "Coach B", "seed": 9, "finish": "R64", "conf": "SEC"},
+                {"team": "Beta", "year": 2020, "coach": "Coach B", "finish": "", "conf": "SEC"},
+                {"team": "Beta", "year": 2019, "coach": "Coach Z", "finish": "", "conf": "SEC"},
+            ]
+        )
+        for c in madness.TEAM_HISTORY_CANONICAL_COLS:
+            if c not in hist.columns:
+                hist[c] = ""
+        return hist[madness.TEAM_HISTORY_CANONICAL_COLS], []
+
+    monkeypatch.setattr(madness, "build_team_history_all", _mock_history)
+    _, full = madness.build_training_from_all_tables(
+        all_tables_path=all_tables,
+        team_history_cache_path=tmp_path / "team_history_cache.csv",
+        ext_data_dir=tmp_path,
+        data_raw_dir=tmp_path,
+        run_tag="20260101",
+        year_start=2021,
+        year_end=2021,
+        exclude_years=(2020,),
+        refresh_team_history=False,
+        team_history_delay_sec=0.0,
+        team_history_force_playwright=False,
+    )
+
+    # Training rows stay 2021-only, but tenure sees the 2019-2020 history (Beta's coach was hired for 2020).
+    assert set(full["year"]) == {2021}
+    tenure = full.set_index("Team")["coach_years_with_program"]
+    assert tenure["Alpha"] == 3
+    assert tenure["Beta"] == 2
+    appearances = full.set_index("Team")["coach_tourn_appearances_5y"]
+    assert appearances["Alpha"] == 1
+    assert appearances["Beta"] == 0
+
+
 def test_build_training_from_all_tables_integration(monkeypatch, tmp_path: Path) -> None:
     all_tables = tmp_path / "all_trank_team_tables.csv"
     _make_all_tables_csv(
