@@ -3,7 +3,7 @@
 - Lead coach metric: `coach_tourn_games_5y` (`Coach tourney games (5y)`) with seed-adjusted rho `+0.074` on `2013+` seasons.
 - `coach_years_with_program` seed-adjusted rho: `+0.059`.
 - Support metric `coach_tourn_win_pct_5y` seed-adjusted rho: `+0.064`.
-- Interpretation: coach experience belongs in the Day 3 argument as a co-headline track, but recent March reps and tenure do not carry the exact same signal strength.
+- Interpretation: raw rho for `coach_tourn_games_5y` is `+0.375` but `+0.074` within seed, so most of the raw association runs through seed.
 
 ## Table
 
