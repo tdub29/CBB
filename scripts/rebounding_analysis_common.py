@@ -158,7 +158,6 @@ def get_rebounding_base_paths() -> dict[str, Path]:
         "input_sample": project_root / "data" / "processed" / "rebounding_sample.csv",
         "metric_selection": project_root / "reports" / "rebounding_metric_selection.csv",
         "seeds_2026": project_root / "data" / "raw" / "2026_expected_seeds_update.csv",
-        "thread_dir": project_root / "reports" / "figures" / "rebounding_thread",
     }
 
 

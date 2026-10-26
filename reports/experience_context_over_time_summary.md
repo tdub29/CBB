@@ -5,7 +5,7 @@
 - Coach metric rule: coach_tourn_games_5y led by only 0.015, below the 0.05 switch threshold, so coach_tourn_games_5y remains the default.
 - Field-average `Exp.` moved from `1.68` in `2008` to `1.91` in `2026`.
 - Field-average `Coach tourney games (5y)` moved from `1.43` in `2013` to `1.34` in `2026`.
-- Interpretation: this page is setup only. It shows how experienced the field and the average head coach looked by season before testing whether either signal actually matters in March.
+- Interpretation: this is context only. It shows how experienced the field and the average head coach looked by season before testing whether either signal matters in March.
 
 ## Table
 

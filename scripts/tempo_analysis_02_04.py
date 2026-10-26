@@ -140,7 +140,7 @@ def plot_pooled(table: pd.DataFrame, over_df: pd.DataFrame, out_path: Path) -> N
     fig.text(
         0.5,
         0.90,
-        "Seed-adjusted pooled view for tempo only. This page now answers the cleanest version of the Day 8 question.",
+        "Seed-adjusted pooled view for tempo only: tournament finish relative to exact-seed expectation.",
         ha="center",
         va="center",
         fontsize=10.0,

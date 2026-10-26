@@ -74,7 +74,7 @@ def plot_context(table: pd.DataFrame, out_path: Path) -> None:
     fig.text(
         0.5,
         0.92,
-        "Field-level tournament averages from 2008-2026 with 2020 excluded. Day 6 keeps offensive and defensive rebounding separate.",
+        f"Field-level tournament averages, {int(years.min())}-{int(years.max())} (2020 excluded). Offensive and defensive rebounding are shown separately.",
         ha="center",
         va="center",
         fontsize=10.0,

@@ -1,7 +1,9 @@
 # Turnovers Analysis 5: Archetypes
 
 - Best archetype: `clean offense only` at `+0.099` overperformance points.
-- Interpretation: the best Day 4 teams pair clean possessions with enough disruption support to avoid empty-calorie turnover numbers.
+- Lowest archetype: `below both baselines` at `-0.197`.
+- Archetypes with a positive mean: `clean offense + live defense`, `clean offense only`.
+- Interpretation: descriptive only; differences between archetypes are not tested here. Every archetype has a negative median, so each positive mean comes from a minority of deep runs.
 
 ## Archetypes
 

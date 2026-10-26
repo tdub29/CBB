@@ -2,7 +2,7 @@
 
 - Player season-wide `Exp` rank edge was positive in `10` of `17` seasons, with the strongest year at `2009` (`+0.281`).
 - Coach experience (`Coach tourney games (5y)`) was positive in `10` of `12` plotted seasons, with the strongest year at `2021` (`+0.302`).
-- Interpretation: this page is the stability check. It asks whether player and coach experience behave like repeatable March signals or just occasional stories.
+- Interpretation: this is the stability check. It asks whether player and coach experience behave like repeatable March signals or only show up in occasional seasons.
 
 ## Table
 

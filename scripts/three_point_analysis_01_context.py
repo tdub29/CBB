@@ -138,7 +138,7 @@ def write_summary(context: pd.DataFrame, out_path: Path) -> None:
         "",
         f"- Field-average `3PRATE` moved from `{first['avg_three_prate']:.2f}` in 2008 to `{last['avg_three_prate']:.2f}` in {CURRENT_FIELD_YEAR}.",
         f"- Field-average `3P%` moved from `{first['avg_three_pct']:.2f}` in 2008 to `{last['avg_three_pct']:.2f}` in {CURRENT_FIELD_YEAR}.",
-        "- Interpretation: Day 5 needs modern context because three-point volume has drifted over time even before the bracket-specific tests start.",
+        "- Interpretation: three-point volume has drifted over time, so the later tournament tests need this era context.",
         "",
         "## Table",
         "",

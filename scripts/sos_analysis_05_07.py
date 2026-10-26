@@ -375,6 +375,17 @@ def cache_logo_images(field_table: pd.DataFrame, cache_dir: Path) -> pd.DataFram
     return merged
 
 
+def repo_relative_path(value: object) -> object:
+    """Express a local file path relative to the repo root (POSIX separators); other values pass through."""
+    if not isinstance(value, (str, Path)) or not str(value):
+        return value
+    path = Path(value)
+    try:
+        return path.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
 def choose_primary_metric(tournament_df: pd.DataFrame) -> str:
     elite_rho = float(tournament_df["finish_depth"].corr(tournament_df["Elite SOS"], method="spearman"))
     conf_rho = float(tournament_df["finish_depth"].corr(tournament_df["conf_avg_barthag"], method="spearman"))
@@ -1352,7 +1363,7 @@ def main() -> int:
         paths["logo_cache"],
     )
     plot_analysis_07(field_table, paths["fig_07"])
-    field_table.round(6).to_csv(paths["csv_07"], index=False)
+    field_table.assign(logo_path=field_table["logo_path"].map(repo_relative_path)).round(6).to_csv(paths["csv_07"], index=False)
     write_analysis_07_md(paths["md_07"], field_table, tournament_df, over_df)
 
     print(f"Primary metric: {primary_metric}")

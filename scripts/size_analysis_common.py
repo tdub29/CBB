@@ -471,3 +471,23 @@ def cache_logo_images(field_table: pd.DataFrame, cache_dir: Path) -> pd.DataFram
 
 def load_logo_image(logo_path: str | Path) -> Image.Image:
     return Image.open(logo_path).convert("RGBA")
+
+
+def repo_relative_path(value: object) -> object:
+    """Express a local file path relative to the repo root (POSIX separators); other values pass through."""
+    if not isinstance(value, (str, Path)) or not str(value):
+        return value
+    path = Path(value)
+    try:
+        return path.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def repo_relative_logo_paths(table: pd.DataFrame) -> pd.DataFrame:
+    """Copy of `table` for CSV export, with `logo_path` made machine-independent."""
+    if "logo_path" not in table.columns:
+        return table
+    exported = table.copy()
+    exported["logo_path"] = exported["logo_path"].map(repo_relative_path)
+    return exported
