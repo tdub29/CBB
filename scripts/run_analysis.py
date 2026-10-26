@@ -113,8 +113,9 @@ BASELINE_NAMES = (BASELINE_NAME, MEDIAN_BASELINE_NAME)
 GENERAL_NAME = "general_ridge"
 STACK_NAME = "seed_stratified_stack"
 # Ablation for the holdout's provenance: the coach features entered GEN_FEATURES after the
-# 2025 tournament. Without them the list is the predround model in madness.R at commit
-# 21a1e96 (2025-01-16) minus WAB, which the current training data does not have.
+# 2025 tournament. Without them the feature list is that of the predround model in
+# madness.R at commit 21a1e96 (2025-01-16) minus WAB, which the current training data does
+# not have. Only the list carries over: the R model was OLS without an intercept.
 NO_COACH_NAME = "general_ridge_no_coach"
 COACH_FEATURES = [f for f in GEN_FEATURES if f.startswith("coach_")]
 NO_COACH_FEATURES = [f for f in GEN_FEATURES if f not in COACH_FEATURES]
@@ -1125,6 +1126,7 @@ def main() -> int:
         df = pd.read_csv(csv_path)
     except pd.errors.ParserError:
         df = pd.read_csv(csv_path, engine="python")
+    input_shape = df.shape
     df = add_engineered_features(df)
     rank_base_cols = choose_rank_base_columns(df)
     df, rank_cols = add_rank_features(df, rank_base_cols)
@@ -1342,7 +1344,7 @@ def main() -> int:
     save_walk_forward_plot(per_season_long, walk_forward_path)
 
     # Lowest walk-forward MSE is reported, but it is a max over candidates scored on the
-    # same seasons, so it carries a winner's-curse bias; the holdout is its clean number.
+    # same seasons, so it carries a winner's-curse bias; the holdout is its less biased number.
     lowest_mse = min(non_baseline, key=lambda n: evals[n]["wf"]["mse"])
 
     # Section 5: Seed-stratified stack verdict.
@@ -1462,6 +1464,7 @@ def main() -> int:
     b_d = float(corr_triplet.loc["Barthag", "AdjDE"])
     od = float(corr_triplet.loc["AdjOE", "AdjDE"])
     n_pre_seasons = len(np.unique(pre_years))
+    pre_lo, pre_hi = int(pre_years.min()), int(pre_years.max())
     n_wf = len(wf_years)
     config_matches = bool(pipeline_cfg["use_seed_models"]) == stack_helps
 
@@ -1517,7 +1520,9 @@ def main() -> int:
         f"{min(rmse_gains):+.1f}% to {max(rmse_gains):+.1f}% against the seed mean. The 95% interval on the "
         f"per-season MSE gap excludes zero for {len(mse_clear)} of them ({name_list(mse_clear)}); after Holm "
         f"adjustment, {len(mse_holm)} keep p < 0.05. On MAE, the candidates that beat the per-seed median with an "
-        f"interval below zero: {name_list(mae_clear)}."
+        f"interval below zero: {name_list(mae_clear)}. Only the seed baselines are free of selection on the "
+        "walk-forward seasons, so every model-vs-seed walk-forward gap is optimistic by an unknown amount "
+        f"(Validation Protocol); the {hy} holdout is the least-biased comparison."
     )
     lines.append(f"- **`{GENERAL_NAME}`** (pipeline default when the stack is off): {model_line(GENERAL_NAME)}")
     lines.append(f"- **`{STACK_NAME}`** (general model + 14 seed-band models): {model_line(STACK_NAME)}")
@@ -1531,7 +1536,8 @@ def main() -> int:
     lines.append(
         f"- **Lowest walk-forward MSE: `{lowest_mse}`** (RMSE `{lowest_ev['wf']['rmse']:.4f}`). It is the best of "
         f"{len(non_baseline)} candidates on the same {n_wf} seasons it is scored on, so that walk-forward number is "
-        f"optimistic (winner's curse). Its {hy} holdout score is the clean one: RMSE `{lowest_ev['holdout']['rmse']:.4f}` "
+        f"optimistic (winner's curse). Its {hy} holdout score is the less biased number (see Holdout provenance): "
+        f"RMSE `{lowest_ev['holdout']['rmse']:.4f}` "
         f"({pct_better(lowest_ev['holdout']['rmse'], base['holdout']['rmse']):+.1f}% vs seed mean)."
     )
     lines.append(
@@ -1544,8 +1550,10 @@ def main() -> int:
         f"scored once. It is not blind to feature design: the {len(COACH_FEATURES)} coach features in `GEN_FEATURES` "
         "were added after the 2025 tournament (absent at commit 0f6eb0c, 2026-01-31; the decision log in "
         "`docs/modeling_plan.md` dates them 2026-03), and every seed model consumes the general model's `predround`. "
-        f"`{NO_COACH_NAME}` drops them, which leaves the `predround` model of `madness.R` at commit 21a1e96 "
-        "(2025-01-16) minus `WAB`, a column the current data does not have: "
+        f"`{NO_COACH_NAME}` drops them, which leaves the feature list of the `predround` model in `madness.R` at "
+        "commit 21a1e96 (2025-01-16) minus `WAB`, a column the current data does not have. Only the list carries "
+        "over: the R model was OLS without an intercept, scored by row-level jackknife; this one is ridge with an "
+        f"intercept and a season-grouped alpha. It is the only candidate whose whole feature list predates {hy}: "
         f"{model_line(NO_COACH_NAME)} The 14 seed-band lists come from the same commit, less `WAB` (Section 5)."
     )
     lines.append(
@@ -1588,11 +1596,15 @@ def main() -> int:
     )
     lines.append(
         f"- **Walk-forward**: for each test season Y in {wf_years[0]}-{wf_years[-1]}, fit on every season before Y "
-        "and predict Y. Ridge alphas are re-tuned inside each training window. The baselines, `general_ridge` and "
-        "the stack select nothing outside the window. Two candidates do: the feature set behind "
-        f"`{feature_ridge_name}` and `{winner_name}`, and the search winner's hyperparameters, were chosen by "
-        "grouped CV over all pre-holdout seasons, which include these test seasons, so their walk-forward scores "
-        "are mildly optimistic."
+        "and predict Y. Ridge alphas are re-tuned inside each training window; feature lists are not. Only the "
+        "seed baselines are free of selection on these seasons. `GEN_FEATURES` (less the coach features) and the "
+        "14 seed-band lists were hand-tuned in `madness.R` (commit 21a1e96, 2025-01-16), which kept a formula only "
+        "if its row-level jackknife MSE over the 2008-2024 tournament rows beat the best so far. The coach "
+        "features were added in 2026-03, with every season through 2025 available. The feature set behind "
+        f"`{feature_ridge_name}` and `{winner_name}`, and the search winner's algorithm and hyperparameters, were "
+        f"picked by grouped CV over {pre_lo}-{pre_hi}. So every model-vs-seed walk-forward gap is optimistic by "
+        f"an unknown amount, and so is every gap between models. The {hy} holdout is the least-biased comparison, "
+        f"and `{NO_COACH_NAME}` is the only candidate whose whole feature list predates {hy}."
     )
     lines.append(
         f"- **Holdout**: {hy}, fit on every season before it and scored once. Nothing in this script is selected "
@@ -1624,7 +1636,10 @@ def main() -> int:
     )
     lines.append("")
     lines.append("## Section 1: Data Profile")
-    lines.append(f"- dataset_shape: `{df.shape[0]} rows x {df.shape[1]} columns`")
+    lines.append(f"- input_csv_shape: `{input_shape[0]} rows x {input_shape[1]} columns`")
+    lines.append(
+        f"- dataset_shape (with engineered and rank features added): `{df.shape[0]} rows x {df.shape[1]} columns`"
+    )
     lines.append(f"- year_range: `{year_min}-{year_max}`")
     lines.append(f"- tournament_rows (seed+round non-null): `{tournament_rows}`")
     lines.append(f"- non_tournament_rows: `{non_tournament_rows}`")
@@ -1708,8 +1723,10 @@ def main() -> int:
     lines.append(markdown_table(mae_vs_df, max_rows=None, float_digits=4))
     lines.append("")
     lines.append(
-        f"- `{winner_name}` and `{feature_ridge_name}`: feature set (and, for the search winner, hyperparameters) "
-        "chosen by grouped CV over seasons that include the walk-forward test seasons (see Validation Protocol)."
+        "- Every row except the seed baselines carries selection on these seasons (see Validation Protocol): "
+        "feature lists hand-tuned in `madness.R` on 2008-2024, coach features added in 2026-03, and, for "
+        f"`{winner_name}` and `{feature_ridge_name}`, a feature set (and, for the search winner, hyperparameters) "
+        "chosen by grouped CV over seasons that include the walk-forward test seasons."
     )
     if feature_ridge_matches_general:
         lines.append(
@@ -1737,7 +1754,10 @@ def main() -> int:
     lines.append(
         "The 14 lists were hand-picked, not selected out of sample. 13 of them match `madness.R` as committed on "
         "2025-01-16 (commit 21a1e96) once the `WAB` terms are removed, and band 9 has since dropped `W`, so they "
-        f"were fixed before the {hy} tournament but after seeing earlier seasons, including the walk-forward ones."
+        f"were fixed before the {hy} tournament but after seeing earlier seasons, including the walk-forward ones. "
+        "There each list was kept only if its row-level jackknife MSE over the band's 2008-2024 tournament rows "
+        "beat the best so far, with the in-sample `predround` as an input. Any gain from that selection favours "
+        "the stack in the comparison below."
     )
     lines.append("")
     lines.append(
@@ -1852,6 +1872,13 @@ def main() -> int:
         f"- Coach features: {'kept by' if coach_helps else 'not supported by'} the same walk-forward MSE rule "
         f"(gap {format_ci(coach_vs_no_coach_mse)}). `GEN_FEATURES` still includes them; this script reports the "
         "ablation and does not change the pipeline's feature list."
+        + (
+            ""
+            if coach_helps
+            else " Applied evenly, the MSE rule used for the seed stack would drop them. The decision log's "
+            "reason for adding them (2026-03) is a prior, that tournament coaching experience predicts results, "
+            "not a measured gain. Keeping or dropping them is an open decision (`docs/modeling_plan.md`, roadmap 5c)."
+        )
     )
     lines.append(
         "- Read every gap here against its interval: with "

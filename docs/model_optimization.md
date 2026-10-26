@@ -20,7 +20,7 @@ For the general model and, if enabled, each seed model, that report includes:
 - The selected `alpha`
 - Baseline CV MSE at `alpha=0` (if present in the grid)
 - Best CV MSE from the grid
-- Leave-one-season-out MSE for the selected `alpha` (`season_cv_mse` for seed models)
+- Leave-one-season-out MSE at the selected `alpha` (`season_cv_mse` for seed models). It reuses the tuning splits, so it is not a fresh estimate (see below).
 
 If you run bracket simulation, the report also links to:
 
@@ -30,7 +30,7 @@ If you run bracket simulation, the report also links to:
 
 - For each model, the code evaluates `model.ridge_alpha_grid` and selects the `alpha` with the lowest mean CV MSE.
 - CV scheme: leave-one-season-out (`LeaveOneGroupOut` with `year` as the group), in `season_group_splits()` in `src/pipelines/madness.py`. One season is one 64-team bracket, so a season is never split between train and test. This replaced `KFold(5, shuffle)` and row-level `LeaveOneOut`, which put teams from the same bracket on both sides.
-- After selecting `alpha`, the model is scored once more with leave-one-season-out CV to give the reported MSE.
+- The reported MSE comes from leave-one-season-out CV at the selected `alpha` on the same splits that picked it. When every season has the same number of rows, as the 64-team tournament rows do, it is exactly the best CV MSE on the grid. It is a minimum over the grid and therefore optimistic; use it to compare runs, not as accuracy. Out-of-sample error is in the walk-forward and holdout scores of `reports/predictive_analysis_*.md`.
 
 ## Seed Models
 
