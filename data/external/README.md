@@ -9,6 +9,7 @@ Optional and legacy data. The default pipeline does not read this folder; its te
 | **sources/** | Fetched team tables | `trank_team_table_data_YYYY.csv`, `trank_team_table_data.csv` — per-year or combined from [fetch_team_tables.py](../../scripts/fetch_team_tables.py). Default output dir for fetch. |
 | **tests/** | Test / reference CSVs | Connecticut and other small test files used to validate pipeline outputs: `team_history_cache_connecticut_test.csv`, `coach_tournament_experience_connecticut_test.csv`, `test_connecticut.csv`, `test_teams.csv`. |
 | **legacy/** | Legacy coach experience | Superseded by `data/raw/team_history_cache_enriched.csv`. `coach_tournament_experience.csv` and `coach_2025_temp/` live here. Only the legacy [rebuild_from_raw.py](../../scripts/rebuild_from_raw.py) path still merges `coach_tournament_experience*.csv` from `data/external/` when coach columns are missing. |
+| **team_logos/espn_ncaam/** | Logo cache | `<espn_team_id>.png` images drawn on the 2026-field figures by the eight `scripts/*_analysis_05_07.py` scripts. Those scripts fetch ESPN's public team catalog (`site.api.espn.com`) on every run to map team names to ids, so they need network access even when every logo is cached; images missing from the cache are downloaded on the same run. |
 | **templates/** | Bracket and one-off inputs | `bracket_template.csv` (for `--bracket`), `temp_2025_teams.csv` (for fetch_coach_experience 2025 merge). |
 
 ## File roles
