@@ -32,34 +32,11 @@ from size_analysis_common import (
     set_project_theme,
     styled_box,
 )
-
-FINISH_ORDER = [
-    "R64",
-    "R32",
-    "Sweet Sixteen",
-    "Elite Eight",
-    "Final Four",
-    "Finals",
-    "CHAMPS",
-]
-FINISH_DEPTH = {
-    "R64": 1,
-    "R32": 2,
-    "Sweet Sixteen": 3,
-    "Elite Eight": 4,
-    "Final Four": 5,
-    "Finals": 6,
-    "CHAMPS": 7,
-}
-FINISH_DISPLAY = {
-    "R64": "R64",
-    "R32": "R32",
-    "Sweet Sixteen": "Sweet 16",
-    "Elite Eight": "Elite 8",
-    "Final Four": "Final 4",
-    "Finals": "Finals",
-    "CHAMPS": "Champ",
-}
+from topic_analysis_common import (
+    FINISH_DEPTH,
+    FINISH_DISPLAY,
+    FINISH_ORDER,
+)
 
 PLAYER_PRIMARY_METRIC = "exp_raw"
 PLAYER_SUPPORT_METRIC = "exp_rank_season"
