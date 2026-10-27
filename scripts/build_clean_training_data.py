@@ -22,7 +22,7 @@ def main() -> None:
     parser.add_argument(
         "-o", "--output",
         default=None,
-        help="Output path (default: data/processed/cbb_training_clean.csv).",
+        help="Output path (default: data/processed/cbb_training_clean_YYYYMMDD.csv; the undated file is frozen).",
     )
     args = parser.parse_args()
 
@@ -43,17 +43,19 @@ def main() -> None:
         print(f"File not found: {input_path}", file=sys.stderr)
         sys.exit(1)
 
+    from datetime import date
+
     import pandas as pd
+    from src.frozen_inputs import write_csv
     from src.pipelines.madness import build_clean_training_dataset
 
     full = pd.read_csv(input_path)
     clean_df = build_clean_training_dataset(full)
 
-    out_path = Path(args.output) if args.output else processed_dir / "cbb_training_clean.csv"
+    out_path = Path(args.output) if args.output else processed_dir / f"cbb_training_clean_{date.today():%Y%m%d}.csv"
     if not out_path.is_absolute():
         out_path = project_root / out_path
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    clean_df.to_csv(out_path, index=False)
+    write_csv(clean_df, out_path)
     print(f"Clean training dataset written to {out_path} ({len(clean_df)} rows, {len(clean_df.columns)} columns)")
 
 

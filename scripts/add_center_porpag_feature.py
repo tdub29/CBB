@@ -4,11 +4,15 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 import shutil
+import sys
 
 import pandas as pd
 
 from build_size_sample import main as build_size_sample_main
 from position_group_features import compute_max_porpag_feature, merge_feature_into_dataset
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from src.frozen_inputs import assert_writable  # noqa: E402
 
 
 def main() -> int:
@@ -16,6 +20,9 @@ def main() -> int:
     training_path = project_root / "data" / "processed" / "cbb_training_clean.csv"
     archive_dir = project_root / "data" / "processed" / "archive"
     player_stats_path = project_root / "data" / "raw" / "player_stats" / "player_advanced_all.csv"
+    # This script edits cbb_training_clean.csv in place, which is now a frozen input of the log5
+    # test; it refuses before touching anything. Point it at a run-tagged copy to use it again.
+    assert_writable(training_path)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     archive_dir.mkdir(parents=True, exist_ok=True)

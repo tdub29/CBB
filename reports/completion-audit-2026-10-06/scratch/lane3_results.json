@@ -1,0 +1,375 @@
+{
+ "rows_mine": 1007,
+ "rows_saved": 1007,
+ "merge": {
+  "both": 1007,
+  "left_only": 0,
+  "right_only": 0
+ },
+ "label_mismatch": 0,
+ "max_abs_log5_vs_saved_p_frozen": 2.220446049250313e-16,
+ "max_abs_seedpair_vs_saved_p_seed": 1.1102230246251565e-16,
+ "test_scores_2021_2026": {
+  "p_log5": {
+   "brier": 0.18135,
+   "logloss": 0.53663
+  },
+  "p_seedpair": {
+   "brier": 0.18729,
+   "logloss": 0.55564
+  },
+  "p_trank_saved": {
+   "brier": 0.18384,
+   "n": 377
+  }
+ },
+ "paired_brier_log5_minus_seed_2021_2026": {
+  "n": 377,
+  "years": 6,
+  "mean_diff": -0.00594,
+  "ci": [
+   -0.01225,
+   0.00037
+  ],
+  "dm_t": -1.651,
+  "p_dm": 0.1597,
+  "years_model_better": 4
+ },
+ "paired_logloss_log5_minus_seed_2021_2026": {
+  "n": 377,
+  "years": 6,
+  "mean_diff": -0.01901,
+  "ci": [
+   -0.03924,
+   0.00122
+  ],
+  "dm_t": -1.662,
+  "p_dm": 0.1574,
+  "years_model_better": 4
+ },
+ "paired_brier_log5_minus_seed_2010_2019_selection": {
+  "n": 630,
+  "years": 10,
+  "mean_diff": -0.01199,
+  "ci": [
+   -0.02054,
+   -0.00106
+  ],
+  "dm_t": -2.228,
+  "p_dm": 0.0529,
+  "years_model_better": 9
+ },
+ "paired_brier_log5_minus_seed_2010_2026_all": {
+  "n": 1007,
+  "years": 16,
+  "mean_diff": -0.00973,
+  "ci": [
+   -0.01598,
+   -0.00247
+  ],
+  "dm_t": -2.69,
+  "p_dm": 0.0168,
+  "years_model_better": 13
+ },
+ "drop_one_year_brier_diff_2021_2026": {
+  "2021": -0.00688,
+  "2022": -0.00787,
+  "2023": -0.00386,
+  "2024": -0.00755,
+  "2025": -0.0055,
+  "2026": -0.00399
+ },
+ "recalibration_2021_2026": {
+  "p_log5": {
+   "intercept": 0.029,
+   "slope": 0.908,
+   "slope_ci": [
+    0.605,
+    1.211
+   ]
+  },
+  "p_seedpair": {
+   "intercept": 0.217,
+   "slope": 0.796,
+   "slope_ci": [
+    0.481,
+    1.112
+   ]
+  }
+ },
+ "recalibration_2010_2026": {
+  "p_log5": {
+   "intercept": 0.015,
+   "slope": 0.956,
+   "slope_ci": [
+    0.765,
+    1.147
+   ]
+  },
+  "p_seedpair": {
+   "intercept": 0.211,
+   "slope": 0.726,
+   "slope_ci": [
+    0.545,
+    0.907
+   ]
+  }
+ },
+ "bracket_points_by_year": [
+  {
+   "year": 2010,
+   "chalk": 780.0,
+   "log5": 780.0,
+   "seed_pair": 780.0
+  },
+  {
+   "year": 2011,
+   "chalk": 570.0,
+   "log5": 530.0,
+   "seed_pair": 550.0
+  },
+  {
+   "year": 2012,
+   "chalk": 880.0,
+   "log5": 1340.0,
+   "seed_pair": 860.0
+  },
+  {
+   "year": 2013,
+   "chalk": 800.0,
+   "log5": 850.0,
+   "seed_pair": 800.0
+  },
+  {
+   "year": 2014,
+   "chalk": 680.0,
+   "log5": 650.0,
+   "seed_pair": 660.0
+  },
+  {
+   "year": 2015,
+   "chalk": 1130.0,
+   "log5": 950.0,
+   "seed_pair": 1090.0
+  },
+  {
+   "year": 2016,
+   "chalk": 790.0,
+   "log5": 660.0,
+   "seed_pair": 790.0
+  },
+  {
+   "year": 2017,
+   "chalk": 1060.0,
+   "log5": 820.0,
+   "seed_pair": 1050.0
+  },
+  {
+   "year": 2018,
+   "chalk": 810.0,
+   "log5": 760.0,
+   "seed_pair": 810.0
+  },
+  {
+   "year": 2019,
+   "chalk": 920.0,
+   "log5": 1270.0,
+   "seed_pair": 940.0
+  },
+  {
+   "year": 2021,
+   "chalk": 920.0,
+   "log5": 910.0,
+   "seed_pair": 900.0
+  },
+  {
+   "year": 2022,
+   "chalk": 780.0,
+   "log5": 600.0,
+   "seed_pair": 800.0
+  },
+  {
+   "year": 2023,
+   "chalk": 470.0,
+   "log5": 530.0,
+   "seed_pair": 470.0
+  },
+  {
+   "year": 2024,
+   "chalk": 970.0,
+   "log5": 910.0,
+   "seed_pair": 990.0
+  },
+  {
+   "year": 2025,
+   "chalk": 1330.0,
+   "log5": 1270.0,
+   "seed_pair": 1330.0
+  },
+  {
+   "year": 2026,
+   "chalk": 1000.0,
+   "log5": 1320.0,
+   "seed_pair": 1040.0
+  }
+ ],
+ "bracket_champ_by_year": [
+  {
+   "year": 2010,
+   "chalk": "Syracuse",
+   "log5": "Kansas",
+   "seed_pair": "Syracuse"
+  },
+  {
+   "year": 2011,
+   "chalk": "Pittsburgh",
+   "log5": "Ohio St.",
+   "seed_pair": "Pittsburgh"
+  },
+  {
+   "year": 2012,
+   "chalk": "North Carolina",
+   "log5": "Kentucky",
+   "seed_pair": "North Carolina"
+  },
+  {
+   "year": 2013,
+   "chalk": "Louisville",
+   "log5": "Florida",
+   "seed_pair": "Louisville"
+  },
+  {
+   "year": 2014,
+   "chalk": "Virginia",
+   "log5": "Louisville",
+   "seed_pair": "Virginia"
+  },
+  {
+   "year": 2015,
+   "chalk": "Duke",
+   "log5": "Kentucky",
+   "seed_pair": "Duke"
+  },
+  {
+   "year": 2016,
+   "chalk": "North Carolina",
+   "log5": "Kansas",
+   "seed_pair": "North Carolina"
+  },
+  {
+   "year": 2017,
+   "chalk": "Gonzaga",
+   "log5": "Gonzaga",
+   "seed_pair": "Gonzaga"
+  },
+  {
+   "year": 2018,
+   "chalk": "Xavier",
+   "log5": "Virginia",
+   "seed_pair": "Xavier"
+  },
+  {
+   "year": 2019,
+   "chalk": "Gonzaga",
+   "log5": "Virginia",
+   "seed_pair": "Gonzaga"
+  },
+  {
+   "year": 2021,
+   "chalk": "Baylor",
+   "log5": "Gonzaga",
+   "seed_pair": "Baylor"
+  },
+  {
+   "year": 2022,
+   "chalk": "Kansas",
+   "log5": "Gonzaga",
+   "seed_pair": "Kansas"
+  },
+  {
+   "year": 2023,
+   "chalk": "Kansas",
+   "log5": "Houston",
+   "seed_pair": "Kansas"
+  },
+  {
+   "year": 2024,
+   "chalk": "Connecticut",
+   "log5": "Houston",
+   "seed_pair": "Connecticut"
+  },
+  {
+   "year": 2025,
+   "chalk": "Florida",
+   "log5": "Houston",
+   "seed_pair": "Florida"
+  },
+  {
+   "year": 2026,
+   "chalk": "Duke",
+   "log5": "Michigan",
+   "seed_pair": "Duke"
+  }
+ ],
+ "bracket_2021_2026": {
+  "mean_points": {
+   "chalk": 911.7,
+   "log5": 923.3,
+   "seed_pair": 921.7
+  },
+  "log5_minus_seed_pair_mean": 1.7,
+  "ci": [
+   -110.0,
+   126.7
+  ],
+  "years_log5_more": 3,
+  "years_tied": 0,
+  "years": 6,
+  "sum_champ_correct": {
+   "chalk": 1.25,
+   "log5": 1.0,
+   "seed_pair": 1.25
+  },
+  "sum_f4_correct": {
+   "chalk": 11.0,
+   "log5": 12.0,
+   "seed_pair": 11.0
+  },
+  "sum_r64_correct": {
+   "chalk": 139.0,
+   "log5": 142.0,
+   "seed_pair": 145.0
+  }
+ },
+ "bracket_2010_2026": {
+  "mean_points": {
+   "chalk": 868.1,
+   "log5": 884.4,
+   "seed_pair": 866.2
+  },
+  "log5_minus_seed_pair_mean": 18.1,
+  "ci": [
+   -66.9,
+   114.4
+  ],
+  "years_log5_more": 6,
+  "years_tied": 1,
+  "years": 16,
+  "sum_champ_correct": {
+   "chalk": 3.0,
+   "log5": 3.0,
+   "seed_pair": 3.0
+  },
+  "sum_f4_correct": {
+   "chalk": 24.0,
+   "log5": 25.0,
+   "seed_pair": 24.0
+  },
+  "sum_r64_correct": {
+   "chalk": 369.0,
+   "log5": 377.0,
+   "seed_pair": 366.0
+  }
+ },
+ "pick_disagreement_share_2021_2026": 0.13
+}

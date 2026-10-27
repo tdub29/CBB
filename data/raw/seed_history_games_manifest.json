@@ -1,0 +1,37 @@
+{
+  "source": "https://www.sports-reference.com/cbb/postseason/men/YYYY-ncaa.html",
+  "retrieved_at": "2026-09-29T15:45:22+00:00",
+  "filter": "Round of 64 onward; 16 vs 16 play-in games dropped",
+  "use": "seed-pair baseline history only (team names are Sports Reference's)",
+  "overlap_check_vs_torvik": {
+    "2008": "match",
+    "2019": "match"
+  },
+  "rows": 1449,
+  "games_per_year": {
+    "1985": 63,
+    "1986": 63,
+    "1987": 63,
+    "1988": 63,
+    "1989": 63,
+    "1990": 63,
+    "1991": 63,
+    "1992": 63,
+    "1993": 63,
+    "1994": 63,
+    "1995": 63,
+    "1996": 63,
+    "1997": 63,
+    "1998": 63,
+    "1999": 63,
+    "2000": 63,
+    "2001": 63,
+    "2002": 63,
+    "2003": 63,
+    "2004": 63,
+    "2005": 63,
+    "2006": 63,
+    "2007": 63
+  },
+  "sha256": "a210e08449f488751915094efeb67dd3ff51a991e9bcbe7be9f4ab05d67a2488"
+}

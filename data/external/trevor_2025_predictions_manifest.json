@@ -1,0 +1,9 @@
+{
+  "source": "C:\\Users\\TrevorWhite\\OneDrive - GOOD360\\Documents\\Python Scripts\\updated_25marchmadnesshistoricwithpred.csv",
+  "source_modified": "2025-03-19T17:27:15",
+  "copied_at": "2026-09-29T16:04:09+00:00",
+  "produced_by": "Python Scripts/newmadness.ipynb (2025-03-20 save): per-round classifiers prob_R32..prob_Champ (xgb for R32/S16/E8, RF for F4, logistic for F2/Champ) and seed-group regressions pred_round, trained on 2008-2024 teams with random splits; scored on the 2025 field",
+  "timing": "file saved 2025-03-19, after the first First Four day and before the Round of 64 (2025-03-20)",
+  "use": "scored as an additional forecaster on the 2025 field only (reports/model_vs_seeds_powered.md)",
+  "sha256": "06f908064b636964e9cf4e806202aa246d21dbe4a135b2e3e258923925ae21b7"
+}

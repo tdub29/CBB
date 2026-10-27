@@ -128,12 +128,17 @@ def simulate_bracket(
     reached_finals = np.zeros(n_teams, dtype=np.int64)
     champs = np.zeros(n_teams, dtype=np.int64)
 
+    # ponytail: region seed maps built once, not per simulation; RNG draw order is unchanged.
+    region_seed_maps = {
+        region: {int(row.Seed): row.Team for row in work[work["Region"] == region].itertuples(index=False)}
+        for region in regions
+    }
+
     for sim_num in range(n_sims):
         region_winners: dict[str, str] = {}
 
         for region in regions:
-            region_df = work[work["Region"] == region]
-            seed_to_team = {int(row.Seed): row.Team for row in region_df.itertuples(index=False)}
+            seed_to_team = region_seed_maps[region]
 
             winners_r32: list[str] = []
             for seed_a, seed_b in FIRST_ROUND_PAIRINGS:

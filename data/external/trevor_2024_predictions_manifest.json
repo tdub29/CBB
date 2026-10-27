@@ -1,0 +1,10 @@
+{
+  "source": "C:\\Users\\TrevorWhite\\OneDrive - GOOD360\\Documents\\madness24model.csv (copied by Trevor to Downloads 2026-09-30)",
+  "source_modified": "2024-03-18T18:56:49-07:00",
+  "copied_at": "2026-10-01T01:57:37+00:00",
+  "produced_by": "madness.R (general ridge plus seed-stratified models, R lm/glmnet with intercept); R wrote Predicted_round as a list column, so every row carries the same 68-value vector; row i takes element i (Spearman with seed -0.92)",
+  "timing": "saved 2024-03-18, before the First Four (2024-03-19): a pre-tournament forecast",
+  "use": "pred_round scored as expected tournament wins on the 2024 field only (reports/model_vs_seeds_powered.md, Section 6)",
+  "sha256_source": "d1660652154af61959d48d4d70b34586720f32ef51f25cc1f70efd426dcff6c4",
+  "historiccbb_csv": "896 rows, seasons 2008-2022 (no 2020), 64 tournament teams a season; Torvik team table plus seed and result; same seasons the training table already covers, so it adds no walk-forward years"
+}

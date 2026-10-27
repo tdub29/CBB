@@ -6,9 +6,9 @@ from collections.abc import Iterable
 
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
-import seaborn as sns
 
 PROJECT_PALETTE = {
     "black": "#111418",
@@ -69,11 +69,10 @@ CBB_DIVERGING_CMAP = LinearSegmentedColormap.from_list(
 
 
 def set_project_theme() -> None:
-    """Apply the shared seaborn/matplotlib theme for report graphics."""
-    sns.set_theme(
-        style="darkgrid",
-        palette=SERIES_COLORS,
-        rc={
+    """Apply the shared matplotlib theme for report graphics."""
+    plt.rcParams.update(
+        {
+            "axes.prop_cycle": plt.cycler(color=SERIES_COLORS),
             "axes.facecolor": PROJECT_PALETTE["deep_ocean"],
             "figure.facecolor": PROJECT_PALETTE["midnight"],
             "savefig.facecolor": PROJECT_PALETTE["midnight"],
@@ -91,7 +90,7 @@ def set_project_theme() -> None:
             "text.color": PROJECT_PALETTE["fog"],
             "legend.frameon": False,
             "legend.labelcolor": PROJECT_PALETTE["fog"],
-        },
+        }
     )
 
 

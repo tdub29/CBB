@@ -1,0 +1,1135 @@
+year,round,date,winner,loser,winner_seed,loser_seed,winner_pts,loser_pts,trank_p_winner,trank_pregame_line,no_contest
+2008,1,2008-03-20,Kansas St.,USC,11,6,80.0,67.0,,,False
+2008,1,2008-03-20,West Virginia,Arizona,7,10,75.0,65.0,,,False
+2008,1,2008-03-20,Purdue,Baylor,6,11,90.0,79.0,,,False
+2008,1,2008-03-20,Texas A&M,BYU,9,8,67.0,62.0,,,False
+2008,1,2008-03-20,UNLV,Kent St.,8,9,71.0,58.0,,,False
+2008,1,2008-03-20,Michigan St.,Temple,5,12,72.0,61.0,,,False
+2008,1,2008-03-20,Marquette,Kentucky,6,11,74.0,66.0,,,False
+2008,1,2008-03-20,Notre Dame,George Mason,5,12,68.0,50.0,,,False
+2008,1,2008-03-20,Pittsburgh,Oral Roberts,4,13,82.0,63.0,,,False
+2008,1,2008-03-20,Xavier,Georgia,3,14,73.0,61.0,,,False
+2008,1,2008-03-20,Kansas,Portland St.,1,16,85.0,61.0,,,False
+2008,1,2008-03-20,Wisconsin,Cal St. Fullerton,3,14,71.0,56.0,,,False
+2008,1,2008-03-20,Duke,Belmont,2,15,71.0,70.0,,,False
+2008,1,2008-03-20,Stanford,Cornell,3,14,77.0,53.0,,,False
+2008,1,2008-03-20,Washington St.,Winthrop,4,13,71.0,40.0,,,False
+2008,1,2008-03-20,UCLA,Mississippi Valley St.,1,16,70.0,29.0,,,False
+2008,1,2008-03-21,Davidson,Gonzaga,10,7,82.0,76.0,,,False
+2008,1,2008-03-21,Arkansas,Indiana,9,8,86.0,72.0,,,False
+2008,1,2008-03-21,Mississippi St.,Oregon,8,9,76.0,69.0,,,False
+2008,1,2008-03-21,Miami FL,Saint Mary's,7,10,78.0,64.0,,,False
+2008,1,2008-03-21,Oklahoma,Saint Joseph's,6,11,72.0,64.0,,,False
+2008,1,2008-03-21,Villanova,Clemson,12,5,75.0,69.0,,,False
+2008,1,2008-03-21,Western Kentucky,Drake,12,5,101.0,99.0,,,False
+2008,1,2008-03-21,Siena,Vanderbilt,13,4,83.0,62.0,,,False
+2008,1,2008-03-21,Butler,South Alabama,7,10,81.0,61.0,,,False
+2008,1,2008-03-21,San Diego,Connecticut,13,4,70.0,69.0,,,False
+2008,1,2008-03-21,Louisville,Boise St.,3,14,79.0,61.0,,,False
+2008,1,2008-03-21,North Carolina,Mount St. Mary's,1,16,113.0,74.0,,,False
+2008,1,2008-03-21,Memphis,UT Arlington,1,16,87.0,63.0,,,False
+2008,1,2008-03-21,Tennessee,American,2,15,72.0,57.0,,,False
+2008,1,2008-03-21,Georgetown,UMBC,2,15,66.0,47.0,,,False
+2008,1,2008-03-21,Texas,Austin Peay,2,15,74.0,54.0,,,False
+2008,2,2008-03-22,Stanford,Marquette,3,6,82.0,81.0,,,False
+2008,2,2008-03-22,West Virginia,Duke,7,2,73.0,67.0,,,False
+2008,2,2008-03-22,Xavier,Purdue,3,6,85.0,78.0,,,False
+2008,2,2008-03-22,Michigan St.,Pittsburgh,5,4,65.0,54.0,,,False
+2008,2,2008-03-22,Wisconsin,Kansas St.,3,11,72.0,55.0,,,False
+2008,2,2008-03-22,Washington St.,Notre Dame,4,5,61.0,41.0,,,False
+2008,2,2008-03-22,UCLA,Texas A&M,1,9,51.0,49.0,,,False
+2008,2,2008-03-22,Kansas,UNLV,1,8,75.0,56.0,,,False
+2008,2,2008-03-23,Davidson,Georgetown,10,2,74.0,70.0,,,False
+2008,2,2008-03-23,Tennessee,Butler,2,7,76.0,71.0,,,False
+2008,2,2008-03-23,North Carolina,Arkansas,1,9,108.0,77.0,,,False
+2008,2,2008-03-23,Memphis,Mississippi St.,1,8,77.0,74.0,,,False
+2008,2,2008-03-23,Texas,Miami FL,2,7,75.0,72.0,,,False
+2008,2,2008-03-23,Villanova,Siena,12,13,84.0,72.0,,,False
+2008,2,2008-03-23,Louisville,Oklahoma,3,6,78.0,48.0,,,False
+2008,2,2008-03-23,Western Kentucky,San Diego,12,13,72.0,63.0,,,False
+2008,3,2008-03-27,Louisville,Tennessee,3,2,79.0,60.0,,,False
+2008,3,2008-03-27,North Carolina,Washington St.,1,4,68.0,47.0,,,False
+2008,3,2008-03-27,Xavier,West Virginia,3,7,79.0,75.0,,,False
+2008,3,2008-03-27,UCLA,Western Kentucky,1,12,88.0,78.0,,,False
+2008,3,2008-03-28,Texas,Stanford,2,3,82.0,62.0,,,False
+2008,3,2008-03-28,Davidson,Wisconsin,10,3,73.0,56.0,,,False
+2008,3,2008-03-28,Memphis,Michigan St.,1,5,92.0,74.0,,,False
+2008,3,2008-03-28,Kansas,Villanova,1,12,72.0,57.0,,,False
+2008,4,2008-03-29,North Carolina,Louisville,1,3,83.0,73.0,,,False
+2008,4,2008-03-29,UCLA,Xavier,1,3,76.0,57.0,,,False
+2008,4,2008-03-30,Memphis,Texas,1,2,85.0,67.0,,,False
+2008,4,2008-03-30,Kansas,Davidson,1,10,59.0,57.0,,,False
+2008,5,2008-04-05,Kansas,North Carolina,1,1,84.0,66.0,,,False
+2008,5,2008-04-05,Memphis,UCLA,1,1,78.0,63.0,,,False
+2008,6,2008-04-07,Kansas,Memphis,1,1,75.0,68.0,,,False
+2009,1,2009-03-19,Maryland,California,10,7,84.0,71.0,,,False
+2009,1,2009-03-19,LSU,Butler,8,9,75.0,71.0,,,False
+2009,1,2009-03-19,Texas A&M,BYU,9,8,79.0,66.0,,,False
+2009,1,2009-03-19,Michigan,Clemson,10,7,62.0,59.0,,,False
+2009,1,2009-03-19,Texas,Minnesota,7,10,76.0,62.0,,,False
+2009,1,2009-03-19,Washington,Mississippi St.,4,13,71.0,58.0,,,False
+2009,1,2009-03-19,UCLA,VCU,6,11,65.0,64.0,,,False
+2009,1,2009-03-19,Memphis,Cal St. Northridge,2,15,81.0,70.0,,,False
+2009,1,2009-03-19,Gonzaga,Akron,4,13,77.0,64.0,,,False
+2009,1,2009-03-19,Purdue,Northern Iowa,5,12,61.0,56.0,,,False
+2009,1,2009-03-19,Western Kentucky,Illinois,12,5,76.0,72.0,,,False
+2009,1,2009-03-19,North Carolina,Radford,1,16,101.0,58.0,,,False
+2009,1,2009-03-19,Villanova,American,3,14,80.0,67.0,,,False
+2009,1,2009-03-19,Duke,Binghamton,2,15,86.0,62.0,,,False
+2009,1,2009-03-19,Connecticut,Chattanooga,1,16,103.0,47.0,,,False
+2009,1,2009-03-19,Oklahoma,Morgan St.,2,15,82.0,54.0,,,False
+2009,1,2009-03-20,Oklahoma St.,Tennessee,8,9,77.0,75.0,,,False
+2009,1,2009-03-20,Arizona,Utah,12,5,84.0,71.0,,,False
+2009,1,2009-03-20,Wisconsin,Florida St.,12,5,61.0,59.0,,,False
+2009,1,2009-03-20,Siena,Ohio St.,9,8,74.0,72.0,,,False
+2009,1,2009-03-20,Cleveland St.,Wake Forest,13,4,84.0,69.0,,,False
+2009,1,2009-03-20,Marquette,Utah St.,6,11,58.0,57.0,,,False
+2009,1,2009-03-20,USC,Boston College,10,7,72.0,55.0,,,False
+2009,1,2009-03-20,Kansas,North Dakota St.,3,14,84.0,74.0,,,False
+2009,1,2009-03-20,Arizona St.,Temple,6,11,66.0,57.0,,,False
+2009,1,2009-03-20,Dayton,West Virginia,11,6,68.0,60.0,,,False
+2009,1,2009-03-20,Missouri,Cornell,3,14,78.0,59.0,,,False
+2009,1,2009-03-20,Pittsburgh,East Tennessee St.,1,16,72.0,62.0,,,False
+2009,1,2009-03-20,Syracuse,Stephen F. Austin,3,14,59.0,44.0,,,False
+2009,1,2009-03-20,Xavier,Portland St.,4,13,77.0,59.0,,,False
+2009,1,2009-03-20,Michigan St.,Robert Morris,2,15,77.0,62.0,,,False
+2009,1,2009-03-20,Louisville,Morehead St.,1,16,74.0,54.0,,,False
+2009,2,2009-03-21,Purdue,Washington,5,4,76.0,74.0,,,False
+2009,2,2009-03-21,Villanova,UCLA,3,6,89.0,69.0,,,False
+2009,2,2009-03-21,Duke,Texas,2,7,74.0,69.0,,,False
+2009,2,2009-03-21,North Carolina,LSU,1,8,84.0,70.0,,,False
+2009,2,2009-03-21,Oklahoma,Michigan,2,10,73.0,63.0,,,False
+2009,2,2009-03-21,Connecticut,Texas A&M,1,9,92.0,66.0,,,False
+2009,2,2009-03-21,Memphis,Maryland,2,10,89.0,70.0,,,False
+2009,2,2009-03-21,Gonzaga,Western Kentucky,4,12,83.0,81.0,,,False
+2009,2,2009-03-22,Syracuse,Arizona St.,3,6,78.0,67.0,,,False
+2009,2,2009-03-22,Missouri,Marquette,3,6,83.0,79.0,,,False
+2009,2,2009-03-22,Michigan St.,USC,2,10,74.0,69.0,,,False
+2009,2,2009-03-22,Pittsburgh,Oklahoma St.,1,8,84.0,76.0,,,False
+2009,2,2009-03-22,Xavier,Wisconsin,4,12,60.0,49.0,,,False
+2009,2,2009-03-22,Arizona,Cleveland St.,12,13,71.0,57.0,,,False
+2009,2,2009-03-22,Louisville,Siena,1,9,79.0,72.0,,,False
+2009,2,2009-03-22,Kansas,Dayton,3,11,60.0,43.0,,,False
+2009,3,2009-03-26,Villanova,Duke,3,2,77.0,54.0,,,False
+2009,3,2009-03-26,Missouri,Memphis,3,2,102.0,91.0,,,False
+2009,3,2009-03-26,Connecticut,Purdue,1,5,72.0,60.0,,,False
+2009,3,2009-03-26,Pittsburgh,Xavier,1,4,60.0,55.0,,,False
+2009,3,2009-03-27,Oklahoma,Syracuse,2,3,84.0,71.0,,,False
+2009,3,2009-03-27,North Carolina,Gonzaga,1,4,98.0,77.0,,,False
+2009,3,2009-03-27,Michigan St.,Kansas,2,3,67.0,62.0,,,False
+2009,3,2009-03-27,Louisville,Arizona,1,12,103.0,64.0,,,False
+2009,4,2009-03-28,Connecticut,Missouri,1,3,82.0,75.0,,,False
+2009,4,2009-03-28,Villanova,Pittsburgh,3,1,78.0,76.0,,,False
+2009,4,2009-03-29,North Carolina,Oklahoma,1,2,72.0,60.0,,,False
+2009,4,2009-03-29,Michigan St.,Louisville,2,1,64.0,52.0,,,False
+2009,5,2009-04-04,North Carolina,Villanova,1,3,83.0,69.0,,,False
+2009,5,2009-04-04,Michigan St.,Connecticut,2,1,82.0,73.0,,,False
+2009,6,2009-04-06,North Carolina,Michigan St.,1,2,89.0,72.0,,,False
+2010,1,2010-03-18,Washington,Marquette,11,6,80.0,78.0,,,False
+2010,1,2010-03-18,Butler,UTEP,5,12,77.0,59.0,,,False
+2010,1,2010-03-18,Northern Iowa,UNLV,9,8,69.0,66.0,,,False
+2010,1,2010-03-18,Wake Forest,Texas,9,8,81.0,80.0,,,False
+2010,1,2010-03-18,Old Dominion,Notre Dame,11,6,51.0,50.0,,,False
+2010,1,2010-03-18,Tennessee,San Diego St.,6,11,62.0,59.0,,,False
+2010,1,2010-03-18,Saint Mary's,Richmond,10,7,80.0,71.0,,,False
+2010,1,2010-03-18,BYU,Florida,7,10,99.0,92.0,,,False
+2010,1,2010-03-18,Murray St.,Vanderbilt,13,4,66.0,65.0,,,False
+2010,1,2010-03-18,Baylor,Sam Houston St.,3,14,68.0,59.0,,,False
+2010,1,2010-03-18,Ohio,Georgetown,14,3,97.0,83.0,,,False
+2010,1,2010-03-18,New Mexico,Montana,3,14,62.0,57.0,,,False
+2010,1,2010-03-18,Kansas,Lehigh,1,16,90.0,74.0,,,False
+2010,1,2010-03-18,Kentucky,East Tennessee St.,1,16,100.0,71.0,,,False
+2010,1,2010-03-18,Kansas St.,North Texas,2,15,82.0,62.0,,,False
+2010,1,2010-03-18,Villanova,Robert Morris,2,15,73.0,70.0,,,False
+2010,1,2010-03-19,Missouri,Clemson,10,7,86.0,78.0,,,False
+2010,1,2010-03-19,Xavier,Minnesota,6,11,65.0,54.0,,,False
+2010,1,2010-03-19,Georgia Tech,Oklahoma St.,10,7,64.0,59.0,,,False
+2010,1,2010-03-19,Gonzaga,Florida St.,8,9,67.0,60.0,,,False
+2010,1,2010-03-19,Texas A&M,Utah St.,5,12,69.0,53.0,,,False
+2010,1,2010-03-19,California,Louisville,8,9,77.0,62.0,,,False
+2010,1,2010-03-19,Cornell,Temple,12,5,78.0,65.0,,,False
+2010,1,2010-03-19,Maryland,Houston,4,13,89.0,77.0,,,False
+2010,1,2010-03-19,Purdue,Siena,4,13,72.0,64.0,,,False
+2010,1,2010-03-19,Michigan St.,New Mexico St.,5,12,70.0,67.0,,,False
+2010,1,2010-03-19,Wisconsin,Wofford,4,13,53.0,49.0,,,False
+2010,1,2010-03-19,Syracuse,Vermont,1,16,79.0,56.0,,,False
+2010,1,2010-03-19,Ohio St.,UC Santa Barbara,2,15,68.0,51.0,,,False
+2010,1,2010-03-19,Pittsburgh,Oakland,3,14,89.0,66.0,,,False
+2010,1,2010-03-19,West Virginia,Morgan St.,2,15,77.0,50.0,,,False
+2010,1,2010-03-19,Duke,Arkansas Pine Bluff,1,16,73.0,44.0,,,False
+2010,2,2010-03-20,Kansas St.,BYU,2,7,84.0,72.0,,,False
+2010,2,2010-03-20,Saint Mary's,Villanova,10,2,75.0,68.0,,,False
+2010,2,2010-03-20,Washington,New Mexico,11,3,82.0,64.0,,,False
+2010,2,2010-03-20,Baylor,Old Dominion,3,11,76.0,68.0,,,False
+2010,2,2010-03-20,Northern Iowa,Kansas,9,1,69.0,67.0,,,False
+2010,2,2010-03-20,Kentucky,Wake Forest,1,9,90.0,60.0,,,False
+2010,2,2010-03-20,Butler,Murray St.,5,13,54.0,52.0,,,False
+2010,2,2010-03-20,Tennessee,Ohio,6,14,83.0,68.0,,,False
+2010,2,2010-03-21,Michigan St.,Maryland,5,4,85.0,83.0,,,False
+2010,2,2010-03-21,Purdue,Texas A&M,4,5,63.0,61.0,,,False
+2010,2,2010-03-21,West Virginia,Missouri,2,10,68.0,59.0,,,False
+2010,2,2010-03-21,Xavier,Pittsburgh,6,3,71.0,68.0,,,False
+2010,2,2010-03-21,Duke,California,1,8,68.0,53.0,,,False
+2010,2,2010-03-21,Ohio St.,Georgia Tech,2,10,75.0,66.0,,,False
+2010,2,2010-03-21,Syracuse,Gonzaga,1,8,87.0,65.0,,,False
+2010,2,2010-03-21,Cornell,Wisconsin,12,4,87.0,69.0,,,False
+2010,3,2010-03-25,Kansas St.,Xavier,2,6,101.0,96.0,,,False
+2010,3,2010-03-25,West Virginia,Washington,2,11,69.0,56.0,,,False
+2010,3,2010-03-25,Butler,Syracuse,5,1,63.0,59.0,,,False
+2010,3,2010-03-25,Kentucky,Cornell,1,12,62.0,45.0,,,False
+2010,3,2010-03-26,Michigan St.,Northern Iowa,5,9,59.0,52.0,,,False
+2010,3,2010-03-26,Duke,Purdue,1,4,70.0,57.0,,,False
+2010,3,2010-03-26,Tennessee,Ohio St.,6,2,76.0,73.0,,,False
+2010,3,2010-03-26,Baylor,Saint Mary's,3,10,72.0,49.0,,,False
+2010,4,2010-03-27,West Virginia,Kentucky,2,1,73.0,66.0,,,False
+2010,4,2010-03-27,Butler,Kansas St.,5,2,63.0,56.0,,,False
+2010,4,2010-03-28,Michigan St.,Tennessee,5,6,70.0,69.0,,,False
+2010,4,2010-03-28,Duke,Baylor,1,3,78.0,71.0,,,False
+2010,5,2010-04-03,Butler,Michigan St.,5,5,52.0,50.0,,,False
+2010,5,2010-04-03,Duke,West Virginia,1,2,78.0,57.0,,,False
+2010,6,2010-04-05,Duke,Butler,1,5,61.0,59.0,,,False
+2011,1,2011-03-17,Gonzaga,St. John's,11,6,86.0,71.0,,,False
+2011,1,2011-03-17,Kansas St.,Utah St.,5,12,73.0,68.0,,,False
+2011,1,2011-03-17,West Virginia,Clemson,5,12,84.0,76.0,,,False
+2011,1,2011-03-17,UCLA,Michigan St.,7,10,78.0,76.0,,,False
+2011,1,2011-03-17,Cincinnati,Missouri,6,11,78.0,63.0,,,False
+2011,1,2011-03-17,Richmond,Vanderbilt,12,5,69.0,66.0,,,False
+2011,1,2011-03-17,Temple,Penn St.,7,10,66.0,64.0,,,False
+2011,1,2011-03-17,Wisconsin,Belmont,4,13,72.0,58.0,,,False
+2011,1,2011-03-17,Butler,Old Dominion,8,9,60.0,58.0,,,False
+2011,1,2011-03-17,BYU,Wofford,3,14,74.0,66.0,,,False
+2011,1,2011-03-17,Kentucky,Princeton,4,13,59.0,57.0,,,False
+2011,1,2011-03-17,Connecticut,Bucknell,3,14,81.0,52.0,,,False
+2011,1,2011-03-17,Morehead St.,Louisville,13,4,62.0,61.0,,,False
+2011,1,2011-03-17,San Diego St.,Northern Colorado,2,15,68.0,50.0,,,False
+2011,1,2011-03-17,Pittsburgh,UNC Asheville,1,16,74.0,51.0,,,False
+2011,1,2011-03-17,Florida,UC Santa Barbara,2,15,79.0,51.0,,,False
+2011,1,2011-03-18,Illinois,UNLV,9,8,73.0,62.0,,,False
+2011,1,2011-03-18,George Mason,Villanova,8,9,61.0,57.0,,,False
+2011,1,2011-03-18,Marquette,Xavier,11,6,66.0,55.0,,,False
+2011,1,2011-03-18,Washington,Georgia,7,10,68.0,65.0,,,False
+2011,1,2011-03-18,Michigan,Tennessee,8,9,75.0,45.0,,,False
+2011,1,2011-03-18,VCU,Georgetown,11,6,74.0,56.0,,,False
+2011,1,2011-03-18,Florida St.,Texas A&M,10,7,57.0,50.0,,,False
+2011,1,2011-03-18,Texas,Oakland,4,13,85.0,81.0,,,False
+2011,1,2011-03-18,Arizona,Memphis,5,12,77.0,75.0,,,False
+2011,1,2011-03-18,North Carolina,LIU,2,15,102.0,87.0,,,False
+2011,1,2011-03-18,Syracuse,Indiana St.,3,14,77.0,60.0,,,False
+2011,1,2011-03-18,Notre Dame,Akron,2,15,69.0,56.0,,,False
+2011,1,2011-03-18,Purdue,Saint Peter's,3,14,65.0,43.0,,,False
+2011,1,2011-03-18,Ohio St.,UTSA,1,16,75.0,46.0,,,False
+2011,1,2011-03-18,Kansas,Boston University,1,16,72.0,53.0,,,False
+2011,1,2011-03-18,Duke,Hampton,1,16,87.0,45.0,,,False
+2011,2,2011-03-19,BYU,Gonzaga,3,11,89.0,67.0,,,False
+2011,2,2011-03-19,Connecticut,Cincinnati,3,6,69.0,58.0,,,False
+2011,2,2011-03-19,Kentucky,West Virginia,4,5,71.0,63.0,,,False
+2011,2,2011-03-19,Wisconsin,Kansas St.,4,5,70.0,65.0,,,False
+2011,2,2011-03-19,Florida,UCLA,2,7,73.0,65.0,,,False
+2011,2,2011-03-19,San Diego St.,Temple,2,7,71.0,64.0,,,False
+2011,2,2011-03-19,Butler,Pittsburgh,8,1,71.0,70.0,,,False
+2011,2,2011-03-19,Richmond,Morehead St.,12,13,65.0,48.0,,,False
+2011,2,2011-03-20,North Carolina,Washington,2,7,86.0,83.0,,,False
+2011,2,2011-03-20,Kansas,Illinois,1,9,73.0,59.0,,,False
+2011,2,2011-03-20,Arizona,Texas,5,4,70.0,69.0,,,False
+2011,2,2011-03-20,Marquette,Syracuse,11,3,66.0,62.0,,,False
+2011,2,2011-03-20,Florida St.,Notre Dame,10,2,71.0,57.0,,,False
+2011,2,2011-03-20,Duke,Michigan,1,8,73.0,71.0,,,False
+2011,2,2011-03-20,Ohio St.,George Mason,1,8,98.0,66.0,,,False
+2011,2,2011-03-20,VCU,Purdue,11,3,94.0,76.0,,,False
+2011,3,2011-03-24,Florida,BYU,2,3,83.0,74.0,,,False
+2011,3,2011-03-24,Connecticut,San Diego St.,3,2,74.0,67.0,,,False
+2011,3,2011-03-24,Arizona,Duke,5,1,93.0,77.0,,,False
+2011,3,2011-03-24,Butler,Wisconsin,8,4,61.0,54.0,,,False
+2011,3,2011-03-25,Kentucky,Ohio St.,4,1,62.0,60.0,,,False
+2011,3,2011-03-25,North Carolina,Marquette,2,11,81.0,63.0,,,False
+2011,3,2011-03-25,VCU,Florida St.,11,10,72.0,71.0,,,False
+2011,3,2011-03-25,Kansas,Richmond,1,12,77.0,57.0,,,False
+2011,4,2011-03-26,Connecticut,Arizona,3,5,65.0,63.0,,,False
+2011,4,2011-03-26,Butler,Florida,8,2,74.0,71.0,,,False
+2011,4,2011-03-27,Kentucky,North Carolina,4,2,76.0,69.0,,,False
+2011,4,2011-03-27,VCU,Kansas,11,1,71.0,61.0,,,False
+2011,5,2011-04-02,Connecticut,Kentucky,3,4,56.0,55.0,,,False
+2011,5,2011-04-02,Butler,VCU,8,11,70.0,62.0,,,False
+2011,6,2011-04-04,Connecticut,Butler,3,8,53.0,41.0,,,False
+2012,1,2012-03-15,Iowa St.,Connecticut,8,9,77.0,64.0,,,False
+2012,1,2012-03-15,Marquette,BYU,3,14,88.0,68.0,,,False
+2012,1,2012-03-15,Gonzaga,West Virginia,7,10,77.0,54.0,,,False
+2012,1,2012-03-15,VCU,Wichita St.,12,5,62.0,59.0,,,False
+2012,1,2012-03-15,Colorado,UNLV,11,6,68.0,64.0,,,False
+2012,1,2012-03-15,New Mexico,Long Beach St.,5,12,75.0,68.0,,,False
+2012,1,2012-03-15,Vanderbilt,Harvard,5,12,79.0,70.0,,,False
+2012,1,2012-03-15,Louisville,Davidson,4,13,69.0,62.0,,,False
+2012,1,2012-03-15,Kansas St.,Southern Miss,8,9,70.0,64.0,,,False
+2012,1,2012-03-15,Baylor,South Dakota St.,3,14,68.0,60.0,,,False
+2012,1,2012-03-15,Indiana,New Mexico St.,4,13,79.0,66.0,,,False
+2012,1,2012-03-15,Murray St.,Colorado St.,6,11,58.0,41.0,,,False
+2012,1,2012-03-15,Syracuse,UNC Asheville,1,16,72.0,65.0,,,False
+2012,1,2012-03-15,Ohio St.,Loyola MD,2,15,78.0,59.0,,,False
+2012,1,2012-03-15,Kentucky,Western Kentucky,1,16,81.0,66.0,,,False
+2012,1,2012-03-15,Wisconsin,Montana,4,13,73.0,49.0,,,False
+2012,1,2012-03-16,Saint Louis,Memphis,9,8,61.0,54.0,,,False
+2012,1,2012-03-16,Creighton,Alabama,8,9,58.0,57.0,,,False
+2012,1,2012-03-16,Georgetown,Belmont,3,14,74.0,59.0,,,False
+2012,1,2012-03-16,South Florida,Temple,12,5,58.0,44.0,,,False
+2012,1,2012-03-16,Xavier,Notre Dame,10,7,67.0,63.0,,,False
+2012,1,2012-03-16,Florida St.,St. Bonaventure,3,14,66.0,63.0,,,False
+2012,1,2012-03-16,Florida,Virginia,7,10,71.0,45.0,,,False
+2012,1,2012-03-16,Cincinnati,Texas,6,11,65.0,59.0,,,False
+2012,1,2012-03-16,Purdue,Saint Mary's,10,7,72.0,69.0,,,False
+2012,1,2012-03-16,N.C. State,San Diego St.,11,6,79.0,65.0,,,False
+2012,1,2012-03-16,Ohio,Michigan,13,4,65.0,60.0,,,False
+2012,1,2012-03-16,Lehigh,Duke,15,2,75.0,70.0,,,False
+2012,1,2012-03-16,Kansas,Detroit Mercy,2,15,65.0,50.0,,,False
+2012,1,2012-03-16,North Carolina,Vermont,1,16,77.0,58.0,,,False
+2012,1,2012-03-16,Michigan St.,LIU,1,16,89.0,67.0,,,False
+2012,1,2012-03-16,Norfolk St.,Missouri,15,2,86.0,84.0,,,False
+2012,2,2012-03-17,Louisville,New Mexico,4,5,59.0,56.0,,,False
+2012,2,2012-03-17,Wisconsin,Vanderbilt,4,5,60.0,57.0,,,False
+2012,2,2012-03-17,Syracuse,Kansas St.,1,8,75.0,59.0,,,False
+2012,2,2012-03-17,Marquette,Murray St.,3,6,62.0,53.0,,,False
+2012,2,2012-03-17,Ohio St.,Gonzaga,2,7,73.0,66.0,,,False
+2012,2,2012-03-17,Indiana,VCU,4,12,63.0,61.0,,,False
+2012,2,2012-03-17,Kentucky,Iowa St.,1,8,87.0,71.0,,,False
+2012,2,2012-03-17,Baylor,Colorado,3,11,80.0,63.0,,,False
+2012,2,2012-03-18,Cincinnati,Florida St.,6,3,62.0,56.0,,,False
+2012,2,2012-03-18,Michigan St.,Saint Louis,1,9,65.0,61.0,,,False
+2012,2,2012-03-18,Kansas,Purdue,2,10,63.0,60.0,,,False
+2012,2,2012-03-18,North Carolina,Creighton,1,8,87.0,73.0,,,False
+2012,2,2012-03-18,N.C. State,Georgetown,11,3,66.0,63.0,,,False
+2012,2,2012-03-18,Xavier,Lehigh,10,15,70.0,58.0,,,False
+2012,2,2012-03-18,Ohio,South Florida,13,12,62.0,56.0,,,False
+2012,2,2012-03-18,Florida,Norfolk St.,7,15,84.0,50.0,,,False
+2012,3,2012-03-22,Syracuse,Wisconsin,1,4,64.0,63.0,,,False
+2012,3,2012-03-22,Florida,Marquette,7,3,68.0,58.0,,,False
+2012,3,2012-03-22,Louisville,Michigan St.,4,1,57.0,44.0,,,False
+2012,3,2012-03-22,Ohio St.,Cincinnati,2,6,81.0,66.0,,,False
+2012,3,2012-03-23,Kentucky,Indiana,1,4,102.0,90.0,,,False
+2012,3,2012-03-23,Kansas,N.C. State,2,11,60.0,57.0,,,False
+2012,3,2012-03-23,North Carolina,Ohio,1,13,73.0,65.0,,,False
+2012,3,2012-03-23,Baylor,Xavier,3,10,75.0,70.0,,,False
+2012,4,2012-03-24,Ohio St.,Syracuse,2,1,77.0,70.0,,,False
+2012,4,2012-03-24,Louisville,Florida,4,7,72.0,68.0,,,False
+2012,4,2012-03-25,Kansas,North Carolina,2,1,80.0,67.0,,,False
+2012,4,2012-03-25,Kentucky,Baylor,1,3,82.0,70.0,,,False
+2012,5,2012-03-31,Kansas,Ohio St.,2,2,64.0,62.0,,,False
+2012,5,2012-03-31,Kentucky,Louisville,1,4,69.0,61.0,,,False
+2012,6,2012-04-02,Kentucky,Kansas,1,2,67.0,59.0,,,False
+2013,1,2013-03-21,Colorado St.,Missouri,8,9,84.0,72.0,,,False
+2013,1,2013-03-21,Oregon,Oklahoma St.,12,5,68.0,55.0,,,False
+2013,1,2013-03-21,Memphis,Saint Mary's,6,11,54.0,52.0,,,False
+2013,1,2013-03-21,Wichita St.,Pittsburgh,9,8,73.0,55.0,,,False
+2013,1,2013-03-21,California,UNLV,12,5,64.0,61.0,,,False
+2013,1,2013-03-21,Arizona,Belmont,6,11,81.0,64.0,,,False
+2013,1,2013-03-21,Butler,Bucknell,6,11,68.0,56.0,,,False
+2013,1,2013-03-21,Marquette,Davidson,3,14,59.0,58.0,,,False
+2013,1,2013-03-21,VCU,Akron,5,12,88.0,42.0,,,False
+2013,1,2013-03-21,Michigan St.,Valparaiso,3,14,65.0,54.0,,,False
+2013,1,2013-03-21,Saint Louis,New Mexico St.,4,13,64.0,44.0,,,False
+2013,1,2013-03-21,Harvard,New Mexico,14,3,68.0,62.0,,,False
+2013,1,2013-03-21,Michigan,South Dakota St.,4,13,71.0,56.0,,,False
+2013,1,2013-03-21,Louisville,North Carolina A&T,1,16,79.0,48.0,,,False
+2013,1,2013-03-21,Gonzaga,Southern,1,16,64.0,58.0,,,False
+2013,1,2013-03-21,Syracuse,Montana,4,13,81.0,34.0,,,False
+2013,1,2013-03-22,Iowa St.,Notre Dame,10,7,76.0,58.0,,,False
+2013,1,2013-03-22,North Carolina,Villanova,8,9,78.0,71.0,,,False
+2013,1,2013-03-22,Illinois,Colorado,7,10,57.0,49.0,,,False
+2013,1,2013-03-22,Temple,N.C. State,9,8,76.0,72.0,,,False
+2013,1,2013-03-22,San Diego St.,Oklahoma,7,10,70.0,55.0,,,False
+2013,1,2013-03-22,Creighton,Cincinnati,7,10,67.0,63.0,,,False
+2013,1,2013-03-22,Minnesota,UCLA,11,6,83.0,63.0,,,False
+2013,1,2013-03-22,La Salle,Kansas St.,13,4,63.0,61.0,,,False
+2013,1,2013-03-22,Mississippi,Wisconsin,12,5,57.0,46.0,,,False
+2013,1,2013-03-22,Ohio St.,Iona,2,15,95.0,70.0,,,False
+2013,1,2013-03-22,Florida Gulf Coast,Georgetown,15,2,78.0,68.0,,,False
+2013,1,2013-03-22,Florida,Northwestern St.,3,14,79.0,47.0,,,False
+2013,1,2013-03-22,Duke,Albany,2,15,73.0,61.0,,,False
+2013,1,2013-03-22,Indiana,James Madison,1,16,83.0,62.0,,,False
+2013,1,2013-03-22,Kansas,Western Kentucky,1,16,64.0,57.0,,,False
+2013,1,2013-03-22,Miami FL,Pacific,2,15,78.0,49.0,,,False
+2013,2,2013-03-23,Michigan,VCU,4,5,78.0,53.0,,,False
+2013,2,2013-03-23,Oregon,Saint Louis,12,4,74.0,57.0,,,False
+2013,2,2013-03-23,Wichita St.,Gonzaga,9,1,76.0,70.0,,,False
+2013,2,2013-03-23,Marquette,Butler,3,6,74.0,72.0,,,False
+2013,2,2013-03-23,Michigan St.,Memphis,3,6,70.0,48.0,,,False
+2013,2,2013-03-23,Louisville,Colorado St.,1,8,82.0,56.0,,,False
+2013,2,2013-03-23,Syracuse,California,4,12,66.0,60.0,,,False
+2013,2,2013-03-23,Arizona,Harvard,6,14,74.0,51.0,,,False
+2013,2,2013-03-24,Duke,Creighton,2,7,66.0,50.0,,,False
+2013,2,2013-03-24,La Salle,Mississippi,13,12,76.0,74.0,,,False
+2013,2,2013-03-24,Kansas,North Carolina,1,8,70.0,58.0,,,False
+2013,2,2013-03-24,Ohio St.,Iowa St.,2,10,78.0,75.0,,,False
+2013,2,2013-03-24,Miami FL,Illinois,2,7,63.0,59.0,,,False
+2013,2,2013-03-24,Florida,Minnesota,3,11,78.0,64.0,,,False
+2013,2,2013-03-24,Indiana,Temple,1,9,58.0,52.0,,,False
+2013,2,2013-03-24,Florida Gulf Coast,San Diego St.,15,7,81.0,71.0,,,False
+2013,3,2013-03-28,Syracuse,Indiana,4,1,61.0,50.0,,,False
+2013,3,2013-03-28,Ohio St.,Arizona,2,6,73.0,70.0,,,False
+2013,3,2013-03-28,Marquette,Miami FL,3,2,71.0,61.0,,,False
+2013,3,2013-03-28,Wichita St.,La Salle,9,13,72.0,58.0,,,False
+2013,3,2013-03-29,Michigan,Kansas,4,1,87.0,85.0,,,False
+2013,3,2013-03-29,Duke,Michigan St.,2,3,71.0,61.0,,,False
+2013,3,2013-03-29,Louisville,Oregon,1,12,77.0,69.0,,,False
+2013,3,2013-03-29,Florida,Florida Gulf Coast,3,15,62.0,50.0,,,False
+2013,4,2013-03-30,Wichita St.,Ohio St.,9,2,70.0,66.0,,,False
+2013,4,2013-03-30,Syracuse,Marquette,4,3,55.0,39.0,,,False
+2013,4,2013-03-31,Louisville,Duke,1,2,85.0,63.0,,,False
+2013,4,2013-03-31,Michigan,Florida,4,3,79.0,59.0,,,False
+2013,5,2013-04-06,Michigan,Syracuse,4,4,61.0,56.0,,,False
+2013,5,2013-04-06,Louisville,Wichita St.,1,9,72.0,68.0,,,False
+2013,6,2013-04-08,Louisville,Michigan,1,4,82.0,76.0,,,False
+2014,1,2014-03-20,Texas,Arizona St.,7,10,87.0,85.0,,,False
+2014,1,2014-03-20,Oregon,BYU,7,10,87.0,68.0,,,False
+2014,1,2014-03-20,Harvard,Cincinnati,12,5,61.0,57.0,,,False
+2014,1,2014-03-20,Saint Louis,N.C. State,5,12,83.0,80.0,,,False
+2014,1,2014-03-20,Connecticut,Saint Joseph's,7,10,89.0,81.0,,,False
+2014,1,2014-03-20,North Dakota St.,Oklahoma,12,5,80.0,75.0,,,False
+2014,1,2014-03-20,Dayton,Ohio St.,11,6,60.0,59.0,,,False
+2014,1,2014-03-20,Louisville,Manhattan,4,13,71.0,64.0,,,False
+2014,1,2014-03-20,Pittsburgh,Colorado,9,8,77.0,48.0,,,False
+2014,1,2014-03-20,San Diego St.,New Mexico St.,4,13,73.0,69.0,,,False
+2014,1,2014-03-20,Michigan St.,Delaware,4,13,93.0,78.0,,,False
+2014,1,2014-03-20,Villanova,Milwaukee,2,15,73.0,53.0,,,False
+2014,1,2014-03-20,Wisconsin,American,2,15,75.0,35.0,,,False
+2014,1,2014-03-20,Syracuse,Western Michigan,3,14,77.0,53.0,,,False
+2014,1,2014-03-20,Florida,Albany,1,16,67.0,55.0,,,False
+2014,1,2014-03-20,Michigan,Wofford,2,15,57.0,40.0,,,False
+2014,1,2014-03-21,Gonzaga,Oklahoma St.,8,9,85.0,77.0,,,False
+2014,1,2014-03-21,Stanford,New Mexico,10,7,58.0,53.0,,,False
+2014,1,2014-03-21,Memphis,George Washington,8,9,71.0,66.0,,,False
+2014,1,2014-03-21,North Carolina,Providence,6,11,79.0,77.0,,,False
+2014,1,2014-03-21,Kentucky,Kansas St.,8,9,56.0,49.0,,,False
+2014,1,2014-03-21,Baylor,Nebraska,6,11,74.0,60.0,,,False
+2014,1,2014-03-21,UCLA,Tulsa,4,13,76.0,59.0,,,False
+2014,1,2014-03-21,Tennessee,Massachusetts,11,6,86.0,67.0,,,False
+2014,1,2014-03-21,Stephen F. Austin,VCU,12,5,77.0,75.0,,,False
+2014,1,2014-03-21,Iowa St.,North Carolina Central,3,14,93.0,75.0,,,False
+2014,1,2014-03-21,Creighton,Louisiana,3,14,76.0,66.0,,,False
+2014,1,2014-03-21,Mercer,Duke,14,3,78.0,71.0,,,False
+2014,1,2014-03-21,Kansas,Eastern Kentucky,2,15,80.0,69.0,,,False
+2014,1,2014-03-21,Arizona,Weber St.,1,16,68.0,59.0,,,False
+2014,1,2014-03-21,Virginia,Coastal Carolina,1,16,70.0,59.0,,,False
+2014,1,2014-03-21,Wichita St.,Cal Poly,1,16,64.0,37.0,,,False
+2014,2,2014-03-22,Connecticut,Villanova,7,2,77.0,65.0,,,False
+2014,2,2014-03-22,Florida,Pittsburgh,1,9,61.0,45.0,,,False
+2014,2,2014-03-22,Wisconsin,Oregon,2,7,85.0,77.0,,,False
+2014,2,2014-03-22,Michigan St.,Harvard,4,12,80.0,73.0,,,False
+2014,2,2014-03-22,Michigan,Texas,2,7,79.0,65.0,,,False
+2014,2,2014-03-22,Louisville,Saint Louis,4,5,66.0,51.0,,,False
+2014,2,2014-03-22,Dayton,Syracuse,11,3,55.0,53.0,,,False
+2014,2,2014-03-22,San Diego St.,North Dakota St.,4,12,63.0,44.0,,,False
+2014,2,2014-03-23,Iowa St.,North Carolina,3,6,85.0,83.0,,,False
+2014,2,2014-03-23,Kentucky,Wichita St.,8,1,78.0,76.0,,,False
+2014,2,2014-03-23,Baylor,Creighton,6,3,85.0,55.0,,,False
+2014,2,2014-03-23,Arizona,Gonzaga,1,8,84.0,61.0,,,False
+2014,2,2014-03-23,Stanford,Kansas,10,2,60.0,57.0,,,False
+2014,2,2014-03-23,Virginia,Memphis,1,8,78.0,60.0,,,False
+2014,2,2014-03-23,UCLA,Stephen F. Austin,4,12,77.0,60.0,,,False
+2014,2,2014-03-23,Tennessee,Mercer,11,14,83.0,63.0,,,False
+2014,3,2014-03-27,Florida,UCLA,1,4,79.0,68.0,,,False
+2014,3,2014-03-27,Dayton,Stanford,11,10,82.0,72.0,,,False
+2014,3,2014-03-27,Wisconsin,Baylor,2,6,69.0,52.0,,,False
+2014,3,2014-03-27,Arizona,San Diego St.,1,4,70.0,64.0,,,False
+2014,3,2014-03-28,Michigan,Tennessee,2,11,73.0,71.0,,,False
+2014,3,2014-03-28,Michigan St.,Virginia,4,1,61.0,59.0,,,False
+2014,3,2014-03-28,Connecticut,Iowa St.,7,3,81.0,76.0,,,False
+2014,3,2014-03-28,Kentucky,Louisville,8,4,74.0,69.0,,,False
+2014,4,2014-03-29,Wisconsin,Arizona,2,1,64.0,63.0,,,False
+2014,4,2014-03-29,Florida,Dayton,1,11,62.0,52.0,,,False
+2014,4,2014-03-30,Connecticut,Michigan St.,7,4,60.0,54.0,,,False
+2014,4,2014-03-30,Kentucky,Michigan,8,2,75.0,72.0,,,False
+2014,5,2014-04-05,Kentucky,Wisconsin,8,2,74.0,73.0,,,False
+2014,5,2014-04-05,Connecticut,Florida,7,1,63.0,53.0,,,False
+2014,6,2014-04-07,Connecticut,Kentucky,7,8,60.0,54.0,,,False
+2015,1,2015-03-19,N.C. State,LSU,8,9,66.0,65.0,0.55,"N.C. State -1.4, 73-71 (55%)",False
+2015,1,2015-03-19,Butler,Texas,6,11,56.0,48.0,0.45999999999999996,"Texas -0.9, 61-60 (54%)",False
+2015,1,2015-03-19,UCLA,SMU,11,6,60.0,59.0,0.42000000000000004,"SMU -2.2, 69-67 (58%)",False
+2015,1,2015-03-19,Ohio St.,VCU,10,7,75.0,72.0,0.66,"Ohio St. -4.7, 72-68 (66%)",False
+2015,1,2015-03-19,Cincinnati,Purdue,8,9,66.0,65.0,0.51,"Cincinnati -0.2, 61-60 (51%)",False
+2015,1,2015-03-19,Xavier,Mississippi,6,11,76.0,57.0,0.6,"Xavier -2.8, 75-72 (60%)",False
+2015,1,2015-03-19,Utah,Stephen F. Austin,5,12,57.0,50.0,0.85,"Utah -11.1, 73-62 (85%)",False
+2015,1,2015-03-19,Georgia St.,Baylor,14,3,57.0,56.0,0.15000000000000002,"Baylor -11.1, 71-60 (85%)",False
+2015,1,2015-03-19,Arkansas,Wofford,5,12,56.0,53.0,0.81,"Arkansas -9.7, 74-64 (81%)",False
+2015,1,2015-03-19,North Carolina,Harvard,4,13,67.0,65.0,0.91,"North Carolina -14.7, 73-59 (91%)",False
+2015,1,2015-03-19,Notre Dame,Northeastern,3,14,69.0,65.0,0.91,"Notre Dame -16.1, 80-63 (91%)",False
+2015,1,2015-03-19,UAB,Iowa St.,14,3,60.0,59.0,0.08999999999999997,"Iowa St. -17.1, 83-66 (91%)",False
+2015,1,2015-03-19,Georgetown,Eastern Washington,4,13,84.0,74.0,0.88,"Georgetown -14.8, 82-67 (88%)",False
+2015,1,2015-03-19,Kentucky,Hampton,1,16,79.0,56.0,0.995,"Kentucky -34.7, 85-50 (100%)",False
+2015,1,2015-03-19,Villanova,Lafayette,1,16,93.0,52.0,0.98,"Villanova -27.7, 90-63 (98%)",False
+2015,1,2015-03-19,Arizona,Texas Southern,2,15,93.0,72.0,0.99,"Arizona -29.5, 83-54 (99%)",False
+2015,1,2015-03-20,Oregon,Oklahoma St.,8,9,79.0,73.0,0.42000000000000004,"Oklahoma St. -2.3, 72-70 (58%)",False
+2015,1,2015-03-20,San Diego St.,St. John's,8,9,76.0,64.0,0.54,"San Diego St. -0.9, 59-58 (54%)",False
+2015,1,2015-03-20,Iowa,Davidson,7,10,83.0,52.0,0.59,"Iowa -2.7, 74-72 (59%)",False
+2015,1,2015-03-20,West Virginia,Buffalo,5,12,68.0,62.0,0.72,"West Virginia -7.0, 79-72 (72%)",False
+2015,1,2015-03-20,Wichita St.,Indiana,7,10,81.0,76.0,0.68,"Wichita St. -5.1, 73-68 (68%)",False
+2015,1,2015-03-20,Dayton,Providence,11,6,66.0,53.0,0.37,"Providence -3.4, 67-64 (63%)",False
+2015,1,2015-03-20,Michigan St.,Georgia,7,10,70.0,63.0,0.64,"Michigan St. -3.7, 66-63 (64%)",False
+2015,1,2015-03-20,Maryland,Valparaiso,4,13,65.0,62.0,0.69,"Maryland -4.8, 65-60 (69%)",False
+2015,1,2015-03-20,Louisville,UC Irvine,4,13,57.0,55.0,0.86,"Louisville -10.9, 68-57 (86%)",False
+2015,1,2015-03-20,Kansas,New Mexico St.,2,15,75.0,56.0,0.88,"Kansas -12.5, 72-60 (88%)",False
+2015,1,2015-03-20,Duke,Robert Morris,1,16,85.0,56.0,0.97,"Duke -25.2, 87-62 (97%)",False
+2015,1,2015-03-20,Oklahoma,Albany,3,14,69.0,60.0,0.94,"Oklahoma -17.3, 73-56 (94%)",False
+2015,1,2015-03-20,Wisconsin,Coastal Carolina,1,16,86.0,72.0,0.97,"Wisconsin -22.8, 77-54 (97%)",False
+2015,1,2015-03-20,Virginia,Belmont,2,15,79.0,67.0,0.97,"Virginia -21.3, 74-52 (97%)",False
+2015,1,2015-03-20,Gonzaga,North Dakota St.,2,15,86.0,76.0,0.96,"Gonzaga -19.0, 73-54 (96%)",False
+2015,1,2015-03-20,Northern Iowa,Wyoming,5,12,71.0,54.0,0.81,"Northern Iowa -7.4, 57-50 (81%)",False
+2015,2,2015-03-21,Notre Dame,Butler,3,6,67.0,64.0,0.56,"Notre Dame -1.6, 68-67 (56%)",False
+2015,2,2015-03-21,North Carolina,Arkansas,4,5,87.0,78.0,0.71,"North Carolina -7.0, 83-77 (71%)",False
+2015,2,2015-03-21,Arizona,Ohio St.,2,10,73.0,58.0,0.77,"Arizona -8.1, 73-65 (77%)",False
+2015,2,2015-03-21,Utah,Georgetown,5,4,75.0,64.0,0.7,"Utah -5.2, 65-60 (70%)",False
+2015,2,2015-03-21,N.C. State,Villanova,8,1,71.0,68.0,0.15000000000000002,"Villanova -12.0, 76-64 (85%)",False
+2015,2,2015-03-21,Xavier,Georgia St.,6,14,75.0,67.0,0.76,"Xavier -7.8, 72-65 (76%)",False
+2015,2,2015-03-21,Kentucky,Cincinnati,1,8,64.0,51.0,0.93,"Kentucky -14.4, 65-50 (93%)",False
+2015,2,2015-03-21,UCLA,UAB,11,14,92.0,75.0,0.77,"UCLA -8.1, 73-65 (77%)",False
+2015,2,2015-03-22,Wichita St.,Kansas,7,2,78.0,65.0,0.41000000000000003,"Kansas -2.2, 66-64 (59%)",False
+2015,2,2015-03-22,Louisville,Northern Iowa,4,5,66.0,53.0,0.51,"Louisville -0.3, 59-58 (51%)",False
+2015,2,2015-03-22,Gonzaga,Iowa,2,7,87.0,68.0,0.63,"Gonzaga -3.6, 70-66 (63%)",False
+2015,2,2015-03-22,West Virginia,Maryland,5,4,69.0,59.0,0.58,"West Virginia -2.2, 71-68 (58%)",False
+2015,2,2015-03-22,Michigan St.,Virginia,7,2,60.0,54.0,0.25,"Virginia -6.2, 60-54 (75%)",False
+2015,2,2015-03-22,Duke,San Diego St.,1,8,68.0,49.0,0.79,"Duke -8.3, 67-59 (79%)",False
+2015,2,2015-03-22,Oklahoma,Dayton,3,11,72.0,66.0,0.75,"Oklahoma -6.9, 68-61 (75%)",False
+2015,2,2015-03-22,Wisconsin,Oregon,1,8,72.0,65.0,0.89,"Wisconsin -14.1, 77-63 (89%)",False
+2015,3,2015-03-26,Wisconsin,North Carolina,1,4,79.0,72.0,0.67,"Wisconsin -5.0, 73-68 (67%)",False
+2015,3,2015-03-26,Notre Dame,Wichita St.,3,7,81.0,70.0,0.55,"Notre Dame -1.3, 69-68 (55%)",False
+2015,3,2015-03-26,Arizona,Xavier,2,6,68.0,60.0,0.83,"Arizona -10.6, 75-65 (83%)",False
+2015,3,2015-03-26,Kentucky,West Virginia,1,5,78.0,39.0,0.88,"Kentucky -13.0, 73-60 (88%)",False
+2015,3,2015-03-27,Michigan St.,Oklahoma,7,3,62.0,58.0,0.47,"Oklahoma -0.8, 67-66 (53%)",False
+2015,3,2015-03-27,Duke,Utah,1,5,63.0,57.0,0.59,"Duke -2.5, 69-66 (59%)",False
+2015,3,2015-03-27,Louisville,N.C. State,4,8,75.0,65.0,0.64,"Louisville -3.6, 67-64 (64%)",False
+2015,3,2015-03-27,Gonzaga,UCLA,2,11,74.0,62.0,0.8,"Gonzaga -9.8, 78-68 (80%)",False
+2015,4,2015-03-28,Wisconsin,Arizona,1,2,85.0,78.0,0.47,"Arizona -0.8, 66-65 (53%)",False
+2015,4,2015-03-28,Kentucky,Notre Dame,1,3,68.0,66.0,0.85,"Kentucky -11.5, 73-62 (85%)",False
+2015,4,2015-03-29,Duke,Gonzaga,1,2,66.0,52.0,0.6,"Duke -3.1, 76-73 (60%)",False
+2015,4,2015-03-29,Michigan St.,Louisville,7,4,76.0,70.0,0.52,"Michigan St. -0.4, 64-63 (52%)",False
+2015,5,2015-04-04,Wisconsin,Kentucky,1,1,71.0,64.0,0.31999999999999995,"Kentucky -4.5, 64-60 (68%)",False
+2015,5,2015-04-04,Duke,Michigan St.,1,7,81.0,61.0,0.71,"Duke -6.2, 73-67 (71%)",False
+2015,6,2015-04-06,Duke,Wisconsin,1,1,68.0,63.0,0.49,"Wisconsin -0.5, 71-70 (51%)",False
+2016,1,2016-03-17,Gonzaga,Seton Hall,11,6,68.0,52.0,0.5,"Seton Hall -0.1, 73-72 (50%)",False
+2016,1,2016-03-17,Providence,USC,9,8,70.0,69.0,0.48,"USC -0.8, 76-75 (52%)",False
+2016,1,2016-03-17,Wichita St.,Arizona,11,6,65.0,55.0,0.52,"Wichita St. -0.8, 69-68 (52%)",False
+2016,1,2016-03-17,Butler,Texas Tech,9,8,71.0,61.0,0.53,"Butler -1.1, 75-74 (53%)",False
+2016,1,2016-03-17,Yale,Baylor,12,5,79.0,75.0,0.31000000000000005,"Baylor -5.5, 72-67 (69%)",False
+2016,1,2016-03-17,Connecticut,Colorado,9,8,74.0,67.0,0.64,"Connecticut -3.8, 68-64 (64%)",False
+2016,1,2016-03-17,Iowa St.,Iona,4,13,94.0,81.0,0.84,"Iowa St. -13.8, 91-78 (84%)",False
+2016,1,2016-03-17,Duke,UNC Wilmington,4,13,93.0,85.0,0.83,"Duke -12.1, 84-72 (83%)",False
+2016,1,2016-03-17,Little Rock,Purdue,12,5,85.0,83.0,0.18999999999999995,"Purdue -9.3, 70-60 (81%)",False
+2016,1,2016-03-17,Utah,Fresno St.,3,14,80.0,69.0,0.78,"Utah -9.1, 76-67 (78%)",False
+2016,1,2016-03-17,Kentucky,Stony Brook,4,13,85.0,57.0,0.88,"Kentucky -14.5, 79-64 (88%)",False
+2016,1,2016-03-17,Indiana,Chattanooga,5,12,99.0,74.0,0.88,"Indiana -14.0, 79-65 (88%)",False
+2016,1,2016-03-17,Miami FL,Buffalo,3,14,79.0,72.0,0.91,"Miami FL -16.9, 83-66 (91%)",False
+2016,1,2016-03-17,North Carolina,Florida Gulf Coast,1,16,83.0,67.0,0.95,"North Carolina -22.2, 86-64 (95%)",False
+2016,1,2016-03-17,Kansas,Austin Peay,1,16,105.0,79.0,0.98,"Kansas -30.0, 92-62 (98%)",False
+2016,1,2016-03-17,Virginia,Hampton,1,16,81.0,45.0,0.98,"Virginia -26.5, 81-54 (98%)",False
+2016,1,2016-03-18,Saint Joseph's,Cincinnati,8,9,78.0,76.0,0.43000000000000005,"Cincinnati -2.1, 70-68 (57%)",False
+2016,1,2016-03-18,Notre Dame,Michigan,6,11,70.0,63.0,0.54,"Notre Dame -1.3, 72-71 (54%)",False
+2016,1,2016-03-18,Wisconsin,Pittsburgh,7,10,47.0,43.0,0.52,"Wisconsin -0.7, 66-65 (52%)",False
+2016,1,2016-03-18,Hawaii,California,13,4,77.0,66.0,0.28,"California -6.6, 74-67 (72%)",False
+2016,1,2016-03-18,Northern Iowa,Texas,11,6,75.0,72.0,0.31000000000000005,"Texas -5.0, 65-60 (69%)",False
+2016,1,2016-03-18,Syracuse,Dayton,10,7,70.0,51.0,0.56,"Syracuse -1.6, 64-63 (56%)",False
+2016,1,2016-03-18,Stephen F. Austin,West Virginia,14,3,70.0,56.0,0.19999999999999996,"West Virginia -9.9, 76-66 (80%)",False
+2016,1,2016-03-18,VCU,Oregon St.,10,7,75.0,67.0,0.6,"VCU -3.0, 72-69 (60%)",False
+2016,1,2016-03-18,Maryland,South Dakota St.,5,12,79.0,74.0,0.8,"Maryland -10.0, 77-67 (80%)",False
+2016,1,2016-03-18,Iowa,Temple,7,10,72.0,70.0,0.78,"Iowa -8.8, 74-65 (78%)",False
+2016,1,2016-03-18,Oklahoma,Cal St. Bakersfield,2,15,82.0,68.0,0.88,"Oklahoma -13.8, 77-63 (88%)",False
+2016,1,2016-03-18,Texas A&M,Green Bay,3,14,92.0,65.0,0.89,"Texas A&M -16.8, 88-71 (89%)",False
+2016,1,2016-03-18,Middle Tennessee,Michigan St.,15,2,90.0,81.0,0.06000000000000005,"Michigan St. -19.7, 80-60 (94%)",False
+2016,1,2016-03-18,Villanova,UNC Asheville,2,15,86.0,56.0,0.93,"Villanova -18.3, 79-61 (93%)",False
+2016,1,2016-03-18,Xavier,Weber St.,2,15,71.0,53.0,0.89,"Xavier -15.2, 82-67 (89%)",False
+2016,1,2016-03-18,Oregon,Holy Cross,1,16,91.0,52.0,0.97,"Oregon -25.6, 82-56 (97%)",False
+2016,2,2016-03-19,Indiana,Kentucky,5,4,73.0,67.0,0.41000000000000003,"Kentucky -2.8, 79-77 (59%)",False
+2016,2,2016-03-19,Miami FL,Wichita St.,3,11,65.0,57.0,0.43999999999999995,"Wichita St. -1.6, 66-64 (56%)",False
+2016,2,2016-03-19,Gonzaga,Utah,11,3,82.0,59.0,0.52,"Gonzaga -0.6, 72-71 (52%)",False
+2016,2,2016-03-19,Virginia,Butler,1,9,77.0,69.0,0.78,"Virginia -8.4, 71-63 (78%)",False
+2016,2,2016-03-19,Kansas,Connecticut,1,9,73.0,61.0,0.73,"Kansas -7.0, 73-66 (73%)",False
+2016,2,2016-03-19,North Carolina,Providence,1,9,85.0,66.0,0.8,"North Carolina -10.3, 80-70 (80%)",False
+2016,2,2016-03-19,Duke,Yale,4,12,71.0,64.0,0.71,"Duke -6.4, 75-69 (71%)",False
+2016,2,2016-03-19,Iowa St.,Little Rock,4,12,78.0,61.0,0.72,"Iowa St. -6.8, 75-68 (72%)",False
+2016,2,2016-03-20,Oklahoma,VCU,2,10,85.0,81.0,0.69,"Oklahoma -5.9, 78-72 (69%)",False
+2016,2,2016-03-20,Oregon,Saint Joseph's,1,8,69.0,64.0,0.69,"Oregon -6.1, 80-74 (69%)",False
+2016,2,2016-03-20,Notre Dame,Stephen F. Austin,6,14,76.0,75.0,0.56,"Notre Dame -1.8, 72-70 (56%)",False
+2016,2,2016-03-20,Villanova,Iowa,2,7,87.0,68.0,0.68,"Villanova -5.5, 74-69 (68%)",False
+2016,2,2016-03-20,Wisconsin,Xavier,7,2,66.0,63.0,0.38,"Xavier -3.3, 71-68 (62%)",False
+2016,2,2016-03-20,Maryland,Hawaii,5,13,73.0,60.0,0.7,"Maryland -6.0, 74-68 (70%)",False
+2016,2,2016-03-20,Texas A&M,Northern Iowa,3,11,92.0,88.0,0.79,"Texas A&M -8.3, 68-60 (79%)",False
+2016,2,2016-03-20,Syracuse,Middle Tennessee,10,15,75.0,50.0,0.81,"Syracuse -9.5, 70-60 (81%)",False
+2016,3,2016-03-24,Oregon,Duke,1,4,82.0,68.0,0.51,"Oregon -0.4, 78-77 (51%)",False
+2016,3,2016-03-24,Oklahoma,Texas A&M,2,3,77.0,63.0,0.54,"Oklahoma -1.1, 74-72 (54%)",False
+2016,3,2016-03-24,Villanova,Miami FL,2,3,92.0,69.0,0.64,"Villanova -3.8, 71-67 (64%)",False
+2016,3,2016-03-24,Kansas,Maryland,1,5,79.0,63.0,0.72,"Kansas -6.8, 76-69 (72%)",False
+2016,3,2016-03-25,North Carolina,Indiana,1,5,101.0,86.0,0.61,"North Carolina -3.5, 81-78 (61%)",False
+2016,3,2016-03-25,Virginia,Iowa St.,1,4,84.0,71.0,0.69,"Virginia -5.4, 74-68 (69%)",False
+2016,3,2016-03-25,Syracuse,Gonzaga,10,11,63.0,60.0,0.43999999999999995,"Gonzaga -1.5, 68-67 (56%)",False
+2016,3,2016-03-25,Notre Dame,Wisconsin,6,7,61.0,56.0,0.49,"Wisconsin -0.3, 67-66 (51%)",False
+2016,4,2016-03-26,Villanova,Kansas,2,1,64.0,59.0,0.49,"Kansas -0.3, 73-72 (51%)",False
+2016,4,2016-03-26,Oklahoma,Oregon,2,1,80.0,68.0,0.55,"Oklahoma -1.4, 77-76 (55%)",False
+2016,4,2016-03-27,North Carolina,Notre Dame,1,6,88.0,74.0,0.76,"North Carolina -8.9, 82-73 (76%)",False
+2016,4,2016-03-27,Syracuse,Virginia,10,1,68.0,62.0,0.24,"Virginia -6.7, 64-57 (76%)",False
+2016,5,2016-04-02,Villanova,Oklahoma,2,2,95.0,51.0,0.62,"Villanova -3.4, 75-72 (62%)",False
+2016,5,2016-04-02,North Carolina,Syracuse,1,10,83.0,66.0,0.72,"North Carolina -6.6, 75-68 (72%)",False
+2016,6,2016-04-04,Villanova,North Carolina,2,1,77.0,74.0,0.58,"Villanova -2.3, 76-74 (58%)",False
+2017,1,2017-03-16,Xavier,Maryland,11,6,76.0,65.0,0.5,"Maryland -0.1, 74-73 (50%)",False
+2017,1,2017-03-16,Northwestern,Vanderbilt,8,9,68.0,66.0,0.43999999999999995,"Vanderbilt -1.4, 66-64 (56%)",False
+2017,1,2017-03-16,Middle Tennessee,Minnesota,12,5,81.0,72.0,0.39,"Minnesota -2.9, 69-66 (61%)",False
+2017,1,2017-03-16,Iowa St.,Nevada,5,12,84.0,73.0,0.76,"Iowa St. -9.0, 83-74 (76%)",False
+2017,1,2017-03-16,Wisconsin,Virginia Tech,8,9,84.0,74.0,0.69,"Wisconsin -5.6, 72-67 (69%)",False
+2017,1,2017-03-16,Purdue,Vermont,4,13,80.0,70.0,0.83,"Purdue -10.4, 74-64 (83%)",False
+2017,1,2017-03-16,Notre Dame,Princeton,5,12,60.0,58.0,0.77,"Notre Dame -7.8, 71-64 (77%)",False
+2017,1,2017-03-16,Florida,East Tennessee St.,4,13,80.0,65.0,0.88,"Florida -13.7, 79-66 (88%)",False
+2017,1,2017-03-16,West Virginia,Bucknell,4,13,86.0,80.0,0.89,"West Virginia -15.5, 83-67 (89%)",False
+2017,1,2017-03-16,Saint Mary's,VCU,7,10,85.0,77.0,0.75,"Saint Mary's -6.8, 66-60 (75%)",False
+2017,1,2017-03-16,Virginia,UNC Wilmington,5,12,76.0,71.0,0.88,"Virginia -13.0, 72-59 (88%)",False
+2017,1,2017-03-16,Florida St.,Florida Gulf Coast,3,14,86.0,80.0,0.9,"Florida St. -15.5, 82-67 (90%)",False
+2017,1,2017-03-16,Butler,Winthrop,4,13,76.0,64.0,0.87,"Butler -13.5, 81-68 (87%)",False
+2017,1,2017-03-16,Gonzaga,South Dakota St.,1,16,66.0,46.0,0.98,"Gonzaga -29.3, 93-64 (98%)",False
+2017,1,2017-03-16,Arizona,North Dakota,2,15,100.0,82.0,0.92,"Arizona -17.4, 82-65 (92%)",False
+2017,1,2017-03-16,Villanova,Mount St. Mary's,1,16,76.0,56.0,0.98,"Villanova -25.1, 80-55 (98%)",False
+2017,1,2017-03-17,Michigan,Oklahoma St.,7,10,92.0,91.0,0.52,"Michigan -0.6, 81-80 (52%)",False
+2017,1,2017-03-17,South Carolina,Marquette,7,10,93.0,73.0,0.5,"Marquette -0.1, 75-74 (50%)",False
+2017,1,2017-03-17,Rhode Island,Creighton,11,6,84.0,72.0,0.39,"Creighton -3.2, 74-71 (61%)",False
+2017,1,2017-03-17,Arkansas,Seton Hall,8,9,77.0,71.0,0.54,"Arkansas -1.1, 76-75 (54%)",False
+2017,1,2017-03-17,Michigan St.,Miami FL,9,8,78.0,58.0,0.44999999999999996,"Miami FL -1.2, 64-63 (55%)",False
+2017,1,2017-03-17,Cincinnati,Kansas St.,6,11,75.0,61.0,0.6,"Cincinnati -2.6, 65-63 (60%)",False
+2017,1,2017-03-17,Wichita St.,Dayton,10,7,64.0,58.0,0.79,"Wichita St. -9.3, 78-69 (79%)",False
+2017,1,2017-03-17,USC,SMU,11,6,66.0,65.0,0.18000000000000005,"SMU -10.7, 76-66 (82%)",False
+2017,1,2017-03-17,Baylor,New Mexico St.,3,14,91.0,73.0,0.88,"Baylor -13.5, 75-62 (88%)",False
+2017,1,2017-03-17,UCLA,Kent St.,3,14,97.0,80.0,0.91,"UCLA -18.7, 92-73 (91%)",False
+2017,1,2017-03-17,Oregon,Iona,3,14,93.0,77.0,0.91,"Oregon -17.7, 86-68 (91%)",False
+2017,1,2017-03-17,Kentucky,Northern Kentucky,2,15,79.0,70.0,0.95,"Kentucky -22.7, 91-68 (95%)",False
+2017,1,2017-03-17,Duke,Troy,2,15,87.0,65.0,0.94,"Duke -20.7, 89-68 (94%)",False
+2017,1,2017-03-17,Kansas,UC Davis,1,16,100.0,62.0,0.97,"Kansas -24.4, 86-62 (97%)",False
+2017,1,2017-03-17,North Carolina,Texas Southern,1,16,103.0,64.0,0.98,"North Carolina -27.7, 92-64 (98%)",False
+2017,1,2017-03-17,Louisville,Jacksonville St.,2,15,78.0,63.0,0.96,"Louisville -20.1, 78-57 (96%)",False
+2017,2,2017-03-18,Purdue,Iowa St.,4,5,80.0,76.0,0.51,"Purdue -0.4, 76-75 (51%)",False
+2017,2,2017-03-18,Florida,Virginia,4,5,65.0,39.0,0.53,"Florida -0.8, 60-59 (53%)",False
+2017,2,2017-03-18,West Virginia,Notre Dame,4,5,83.0,71.0,0.67,"West Virginia -5.0, 77-72 (67%)",False
+2017,2,2017-03-18,Xavier,Florida St.,11,3,91.0,66.0,0.32999999999999996,"Florida St. -5.4, 79-73 (67%)",False
+2017,2,2017-03-18,Arizona,Saint Mary's,2,7,69.0,60.0,0.42000000000000004,"Saint Mary's -2.1, 65-63 (58%)",False
+2017,2,2017-03-18,Wisconsin,Villanova,8,1,65.0,62.0,0.31999999999999995,"Villanova -4.7, 66-61 (68%)",False
+2017,2,2017-03-18,Butler,Middle Tennessee,4,12,74.0,65.0,0.65,"Butler -4.2, 70-66 (65%)",False
+2017,2,2017-03-18,Gonzaga,Northwestern,1,8,79.0,73.0,0.88,"Gonzaga -13.4, 75-62 (88%)",False
+2017,2,2017-03-19,Kentucky,Wichita St.,2,10,65.0,62.0,0.48,"Wichita St. -0.5, 79-78 (52%)",False
+2017,2,2017-03-19,UCLA,Cincinnati,3,6,79.0,67.0,0.49,"Cincinnati -0.4, 78-77 (51%)",False
+2017,2,2017-03-19,Michigan,Louisville,7,2,73.0,69.0,0.43000000000000005,"Louisville -2.0, 71-69 (57%)",False
+2017,2,2017-03-19,South Carolina,Duke,7,2,88.0,81.0,0.32999999999999996,"Duke -4.7, 73-68 (67%)",False
+2017,2,2017-03-19,Oregon,Rhode Island,3,11,75.0,72.0,0.7,"Oregon -5.7, 72-66 (70%)",False
+2017,2,2017-03-19,Kansas,Michigan St.,1,9,90.0,70.0,0.74,"Kansas -7.5, 78-71 (74%)",False
+2017,2,2017-03-19,North Carolina,Arkansas,1,8,72.0,65.0,0.79,"North Carolina -10.5, 88-78 (79%)",False
+2017,2,2017-03-19,Baylor,USC,3,11,82.0,78.0,0.79,"Baylor -9.2, 75-65 (79%)",False
+2017,3,2017-03-23,Gonzaga,West Virginia,1,4,61.0,58.0,0.65,"Gonzaga -4.5, 76-71 (65%)",False
+2017,3,2017-03-23,Kansas,Purdue,1,4,98.0,66.0,0.56,"Kansas -2.0, 79-77 (56%)",False
+2017,3,2017-03-23,Oregon,Michigan,3,7,69.0,68.0,0.5,"Michigan -0.1, 71-70 (50%)",False
+2017,3,2017-03-23,Xavier,Arizona,11,2,73.0,71.0,0.36,"Arizona -4.1, 74-70 (64%)",False
+2017,3,2017-03-24,Kentucky,UCLA,2,3,86.0,75.0,0.61,"Kentucky -3.8, 90-86 (61%)",False
+2017,3,2017-03-24,South Carolina,Baylor,7,3,70.0,50.0,0.35,"Baylor -4.0, 67-63 (65%)",False
+2017,3,2017-03-24,Florida,Wisconsin,4,8,84.0,83.0,0.66,"Florida -4.1, 67-63 (66%)",False
+2017,3,2017-03-24,North Carolina,Butler,1,4,92.0,80.0,0.7,"North Carolina -6.2, 79-73 (70%)",False
+2017,4,2017-03-25,Oregon,Kansas,3,1,74.0,60.0,0.37,"Kansas -3.8, 79-75 (63%)",False
+2017,4,2017-03-25,Gonzaga,Xavier,1,11,83.0,59.0,0.85,"Gonzaga -12.4, 79-66 (85%)",False
+2017,4,2017-03-26,North Carolina,Kentucky,1,2,75.0,73.0,0.53,"North Carolina -0.9, 83-82 (53%)",False
+2017,4,2017-03-26,South Carolina,Florida,7,4,77.0,70.0,0.29000000000000004,"Florida -5.9, 71-65 (71%)",False
+2017,5,2017-04-01,North Carolina,Oregon,1,3,77.0,76.0,0.6,"North Carolina -3.1, 78-75 (60%)",False
+2017,5,2017-04-01,Gonzaga,South Carolina,1,7,77.0,73.0,0.8,"Gonzaga -9.1, 73-63 (80%)",False
+2017,6,2017-04-03,North Carolina,Gonzaga,1,1,71.0,65.0,0.37,"Gonzaga -4.1, 79-75 (63%)",False
+2018,1,2018-03-15,Rhode Island,Oklahoma,7,10,83.0,78.0,0.49,"Oklahoma -0.2, 83-82 (51%)",False
+2018,1,2018-03-15,Seton Hall,N.C. State,8,9,94.0,83.0,0.55,"Seton Hall -1.7, 82-80 (55%)",False
+2018,1,2018-03-15,Loyola Chicago,Miami FL,11,6,64.0,62.0,0.47,"Miami FL -0.8, 68-67 (53%)",False
+2018,1,2018-03-15,Houston,San Diego St.,6,11,67.0,65.0,0.67,"Houston -5.0, 74-69 (67%)",False
+2018,1,2018-03-15,Alabama,Virginia Tech,9,8,86.0,83.0,0.44999999999999996,"Virginia Tech -1.4, 73-71 (55%)",False
+2018,1,2018-03-15,Buffalo,Arizona,13,4,89.0,68.0,0.26,"Arizona -8.4, 86-78 (74%)",False
+2018,1,2018-03-15,Kentucky,Davidson,5,12,78.0,73.0,0.65,"Kentucky -4.4, 75-71 (65%)",False
+2018,1,2018-03-15,Ohio St.,South Dakota St.,5,12,81.0,73.0,0.8,"Ohio St. -10.3, 80-70 (80%)",False
+2018,1,2018-03-15,Florida,St. Bonaventure,6,11,77.0,62.0,0.71,"Florida -6.3, 76-69 (71%)",False
+2018,1,2018-03-15,Gonzaga,UNC Greensboro,4,13,68.0,64.0,0.83,"Gonzaga -10.5, 73-62 (83%)",False
+2018,1,2018-03-15,Texas Tech,Stephen F. Austin,3,14,70.0,60.0,0.88,"Texas Tech -13.3, 76-63 (88%)",False
+2018,1,2018-03-15,Kansas,Penn,1,16,76.0,60.0,0.9,"Kansas -16.0, 82-66 (90%)",False
+2018,1,2018-03-15,Michigan,Montana,3,14,61.0,47.0,0.83,"Michigan -10.3, 72-62 (83%)",False
+2018,1,2018-03-15,Duke,Iona,2,15,89.0,67.0,0.96,"Duke -24.9, 94-69 (96%)",False
+2018,1,2018-03-15,Tennessee,Wright St.,3,14,73.0,47.0,0.89,"Tennessee -13.6, 72-59 (89%)",False
+2018,1,2018-03-15,Villanova,Radford,1,16,87.0,61.0,0.97,"Villanova -23.2, 82-59 (97%)",False
+2018,1,2018-03-16,Kansas St.,Creighton,9,8,69.0,59.0,0.43000000000000005,"Creighton -1.9, 75-73 (57%)",False
+2018,1,2018-03-16,Florida St.,Missouri,9,8,67.0,54.0,0.48,"Missouri -0.6, 76-75 (52%)",False
+2018,1,2018-03-16,Nevada,Texas,7,10,87.0,83.0,0.51,"Nevada -0.3, 73-72 (51%)",False
+2018,1,2018-03-16,Butler,Arkansas,10,7,79.0,62.0,0.57,"Butler -2.0, 79-77 (57%)",False
+2018,1,2018-03-16,Syracuse,TCU,11,6,57.0,52.0,0.37,"TCU -3.6, 70-67 (63%)",False
+2018,1,2018-03-16,Texas A&M,Providence,7,10,73.0,69.0,0.64,"Texas A&M -3.9, 71-67 (64%)",False
+2018,1,2018-03-16,Clemson,New Mexico St.,5,12,79.0,68.0,0.67,"Clemson -4.5, 68-64 (67%)",False
+2018,1,2018-03-16,Marshall,Wichita St.,13,4,81.0,75.0,0.18000000000000005,"Wichita St. -12.6, 93-80 (82%)",False
+2018,1,2018-03-16,West Virginia,Murray St.,5,12,85.0,68.0,0.79,"West Virginia -9.8, 80-71 (79%)",False
+2018,1,2018-03-16,Michigan St.,Bucknell,3,14,82.0,78.0,0.9,"Michigan St. -16.5, 84-68 (90%)",False
+2018,1,2018-03-16,North Carolina,Lipscomb,2,15,84.0,66.0,0.94,"North Carolina -23.7, 98-74 (94%)",False
+2018,1,2018-03-16,Cincinnati,Georgia St.,2,15,68.0,53.0,0.92,"Cincinnati -14.8, 71-57 (92%)",False
+2018,1,2018-03-16,Auburn,Charleston,4,13,62.0,58.0,0.86,"Auburn -13.5, 83-70 (86%)",False
+2018,1,2018-03-16,Purdue,Cal St. Fullerton,2,15,74.0,48.0,0.95,"Purdue -21.4, 86-65 (95%)",False
+2018,1,2018-03-16,Xavier,Texas Southern,1,16,102.0,83.0,0.97,"Xavier -27.6, 99-72 (97%)",False
+2018,1,2018-03-16,UMBC,Virginia,16,1,74.0,54.0,0.020000000000000018,"Virginia -23.1, 72-48 (98%)",False
+2018,2,2018-03-17,Gonzaga,Ohio St.,4,5,90.0,84.0,0.52,"Gonzaga -0.7, 73-72 (52%)",False
+2018,2,2018-03-17,Texas Tech,Florida,3,6,69.0,66.0,0.57,"Texas Tech -1.9, 69-67 (57%)",False
+2018,2,2018-03-17,Kansas,Seton Hall,1,8,83.0,79.0,0.65,"Kansas -4.9, 82-77 (65%)",False
+2018,2,2018-03-17,Michigan,Houston,3,6,64.0,63.0,0.59,"Michigan -2.4, 67-65 (59%)",False
+2018,2,2018-03-17,Kentucky,Buffalo,5,13,95.0,75.0,0.75,"Kentucky -8.6, 86-77 (75%)",False
+2018,2,2018-03-17,Loyola Chicago,Tennessee,11,3,63.0,62.0,0.29000000000000004,"Tennessee -5.6, 68-62 (71%)",False
+2018,2,2018-03-17,Duke,Rhode Island,2,7,87.0,62.0,0.84,"Duke -12.2, 81-69 (84%)",False
+2018,2,2018-03-17,Villanova,Alabama,1,9,81.0,58.0,0.84,"Villanova -12.3, 82-70 (84%)",False
+2018,2,2018-03-18,Purdue,Butler,2,10,76.0,73.0,0.69,"Purdue -5.7, 77-72 (69%)",False
+2018,2,2018-03-18,Clemson,Auburn,5,4,84.0,53.0,0.48,"Auburn -0.7, 74-73 (52%)",False
+2018,2,2018-03-18,Florida St.,Xavier,9,1,75.0,70.0,0.36,"Xavier -4.6, 86-81 (64%)",False
+2018,2,2018-03-18,Texas A&M,North Carolina,7,2,86.0,65.0,0.31999999999999995,"North Carolina -5.8, 80-74 (68%)",False
+2018,2,2018-03-18,Nevada,Cincinnati,7,2,75.0,73.0,0.21999999999999997,"Cincinnati -8.7, 74-65 (78%)",False
+2018,2,2018-03-18,Syracuse,Michigan St.,11,3,55.0,53.0,0.21999999999999997,"Michigan St. -7.7, 68-60 (78%)",False
+2018,2,2018-03-18,West Virginia,Marshall,5,13,94.0,71.0,0.87,"West Virginia -15.6, 93-77 (87%)",False
+2018,2,2018-03-18,Kansas St.,UMBC,9,16,50.0,43.0,0.86,"Kansas St. -11.8, 74-62 (86%)",False
+2018,3,2018-03-22,Loyola Chicago,Nevada,11,7,69.0,68.0,0.43999999999999995,"Nevada -1.6, 74-72 (56%)",False
+2018,3,2018-03-22,Florida St.,Gonzaga,9,4,75.0,60.0,0.33999999999999997,"Gonzaga -5.2, 82-76 (66%)",False
+2018,3,2018-03-22,Kansas St.,Kentucky,9,5,61.0,58.0,0.35,"Kentucky -4.3, 71-67 (65%)",False
+2018,3,2018-03-22,Michigan,Texas A&M,3,7,99.0,72.0,0.65,"Michigan -3.9, 68-64 (65%)",False
+2018,3,2018-03-23,Villanova,West Virginia,1,5,90.0,78.0,0.69,"Villanova -6.2, 84-78 (69%)",False
+2018,3,2018-03-23,Texas Tech,Purdue,3,2,78.0,65.0,0.38,"Purdue -3.4, 72-69 (62%)",False
+2018,3,2018-03-23,Kansas,Clemson,1,5,80.0,76.0,0.58,"Kansas -2.4, 73-70 (58%)",False
+2018,3,2018-03-23,Duke,Syracuse,2,11,69.0,65.0,0.84,"Duke -10.8, 72-61 (84%)",False
+2018,4,2018-03-24,Loyola Chicago,Kansas St.,11,9,78.0,62.0,0.49,"Kansas St. -0.3, 64-63 (51%)",False
+2018,4,2018-03-24,Michigan,Florida St.,3,9,58.0,54.0,0.69,"Michigan -5.6, 74-68 (69%)",False
+2018,4,2018-03-25,Kansas,Duke,1,2,85.0,81.0,0.35,"Duke -4.9, 82-77 (65%)",False
+2018,4,2018-03-25,Villanova,Texas Tech,1,3,71.0,59.0,0.7,"Villanova -5.9, 76-70 (70%)",False
+2018,5,2018-03-31,Villanova,Kansas,1,1,95.0,79.0,0.67,"Villanova -5.6, 82-77 (67%)",False
+2018,5,2018-03-31,Michigan,Loyola Chicago,3,11,69.0,57.0,0.73,"Michigan -6.0, 66-60 (73%)",False
+2018,6,2018-04-02,Villanova,Michigan,1,3,79.0,62.0,0.66,"Villanova -4.5, 73-68 (66%)",False
+2019,1,2019-03-21,Florida,Nevada,10,7,70.0,61.0,0.55,"Florida -1.1, 67-66 (55%)",False
+2019,1,2019-03-21,Baylor,Syracuse,9,8,78.0,69.0,0.41000000000000003,"Syracuse -2.1, 69-67 (59%)",False
+2019,1,2019-03-21,Maryland,Belmont,6,11,79.0,77.0,0.69,"Maryland -5.3, 78-73 (69%)",False
+2019,1,2019-03-21,Murray St.,Marquette,12,5,83.0,64.0,0.31999999999999995,"Marquette -4.9, 78-73 (68%)",False
+2019,1,2019-03-21,Villanova,Saint Mary's,6,11,61.0,57.0,0.49,"Saint Mary's -0.2, 66-65 (51%)",False
+2019,1,2019-03-21,Minnesota,Louisville,10,7,86.0,76.0,0.30000000000000004,"Louisville -5.2, 72-67 (70%)",False
+2019,1,2019-03-21,Auburn,New Mexico St.,5,12,78.0,77.0,0.75,"Auburn -7.1, 76-69 (75%)",False
+2019,1,2019-03-21,Wofford,Seton Hall,7,10,84.0,68.0,0.66,"Wofford -4.2, 74-70 (66%)",False
+2019,1,2019-03-21,LSU,Yale,3,14,79.0,74.0,0.8,"LSU -10.2, 88-78 (80%)",False
+2019,1,2019-03-21,Florida St.,Vermont,4,13,76.0,69.0,0.8,"Florida St. -8.1, 72-64 (80%)",False
+2019,1,2019-03-21,Kansas,Northeastern,4,13,87.0,53.0,0.8,"Kansas -8.7, 77-68 (80%)",False
+2019,1,2019-03-21,Purdue,Old Dominion,3,14,61.0,48.0,0.91,"Purdue -13.1, 72-59 (91%)",False
+2019,1,2019-03-21,Michigan,Montana,2,15,74.0,55.0,0.96,"Michigan -17.7, 75-57 (96%)",False
+2019,1,2019-03-21,Gonzaga,Fairleigh Dickinson,1,16,87.0,49.0,0.98,"Gonzaga -28.4, 94-66 (98%)",False
+2019,1,2019-03-21,Michigan St.,Bradley,2,15,76.0,65.0,0.96,"Michigan St. -19.1, 78-59 (96%)",False
+2019,1,2019-03-21,Kentucky,Abilene Christian,2,15,79.0,44.0,0.94,"Kentucky -16.3, 75-59 (94%)",False
+2019,1,2019-03-22,UCF,VCU,9,8,73.0,58.0,0.44999999999999996,"VCU -1.1, 63-62 (55%)",False
+2019,1,2019-03-22,Oklahoma,Mississippi,9,8,95.0,72.0,0.49,"Mississippi -0.3, 73-72 (51%)",False
+2019,1,2019-03-22,Washington,Utah St.,9,8,78.0,61.0,0.43000000000000005,"Utah St. -1.6, 68-67 (57%)",False
+2019,1,2019-03-22,Iowa,Cincinnati,10,7,79.0,72.0,0.43000000000000005,"Cincinnati -1.8, 73-71 (57%)",False
+2019,1,2019-03-22,Buffalo,Arizona St.,6,11,91.0,74.0,0.68,"Buffalo -5.3, 83-78 (68%)",False
+2019,1,2019-03-22,Oregon,Wisconsin,12,5,72.0,54.0,0.30000000000000004,"Wisconsin -4.2, 60-55 (70%)",False
+2019,1,2019-03-22,Ohio St.,Iowa St.,11,6,62.0,59.0,0.31000000000000005,"Iowa St. -4.8, 73-68 (69%)",False
+2019,1,2019-03-22,Liberty,Mississippi St.,12,5,80.0,76.0,0.21999999999999997,"Mississippi St. -7.3, 71-64 (78%)",False
+2019,1,2019-03-22,UC Irvine,Kansas St.,13,4,70.0,64.0,0.19999999999999996,"Kansas St. -7.2, 64-56 (80%)",False
+2019,1,2019-03-22,Texas Tech,Northern Kentucky,3,14,72.0,57.0,0.92,"Texas Tech -14.9, 76-62 (92%)",False
+2019,1,2019-03-22,Houston,Georgia St.,3,14,84.0,55.0,0.88,"Houston -12.3, 78-65 (88%)",False
+2019,1,2019-03-22,North Carolina,Iona,1,16,88.0,73.0,0.98,"North Carolina -28.0, 101-73 (98%)",False
+2019,1,2019-03-22,Tennessee,Colgate,2,15,77.0,70.0,0.93,"Tennessee -17.6, 85-67 (93%)",False
+2019,1,2019-03-22,Virginia Tech,Saint Louis,4,13,66.0,52.0,0.87,"Virginia Tech -10.8, 70-59 (87%)",False
+2019,1,2019-03-22,Duke,North Dakota St.,1,16,85.0,62.0,0.98,"Duke -24.6, 89-65 (98%)",False
+2019,1,2019-03-22,Virginia,Gardner Webb,1,16,71.0,56.0,0.98,"Virginia -22.6, 77-55 (98%)",False
+2019,2,2019-03-23,Auburn,Kansas,5,4,89.0,75.0,0.54,"Auburn -1.1, 76-75 (54%)",False
+2019,2,2019-03-23,LSU,Maryland,3,6,69.0,67.0,0.55,"LSU -1.2, 74-73 (55%)",False
+2019,2,2019-03-23,Kentucky,Wofford,2,7,62.0,56.0,0.74,"Kentucky -6.4, 73-67 (74%)",False
+2019,2,2019-03-23,Michigan,Florida,2,10,64.0,49.0,0.79,"Michigan -6.7, 63-56 (79%)",False
+2019,2,2019-03-23,Florida St.,Murray St.,4,12,90.0,62.0,0.71,"Florida St. -5.8, 76-70 (71%)",False
+2019,2,2019-03-23,Gonzaga,Baylor,1,9,83.0,71.0,0.88,"Gonzaga -13.2, 82-69 (88%)",False
+2019,2,2019-03-23,Purdue,Villanova,3,6,87.0,61.0,0.73,"Purdue -6.1, 72-66 (73%)",False
+2019,2,2019-03-23,Michigan St.,Minnesota,2,10,70.0,50.0,0.8,"Michigan St. -8.8, 77-68 (80%)",False
+2019,2,2019-03-24,Duke,UCF,1,9,77.0,76.0,0.8,"Duke -8.5, 76-68 (80%)",False
+2019,2,2019-03-24,Texas Tech,Buffalo,3,6,78.0,58.0,0.73,"Texas Tech -6.5, 77-70 (73%)",False
+2019,2,2019-03-24,Tennessee,Iowa,2,10,83.0,77.0,0.77,"Tennessee -8.4, 85-76 (77%)",False
+2019,2,2019-03-24,North Carolina,Washington,1,9,81.0,59.0,0.84,"North Carolina -10.7, 80-70 (84%)",False
+2019,2,2019-03-24,Virginia,Oklahoma,1,9,63.0,51.0,0.84,"Virginia -9.4, 69-59 (84%)",False
+2019,2,2019-03-24,Houston,Ohio St.,3,11,74.0,59.0,0.75,"Houston -6.3, 68-62 (75%)",False
+2019,2,2019-03-24,Oregon,UC Irvine,12,13,73.0,54.0,0.65,"Oregon -3.3, 64-61 (65%)",False
+2019,2,2019-03-24,Virginia Tech,Liberty,4,12,67.0,58.0,0.84,"Virginia Tech -9.2, 68-59 (84%)",False
+2019,3,2019-03-28,Texas Tech,Michigan,3,2,63.0,44.0,0.43000000000000005,"Michigan -1.4, 62-60 (57%)",False
+2019,3,2019-03-28,Purdue,Tennessee,3,2,99.0,94.0,0.51,"Purdue -0.3, 75-74 (51%)",False
+2019,3,2019-03-28,Gonzaga,Florida St.,1,4,72.0,58.0,0.77,"Gonzaga -8.1, 80-72 (77%)",False
+2019,3,2019-03-28,Virginia,Oregon,1,12,53.0,49.0,0.86,"Virginia -9.1, 63-54 (86%)",False
+2019,3,2019-03-29,Auburn,North Carolina,5,1,97.0,80.0,0.36,"North Carolina -4.1, 85-81 (64%)",False
+2019,3,2019-03-29,Kentucky,Houston,2,3,62.0,58.0,0.56,"Kentucky -1.3, 67-66 (56%)",False
+2019,3,2019-03-29,Duke,Virginia Tech,1,4,75.0,73.0,0.66,"Duke -4.3, 75-70 (66%)",False
+2019,3,2019-03-29,Michigan St.,LSU,2,3,80.0,63.0,0.68,"Michigan St. -5.0, 80-75 (68%)",False
+2019,4,2019-03-30,Texas Tech,Gonzaga,3,1,75.0,69.0,0.43000000000000005,"Gonzaga -1.7, 72-70 (57%)",False
+2019,4,2019-03-30,Virginia,Purdue,1,3,80.0,75.0,0.64,"Virginia -3.2, 65-62 (64%)",False
+2019,4,2019-03-31,Michigan St.,Duke,2,1,68.0,67.0,0.47,"Duke -0.8, 78-77 (53%)",False
+2019,4,2019-03-31,Auburn,Kentucky,5,2,77.0,71.0,0.27,"Kentucky -6.3, 76-69 (73%)",False
+2019,5,2019-04-06,Texas Tech,Michigan St.,3,2,61.0,51.0,0.56,"Texas Tech -1.4, 68-66 (56%)",False
+2019,5,2019-04-06,Virginia,Auburn,1,5,63.0,62.0,0.69,"Virginia -4.7, 69-64 (69%)",False
+2019,6,2019-04-08,Virginia,Texas Tech,1,3,85.0,77.0,0.52,"Virginia -0.4, 60-59 (52%)",False
+2021,1,2021-03-19,Florida,Virginia Tech,7,10,75.0,70.0,0.56,"Florida -1.4, 68-67 (56%)",False
+2021,1,2021-03-19,Rutgers,Clemson,10,7,60.0,56.0,0.52,"Rutgers -0.3, 62-61 (52%)",False
+2021,1,2021-03-19,Syracuse,San Diego St.,11,6,78.0,62.0,0.31000000000000005,"San Diego St. -4.7, 71-66 (69%)",False
+2021,1,2021-03-19,Wisconsin,North Carolina,9,8,85.0,62.0,0.6,"Wisconsin -2.3, 68-66 (60%)",False
+2021,1,2021-03-19,Loyola Chicago,Georgia Tech,8,9,71.0,60.0,0.58,"Loyola Chicago -1.7, 64-62 (58%)",False
+2021,1,2021-03-19,Texas Tech,Utah St.,6,11,65.0,53.0,0.62,"Texas Tech -2.6, 66-63 (62%)",False
+2021,1,2021-03-19,Oregon St.,Tennessee,12,5,70.0,56.0,0.21999999999999997,"Tennessee -7.1, 68-60 (78%)",False
+2021,1,2021-03-19,Arkansas,Colgate,3,14,85.0,68.0,0.74,"Arkansas -7.1, 83-76 (74%)",False
+2021,1,2021-03-19,Oklahoma St.,Liberty,4,13,69.0,60.0,0.76,"Oklahoma St. -6.8, 72-65 (76%)",False
+2021,1,2021-03-19,North Texas,Purdue,13,4,78.0,69.0,0.26,"Purdue -5.7, 64-59 (74%)",False
+2021,1,2021-03-19,Villanova,Winthrop,5,12,73.0,63.0,0.81,"Villanova -9.3, 79-69 (81%)",False
+2021,1,2021-03-19,Oral Roberts,Ohio St.,15,2,75.0,72.0,0.06000000000000005,"Ohio St. -18.5, 89-71 (94%)",False
+2021,1,2021-03-19,West Virginia,Morehead St.,3,14,84.0,67.0,0.88,"West Virginia -11.6, 75-64 (88%)",False
+2021,1,2021-03-19,Illinois,Drexel,1,16,78.0,49.0,0.94,"Illinois -16.9, 81-64 (94%)",False
+2021,1,2021-03-19,Baylor,Hartford,1,16,79.0,55.0,0.97,"Baylor -20.3, 81-61 (97%)",False
+2021,1,2021-03-19,Houston,Cleveland St.,2,15,87.0,56.0,0.97,"Houston -18.8, 75-56 (97%)",False
+2021,1,2021-03-19,Oregon,VCU,7,10,,,,,True
+2021,1,2021-03-20,UCLA,BYU,11,6,73.0,62.0,0.38,"BYU -2.9, 69-67 (62%)",False
+2021,1,2021-03-20,Oklahoma,Missouri,8,9,72.0,68.0,0.51,"Oklahoma -0.3, 71-70 (51%)",False
+2021,1,2021-03-20,LSU,St. Bonaventure,8,9,76.0,61.0,0.5,"LSU -0.0, 73-72 (50%)",False
+2021,1,2021-03-20,Maryland,Connecticut,10,7,63.0,54.0,0.39,"Connecticut -2.5, 65-63 (61%)",False
+2021,1,2021-03-20,Colorado,Georgetown,5,12,96.0,73.0,0.63,"Colorado -3.3, 70-67 (63%)",False
+2021,1,2021-03-20,Creighton,UC Santa Barbara,5,12,63.0,62.0,0.73,"Creighton -6.1, 72-66 (73%)",False
+2021,1,2021-03-20,Kansas,Eastern Washington,3,14,93.0,84.0,0.81,"Kansas -9.0, 77-68 (81%)",False
+2021,1,2021-03-20,Ohio,Virginia,13,4,62.0,58.0,0.25,"Virginia -6.1, 68-62 (75%)",False
+2021,1,2021-03-20,Abilene Christian,Texas,14,3,53.0,52.0,0.19999999999999996,"Texas -8.6, 75-66 (80%)",False
+2021,1,2021-03-20,USC,Drake,6,11,72.0,56.0,0.78,"USC -7.5, 72-65 (78%)",False
+2021,1,2021-03-20,Iowa,Grand Canyon,2,15,86.0,74.0,0.89,"Iowa -13.1, 77-64 (89%)",False
+2021,1,2021-03-20,Florida St.,UNC Greensboro,4,13,64.0,54.0,0.88,"Florida St. -12.8, 79-66 (88%)",False
+2021,1,2021-03-20,Alabama,Iona,2,15,68.0,55.0,0.92,"Alabama -15.3, 80-65 (92%)",False
+2021,1,2021-03-20,Gonzaga,Norfolk St.,1,16,98.0,55.0,0.99,"Gonzaga -28.9, 93-64 (99%)",False
+2021,1,2021-03-20,Michigan,Texas Southern,1,16,82.0,66.0,0.97,"Michigan -22.5, 83-61 (97%)",False
+2021,2,2021-03-21,Arkansas,Texas Tech,3,6,68.0,66.0,0.47,"Texas Tech -0.7, 70-69 (53%)",False
+2021,2,2021-03-21,Loyola Chicago,Illinois,8,1,71.0,58.0,0.31999999999999995,"Illinois -4.2, 67-63 (68%)",False
+2021,2,2021-03-21,Syracuse,West Virginia,11,3,75.0,72.0,0.39,"West Virginia -3.1, 78-75 (61%)",False
+2021,2,2021-03-21,Baylor,Wisconsin,1,9,76.0,63.0,0.63,"Baylor -3.2, 71-68 (63%)",False
+2021,2,2021-03-21,Oregon St.,Oklahoma St.,12,4,80.0,70.0,0.35,"Oklahoma St. -3.8, 71-67 (65%)",False
+2021,2,2021-03-21,Houston,Rutgers,2,10,63.0,60.0,0.82,"Houston -8.8, 70-61 (82%)",False
+2021,2,2021-03-21,Villanova,North Texas,5,13,84.0,61.0,0.71,"Villanova -4.9, 65-60 (71%)",False
+2021,2,2021-03-21,Oral Roberts,Florida,15,7,81.0,78.0,0.15000000000000002,"Florida -11.4, 81-70 (85%)",False
+2021,2,2021-03-22,Florida St.,Colorado,4,5,71.0,53.0,0.49,"Colorado -0.3, 73-72 (51%)",False
+2021,2,2021-03-22,Michigan,LSU,1,8,86.0,78.0,0.69,"Michigan -5.3, 79-74 (69%)",False
+2021,2,2021-03-22,Oregon,Iowa,7,2,95.0,80.0,0.25,"Iowa -7.5, 81-74 (75%)",False
+2021,2,2021-03-22,Alabama,Maryland,2,10,96.0,77.0,0.64,"Alabama -3.4, 70-67 (64%)",False
+2021,2,2021-03-22,USC,Kansas,6,3,85.0,51.0,0.6,"USC -2.3, 67-65 (60%)",False
+2021,2,2021-03-22,Gonzaga,Oklahoma,1,8,87.0,71.0,0.88,"Gonzaga -13.8, 85-72 (88%)",False
+2021,2,2021-03-22,Creighton,Ohio,5,13,72.0,58.0,0.7,"Creighton -5.5, 77-72 (70%)",False
+2021,2,2021-03-22,UCLA,Abilene Christian,11,14,67.0,47.0,0.73,"UCLA -5.7, 69-63 (73%)",False
+2021,3,2021-03-27,Baylor,Villanova,1,5,62.0,51.0,0.66,"Baylor -4.3, 76-72 (66%)",False
+2021,3,2021-03-27,Houston,Syracuse,2,11,62.0,46.0,0.78,"Houston -7.9, 75-67 (78%)",False
+2021,3,2021-03-27,Oregon St.,Loyola Chicago,12,8,65.0,58.0,0.27,"Loyola Chicago -5.4, 64-58 (73%)",False
+2021,3,2021-03-27,Arkansas,Oral Roberts,3,15,72.0,70.0,0.88,"Arkansas -13.6, 87-73 (88%)",False
+2021,3,2021-03-28,Michigan,Florida St.,1,4,76.0,58.0,0.56,"Michigan -1.4, 73-72 (56%)",False
+2021,3,2021-03-28,UCLA,Alabama,11,2,88.0,78.0,0.36,"Alabama -3.5, 73-69 (64%)",False
+2021,3,2021-03-28,Gonzaga,Creighton,1,5,83.0,65.0,0.84,"Gonzaga -11.6, 86-75 (84%)",False
+2021,3,2021-03-28,USC,Oregon,6,7,82.0,68.0,0.66,"USC -3.9, 71-67 (66%)",False
+2021,4,2021-03-29,Baylor,Arkansas,1,3,81.0,72.0,0.71,"Baylor -5.9, 79-73 (71%)",False
+2021,4,2021-03-29,Houston,Oregon St.,2,12,67.0,61.0,0.84,"Houston -9.3, 70-61 (84%)",False
+2021,4,2021-03-30,Gonzaga,USC,1,6,85.0,66.0,0.75,"Gonzaga -7.4, 81-73 (75%)",False
+2021,4,2021-03-30,UCLA,Michigan,11,1,51.0,49.0,0.30000000000000004,"Michigan -4.9, 70-65 (70%)",False
+2021,5,2021-04-03,Baylor,Houston,1,2,78.0,59.0,0.44999999999999996,"Houston -1.1, 71-70 (55%)",False
+2021,5,2021-04-03,Gonzaga,UCLA,1,11,93.0,90.0,0.86,"Gonzaga -12.1, 82-70 (86%)",False
+2021,6,2021-04-05,Baylor,Gonzaga,1,1,86.0,70.0,0.33999999999999997,"Gonzaga -4.8, 85-80 (66%)",False
+2022,1,2022-03-17,Baylor,Norfolk St.,1,16,85.0,49.0,0.95,"Baylor -18.2, 79-61 (95%)",False
+2022,1,2022-03-17,North Carolina,Marquette,8,9,95.0,63.0,0.58,"North Carolina -2.1, 78-76 (58%)",False
+2022,1,2022-03-17,Richmond,Iowa,12,5,67.0,63.0,0.16000000000000003,"Iowa -11.2, 82-71 (84%)",False
+2022,1,2022-03-17,Providence,South Dakota St.,4,13,66.0,57.0,0.58,"Providence -2.2, 77-75 (58%)",False
+2022,1,2022-03-17,UCLA,Akron,4,13,57.0,53.0,0.92,"UCLA -13.2, 70-57 (92%)",False
+2022,1,2022-03-17,Memphis,Boise St.,9,8,64.0,53.0,0.57,"Memphis -1.6, 68-67 (57%)",False
+2022,1,2022-03-17,Murray St.,San Francisco,7,10,92.0,87.0,0.4,"San Francisco -2.5, 69-67 (60%)",False
+2022,1,2022-03-17,Creighton,San Diego St.,9,8,72.0,69.0,0.36,"San Diego St. -2.8, 60-57 (64%)",False
+2022,1,2022-03-17,Tennessee,Longwood,3,14,88.0,56.0,0.92,"Tennessee -14.3, 74-59 (92%)",False
+2022,1,2022-03-17,Michigan,Colorado St.,11,6,75.0,63.0,0.59,"Michigan -2.3, 71-69 (59%)",False
+2022,1,2022-03-17,Saint Peter's,Kentucky,15,2,85.0,79.0,0.09999999999999998,"Kentucky -13.0, 73-60 (90%)",False
+2022,1,2022-03-17,Gonzaga,Georgia St.,1,16,93.0,72.0,0.96,"Gonzaga -21.2, 85-64 (96%)",False
+2022,1,2022-03-17,Arkansas,Vermont,4,13,75.0,71.0,0.68,"Arkansas -4.6, 72-67 (68%)",False
+2022,1,2022-03-17,New Mexico St.,Connecticut,12,5,70.0,63.0,0.29000000000000004,"Connecticut -5.3, 69-64 (71%)",False
+2022,1,2022-03-17,Kansas,Texas Southern,1,16,83.0,56.0,0.96,"Kansas -19.2, 81-62 (96%)",False
+2022,1,2022-03-17,Saint Mary's,Indiana,5,12,82.0,53.0,0.55,"Saint Mary's -1.0, 62-61 (55%)",False
+2022,1,2022-03-18,Houston,UAB,5,12,82.0,68.0,0.85,"Houston -10.3, 74-64 (85%)",False
+2022,1,2022-03-18,Villanova,Delaware,2,15,80.0,60.0,0.9,"Villanova -13.0, 74-60 (90%)",False
+2022,1,2022-03-18,Iowa St.,LSU,11,6,59.0,54.0,0.4,"LSU -2.2, 63-61 (60%)",False
+2022,1,2022-03-18,Michigan St.,Davidson,7,10,74.0,73.0,0.53,"Michigan St. -0.9, 72-71 (53%)",False
+2022,1,2022-03-18,Duke,Cal St. Fullerton,2,15,78.0,61.0,0.95,"Duke -17.8, 81-63 (95%)",False
+2022,1,2022-03-18,Illinois,Chattanooga,4,13,54.0,53.0,0.77,"Illinois -7.1, 71-63 (77%)",False
+2022,1,2022-03-18,Purdue,Yale,3,14,78.0,56.0,0.91,"Purdue -14.4, 79-64 (91%)",False
+2022,1,2022-03-18,Ohio St.,Loyola Chicago,7,10,54.0,41.0,0.51,"Ohio St. -0.2, 68-67 (51%)",False
+2022,1,2022-03-18,Texas,Virginia Tech,6,11,81.0,73.0,0.56,"Texas -1.3, 62-60 (56%)",False
+2022,1,2022-03-18,Texas Tech,Montana St.,3,14,97.0,62.0,0.93,"Texas Tech -14.2, 71-57 (93%)",False
+2022,1,2022-03-18,Auburn,Jacksonville St.,2,15,80.0,61.0,0.91,"Auburn -14.0, 76-62 (91%)",False
+2022,1,2022-03-18,Wisconsin,Colgate,3,14,67.0,60.0,0.81,"Wisconsin -8.9, 74-65 (81%)",False
+2022,1,2022-03-18,TCU,Seton Hall,9,8,69.0,42.0,0.57,"TCU -1.6, 66-64 (57%)",False
+2022,1,2022-03-18,Miami FL,USC,10,7,68.0,66.0,0.52,"Miami FL -0.6, 72-71 (52%)",False
+2022,1,2022-03-18,Arizona,Wright St.,1,16,87.0,70.0,0.95,"Arizona -20.3, 91-71 (95%)",False
+2022,1,2022-03-18,Notre Dame,Alabama,11,6,78.0,64.0,0.43999999999999995,"Alabama -1.6, 77-76 (56%)",False
+2022,2,2022-03-19,North Carolina,Baylor,8,1,93.0,86.0,0.26,"Baylor -6.8, 78-71 (74%)",False
+2022,2,2022-03-19,Michigan,Tennessee,11,3,76.0,68.0,0.28,"Tennessee -5.6, 70-64 (72%)",False
+2022,2,2022-03-19,Kansas,Creighton,1,9,79.0,72.0,0.85,"Kansas -10.3, 75-64 (85%)",False
+2022,2,2022-03-19,Saint Peter's,Murray St.,15,7,70.0,60.0,0.26,"Murray St. -5.7, 66-60 (74%)",False
+2022,2,2022-03-19,Arkansas,New Mexico St.,4,12,53.0,48.0,0.72,"Arkansas -5.8, 73-67 (72%)",False
+2022,2,2022-03-19,Providence,Richmond,4,12,79.0,51.0,0.62,"Providence -3.0, 69-66 (62%)",False
+2022,2,2022-03-19,Gonzaga,Memphis,1,9,82.0,78.0,0.8,"Gonzaga -9.4, 83-74 (80%)",False
+2022,2,2022-03-19,UCLA,Saint Mary's,4,5,72.0,56.0,0.56,"UCLA -1.2, 63-62 (56%)",False
+2022,2,2022-03-20,Duke,Michigan St.,2,7,85.0,76.0,0.75,"Duke -7.2, 77-70 (75%)",False
+2022,2,2022-03-20,Arizona,TCU,1,9,85.0,80.0,0.71,"Arizona -5.7, 76-70 (71%)",False
+2022,2,2022-03-20,Villanova,Ohio St.,2,7,71.0,61.0,0.67,"Villanova -4.1, 68-64 (67%)",False
+2022,2,2022-03-20,Purdue,Texas,3,6,81.0,71.0,0.54,"Purdue -1.0, 67-66 (54%)",False
+2022,2,2022-03-20,Houston,Illinois,5,4,68.0,53.0,0.73,"Houston -5.5, 68-63 (73%)",False
+2022,2,2022-03-20,Texas Tech,Notre Dame,3,11,59.0,53.0,0.78,"Texas Tech -7.2, 68-61 (78%)",False
+2022,2,2022-03-20,Iowa St.,Wisconsin,11,3,54.0,49.0,0.47,"Wisconsin -0.7, 63-62 (53%)",False
+2022,2,2022-03-20,Miami FL,Auburn,10,2,79.0,61.0,0.26,"Auburn -6.7, 77-70 (74%)",False
+2022,3,2022-03-24,Arkansas,Gonzaga,4,1,74.0,68.0,0.19999999999999996,"Gonzaga -9.5, 83-73 (80%)",False
+2022,3,2022-03-24,Duke,Texas Tech,2,3,78.0,73.0,0.44999999999999996,"Texas Tech -1.2, 69-67 (55%)",False
+2022,3,2022-03-24,Villanova,Michigan,2,11,63.0,55.0,0.66,"Villanova -3.9, 69-65 (66%)",False
+2022,3,2022-03-24,Houston,Arizona,5,1,72.0,60.0,0.61,"Houston -2.8, 74-71 (61%)",False
+2022,3,2022-03-25,North Carolina,UCLA,8,4,73.0,66.0,0.36,"UCLA -3.5, 74-70 (64%)",False
+2022,3,2022-03-25,Miami FL,Iowa St.,10,11,70.0,56.0,0.5,"Iowa St. -0.1, 67-66 (50%)",False
+2022,3,2022-03-25,Kansas,Providence,1,4,66.0,61.0,0.78,"Kansas -7.8, 76-68 (78%)",False
+2022,3,2022-03-25,Saint Peter's,Purdue,15,3,67.0,64.0,0.14,"Purdue -10.7, 72-61 (86%)",False
+2022,4,2022-03-26,Duke,Arkansas,2,4,78.0,69.0,0.66,"Duke -4.3, 77-72 (66%)",False
+2022,4,2022-03-26,Villanova,Houston,2,5,50.0,44.0,0.36,"Houston -3.2, 64-61 (64%)",False
+2022,4,2022-03-27,North Carolina,Saint Peter's,8,15,69.0,49.0,0.78,"North Carolina -7.5, 71-64 (78%)",False
+2022,4,2022-03-27,Kansas,Miami FL,1,10,76.0,50.0,0.78,"Kansas -8.4, 80-72 (78%)",False
+2022,5,2022-04-02,North Carolina,Duke,8,2,81.0,77.0,0.36,"Duke -3.8, 79-75 (64%)",False
+2022,5,2022-04-02,Kansas,Villanova,1,2,81.0,65.0,0.57,"Kansas -1.7, 69-67 (57%)",False
+2022,6,2022-04-04,Kansas,North Carolina,1,8,72.0,69.0,0.7,"Kansas -5.7, 80-74 (70%)",False
+2023,1,2023-03-16,Missouri,Utah St.,7,10,76.0,65.0,0.37,"Utah St. -3.7, 83-79 (63%)",False
+2023,1,2023-03-16,Princeton,Arizona,15,2,59.0,55.0,0.12,"Arizona -13.7, 86-73 (88%)",False
+2023,1,2023-03-16,Furman,Virginia,13,4,68.0,67.0,0.30000000000000004,"Virginia -4.9, 69-64 (70%)",False
+2023,1,2023-03-16,Northwestern,Boise St.,7,10,75.0,67.0,0.5,"Northwestern -0.1, 64-63 (50%)",False
+2023,1,2023-03-16,Arkansas,Illinois,8,9,73.0,63.0,0.64,"Arkansas -3.7, 75-71 (64%)",False
+2023,1,2023-03-16,Texas,Colgate,2,15,81.0,61.0,0.87,"Texas -12.6, 81-69 (87%)",False
+2023,1,2023-03-16,San Diego St.,Charleston,5,12,63.0,57.0,0.77,"San Diego St. -7.3, 74-67 (77%)",False
+2023,1,2023-03-16,Alabama,Texas A&M Corpus Chris,1,16,96.0,75.0,0.96,"Alabama -22.1, 90-68 (96%)",False
+2023,1,2023-03-16,Houston,Northern Kentucky,1,16,63.0,52.0,0.96,"Houston -15.9, 67-52 (96%)",False
+2023,1,2023-03-16,Auburn,Iowa,9,8,83.0,75.0,0.6,"Auburn -2.7, 79-77 (60%)",False
+2023,1,2023-03-16,Kansas,Howard,1,16,96.0,68.0,0.94,"Kansas -17.6, 82-65 (94%)",False
+2023,1,2023-03-16,Penn St.,Texas A&M,10,7,76.0,59.0,0.35,"Texas A&M -3.6, 71-67 (65%)",False
+2023,1,2023-03-16,Maryland,West Virginia,8,9,67.0,65.0,0.43999999999999995,"West Virginia -1.6, 72-70 (56%)",False
+2023,1,2023-03-16,UCLA,UNC Asheville,2,15,86.0,53.0,0.95,"UCLA -17.2, 76-59 (95%)",False
+2023,1,2023-03-16,Duke,Oral Roberts,5,12,74.0,51.0,0.69,"Duke -5.0, 75-70 (69%)",False
+2023,1,2023-03-16,Tennessee,Louisiana,4,13,58.0,55.0,0.86,"Tennessee -10.7, 74-63 (86%)",False
+2023,1,2023-03-17,Kansas St.,Montana St.,3,14,77.0,65.0,0.76,"Kansas St. -6.9, 72-65 (76%)",False
+2023,1,2023-03-17,Indiana,Kent St.,4,13,71.0,60.0,0.65,"Indiana -3.9, 73-69 (65%)",False
+2023,1,2023-03-17,Xavier,Kennesaw St.,3,14,72.0,67.0,0.82,"Xavier -10.3, 83-73 (82%)",False
+2023,1,2023-03-17,Michigan St.,USC,7,10,72.0,62.0,0.56,"Michigan St. -1.4, 69-68 (56%)",False
+2023,1,2023-03-17,Pittsburgh,Iowa St.,11,6,59.0,41.0,0.27,"Iowa St. -5.8, 70-64 (73%)",False
+2023,1,2023-03-17,Marquette,Vermont,2,15,78.0,61.0,0.82,"Marquette -9.6, 77-67 (82%)",False
+2023,1,2023-03-17,Fairleigh Dickinson,Purdue,16,1,63.0,58.0,0.020000000000000018,"Purdue -25.8, 88-62 (98%)",False
+2023,1,2023-03-17,Connecticut,Iona,4,13,87.0,63.0,0.82,"Connecticut -9.6, 77-68 (82%)",False
+2023,1,2023-03-17,Creighton,N.C. State,6,11,72.0,63.0,0.68,"Creighton -4.9, 77-72 (68%)",False
+2023,1,2023-03-17,Baylor,UC Santa Barbara,3,14,74.0,56.0,0.86,"Baylor -11.9, 81-69 (86%)",False
+2023,1,2023-03-17,Florida Atlantic,Memphis,9,8,66.0,65.0,0.39,"Memphis -2.9, 77-74 (61%)",False
+2023,1,2023-03-17,Miami FL,Drake,5,12,63.0,56.0,0.55,"Miami FL -1.3, 75-73 (55%)",False
+2023,1,2023-03-17,Saint Mary's,VCU,5,12,63.0,51.0,0.75,"Saint Mary's -5.8, 64-58 (75%)",False
+2023,1,2023-03-17,Kentucky,Providence,6,11,61.0,53.0,0.62,"Kentucky -3.1, 75-72 (62%)",False
+2023,1,2023-03-17,Gonzaga,Grand Canyon,3,14,82.0,70.0,0.89,"Gonzaga -14.4, 86-72 (89%)",False
+2023,1,2023-03-17,TCU,Arizona St.,6,11,72.0,70.0,0.61,"TCU -2.8, 72-70 (61%)",False
+2023,2,2023-03-18,San Diego St.,Furman,5,13,75.0,52.0,0.81,"San Diego St. -9.1, 75-66 (81%)",False
+2023,2,2023-03-18,Princeton,Missouri,15,7,78.0,63.0,0.31000000000000005,"Missouri -5.4, 80-74 (69%)",False
+2023,2,2023-03-18,Houston,Auburn,1,9,81.0,64.0,0.74,"Houston -6.0, 68-62 (74%)",False
+2023,2,2023-03-18,Arkansas,Kansas,8,1,72.0,71.0,0.44999999999999996,"Kansas -1.3, 72-71 (55%)",False
+2023,2,2023-03-18,Alabama,Maryland,1,8,73.0,51.0,0.76,"Alabama -7.2, 75-68 (76%)",False
+2023,2,2023-03-18,Texas,Penn St.,2,10,71.0,66.0,0.71,"Texas -5.5, 74-68 (71%)",False
+2023,2,2023-03-18,UCLA,Northwestern,2,7,68.0,63.0,0.76,"UCLA -6.3, 65-59 (76%)",False
+2023,2,2023-03-18,Tennessee,Duke,4,5,65.0,52.0,0.63,"Tennessee -2.9, 63-60 (63%)",False
+2023,2,2023-03-19,Connecticut,Saint Mary's,4,5,70.0,55.0,0.57,"Connecticut -1.7, 64-62 (57%)",False
+2023,2,2023-03-19,Creighton,Baylor,6,3,85.0,76.0,0.51,"Creighton -0.1, 75-74 (51%)",False
+2023,2,2023-03-19,Gonzaga,TCU,3,6,84.0,81.0,0.67,"Gonzaga -4.9, 82-77 (67%)",False
+2023,2,2023-03-19,Florida Atlantic,Fairleigh Dickinson,9,16,78.0,70.0,0.95,"Florida Atlantic -19.6, 87-67 (95%)",False
+2023,2,2023-03-19,Kansas St.,Kentucky,3,6,75.0,69.0,0.52,"Kansas St. -0.4, 72-71 (52%)",False
+2023,2,2023-03-19,Michigan St.,Marquette,7,2,69.0,60.0,0.38,"Marquette -3.1, 72-69 (62%)",False
+2023,2,2023-03-19,Miami FL,Indiana,5,4,85.0,69.0,0.45999999999999996,"Indiana -1.2, 77-76 (54%)",False
+2023,2,2023-03-19,Xavier,Pittsburgh,3,11,84.0,73.0,0.69,"Xavier -5.3, 81-76 (69%)",False
+2023,3,2023-03-23,Kansas St.,Michigan St.,3,7,98.0,93.0,0.5,"Kansas St. -0.0, 69-68 (50%)",False
+2023,3,2023-03-23,Gonzaga,UCLA,3,2,79.0,76.0,0.39,"UCLA -2.8, 75-73 (61%)",False
+2023,3,2023-03-23,Florida Atlantic,Tennessee,9,4,62.0,55.0,0.29000000000000004,"Tennessee -5.1, 67-62 (71%)",False
+2023,3,2023-03-23,Connecticut,Arkansas,4,8,88.0,65.0,0.68,"Connecticut -4.7, 74-70 (68%)",False
+2023,3,2023-03-24,Texas,Xavier,2,3,83.0,71.0,0.63,"Texas -3.6, 78-75 (63%)",False
+2023,3,2023-03-24,Creighton,Princeton,6,15,86.0,75.0,0.82,"Creighton -9.3, 75-66 (82%)",False
+2023,3,2023-03-24,San Diego St.,Alabama,5,1,71.0,64.0,0.36,"Alabama -3.5, 71-68 (64%)",False
+2023,3,2023-03-24,Miami FL,Houston,5,1,89.0,75.0,0.20999999999999996,"Houston -8.2, 74-66 (79%)",False
+2023,4,2023-03-25,Connecticut,Gonzaga,4,3,82.0,54.0,0.61,"Connecticut -3.0, 81-78 (61%)",False
+2023,4,2023-03-25,Florida Atlantic,Kansas St.,9,3,79.0,76.0,0.49,"Kansas St. -0.4, 73-72 (51%)",False
+2023,4,2023-03-26,Miami FL,Texas,5,2,88.0,81.0,0.31000000000000005,"Texas -5.4, 79-73 (69%)",False
+2023,4,2023-03-26,San Diego St.,Creighton,5,6,57.0,56.0,0.54,"San Diego St. -1.0, 67-66 (54%)",False
+2023,5,2023-04-01,Connecticut,Miami FL,4,5,72.0,59.0,0.77,"Connecticut -8.1, 81-72 (77%)",False
+2023,5,2023-04-01,San Diego St.,Florida Atlantic,5,9,72.0,71.0,0.64,"San Diego St. -3.3, 67-64 (64%)",False
+2023,6,2023-04-03,Connecticut,San Diego St.,4,5,76.0,59.0,0.67,"Connecticut -4.0, 68-64 (67%)",False
+2024,1,2024-03-21,N.C. State,Texas Tech,11,6,80.0,67.0,0.33999999999999997,"Texas Tech -4.1, 75-71 (66%)",False
+2024,1,2024-03-21,Duquesne,BYU,11,6,71.0,67.0,0.26,"BYU -6.6, 75-68 (74%)",False
+2024,1,2024-03-21,Arizona,Long Beach St.,2,15,85.0,65.0,0.96,"Arizona -23.7, 95-71 (96%)",False
+2024,1,2024-03-21,Creighton,Akron,3,14,77.0,60.0,0.9,"Creighton -12.9, 76-63 (90%)",False
+2024,1,2024-03-21,Dayton,Nevada,7,10,63.0,60.0,0.47,"Nevada -0.7, 70-69 (53%)",False
+2024,1,2024-03-21,Illinois,Morehead St.,3,14,85.0,69.0,0.89,"Illinois -14.0, 82-68 (89%)",False
+2024,1,2024-03-21,Tennessee,Saint Peter's,2,15,83.0,49.0,0.95,"Tennessee -16.8, 72-55 (95%)",False
+2024,1,2024-03-21,Texas,Colorado St.,7,10,56.0,44.0,0.57,"Texas -1.7, 72-70 (57%)",False
+2024,1,2024-03-21,North Carolina,Wagner,1,16,90.0,62.0,0.97,"North Carolina -20.2, 74-54 (97%)",False
+2024,1,2024-03-21,Kansas,Samford,4,13,93.0,89.0,0.78,"Kansas -8.5, 82-73 (78%)",False
+2024,1,2024-03-21,Oregon,South Carolina,11,6,87.0,73.0,0.45999999999999996,"South Carolina -0.9, 68-67 (54%)",False
+2024,1,2024-03-21,Oakland,Kentucky,14,3,80.0,76.0,0.15000000000000002,"Kentucky -12.3, 88-75 (85%)",False
+2024,1,2024-03-21,Michigan St.,Mississippi St.,9,8,69.0,51.0,0.55,"Michigan St. -1.2, 66-65 (55%)",False
+2024,1,2024-03-21,Iowa St.,South Dakota St.,2,15,82.0,65.0,0.94,"Iowa St. -16.4, 77-60 (94%)",False
+2024,1,2024-03-21,Washington St.,Drake,7,10,66.0,61.0,0.55,"Washington St. -1.3, 70-69 (55%)",False
+2024,1,2024-03-21,Gonzaga,McNeese St.,5,12,86.0,65.0,0.79,"Gonzaga -8.3, 78-70 (79%)",False
+2024,1,2024-03-22,San Diego St.,UAB,5,12,69.0,65.0,0.79,"San Diego St. -8.2, 75-67 (79%)",False
+2024,1,2024-03-22,Northwestern,Florida Atlantic,9,8,77.0,65.0,0.6,"Northwestern -2.5, 73-71 (60%)",False
+2024,1,2024-03-22,Utah St.,TCU,8,9,88.0,72.0,0.4,"TCU -2.6, 78-75 (60%)",False
+2024,1,2024-03-22,Baylor,Colgate,3,14,92.0,67.0,0.9,"Baylor -13.4, 76-63 (90%)",False
+2024,1,2024-03-22,Marquette,Western Kentucky,2,15,87.0,69.0,0.9,"Marquette -15.3, 88-73 (90%)",False
+2024,1,2024-03-22,Duke,Vermont,4,13,64.0,47.0,0.87,"Duke -10.9, 71-60 (87%)",False
+2024,1,2024-03-22,Texas A&M,Nebraska,9,8,98.0,83.0,0.37,"Nebraska -3.3, 73-70 (63%)",False
+2024,1,2024-03-22,Yale,Auburn,13,4,78.0,76.0,0.12,"Auburn -12.4, 77-64 (88%)",False
+2024,1,2024-03-22,Alabama,Charleston,4,13,109.0,96.0,0.81,"Alabama -11.2, 94-83 (81%)",False
+2024,1,2024-03-22,Purdue,Grambling St.,1,16,78.0,50.0,0.98,"Purdue -25.2, 83-58 (98%)",False
+2024,1,2024-03-22,Colorado,Florida,10,7,102.0,100.0,0.5,"Colorado -0.0, 80-79 (50%)",False
+2024,1,2024-03-22,James Madison,Wisconsin,12,5,72.0,61.0,0.28,"Wisconsin -6.1, 77-71 (72%)",False
+2024,1,2024-03-22,Grand Canyon,Saint Mary's,12,5,75.0,66.0,0.22999999999999998,"Saint Mary's -7.0, 69-62 (77%)",False
+2024,1,2024-03-22,Clemson,New Mexico,6,11,77.0,56.0,0.42000000000000004,"New Mexico -2.0, 78-76 (58%)",False
+2024,1,2024-03-22,Connecticut,Stetson,1,16,91.0,52.0,0.98,"Connecticut -26.0, 87-61 (98%)",False
+2024,1,2024-03-22,Houston,Longwood,1,16,86.0,46.0,0.98,"Houston -21.3, 74-53 (98%)",False
+2024,2,2024-03-23,N.C. State,Oakland,11,14,79.0,73.0,0.74,"N.C. State -6.5, 76-70 (74%)",False
+2024,2,2024-03-23,Arizona,Dayton,2,7,78.0,68.0,0.77,"Arizona -8.0, 79-71 (77%)",False
+2024,2,2024-03-23,Creighton,Oregon,3,11,86.0,73.0,0.72,"Creighton -6.1, 76-70 (72%)",False
+2024,2,2024-03-23,Tennessee,Texas,2,7,62.0,58.0,0.63,"Tennessee -3.4, 74-70 (63%)",False
+2024,2,2024-03-23,Illinois,Duquesne,3,11,89.0,63.0,0.76,"Illinois -7.5, 78-71 (76%)",False
+2024,2,2024-03-23,Gonzaga,Kansas,5,4,89.0,68.0,0.55,"Gonzaga -1.3, 76-75 (55%)",False
+2024,2,2024-03-23,North Carolina,Michigan St.,1,9,85.0,69.0,0.59,"North Carolina -2.1, 71-68 (59%)",False
+2024,2,2024-03-23,Iowa St.,Washington St.,2,7,67.0,56.0,0.79,"Iowa St. -7.2, 68-60 (79%)",False
+2024,2,2024-03-24,Purdue,Utah St.,1,8,106.0,67.0,0.85,"Purdue -11.5, 83-71 (85%)",False
+2024,2,2024-03-24,Clemson,Baylor,6,3,72.0,64.0,0.42000000000000004,"Baylor -1.9, 74-72 (58%)",False
+2024,2,2024-03-24,Marquette,Colorado,2,10,81.0,77.0,0.61,"Marquette -2.9, 77-74 (61%)",False
+2024,2,2024-03-24,Duke,James Madison,4,12,93.0,55.0,0.77,"Duke -7.9, 79-71 (77%)",False
+2024,2,2024-03-24,Houston,Texas A&M,1,9,100.0,95.0,0.88,"Houston -11.3, 70-59 (88%)",False
+2024,2,2024-03-24,San Diego St.,Yale,5,13,85.0,57.0,0.69,"San Diego St. -4.5, 67-63 (69%)",False
+2024,2,2024-03-24,Connecticut,Northwestern,1,9,75.0,58.0,0.83,"Connecticut -9.5, 73-63 (83%)",False
+2024,2,2024-03-24,Alabama,Grand Canyon,4,12,72.0,61.0,0.73,"Alabama -7.2, 87-80 (73%)",False
+2024,3,2024-03-28,Clemson,Arizona,6,2,77.0,72.0,0.28,"Arizona -6.3, 79-73 (72%)",False
+2024,3,2024-03-28,Illinois,Iowa St.,3,2,72.0,69.0,0.37,"Iowa St. -3.5, 77-73 (63%)",False
+2024,3,2024-03-28,Connecticut,San Diego St.,1,5,82.0,52.0,0.83,"Connecticut -9.2, 72-63 (83%)",False
+2024,3,2024-03-28,Alabama,North Carolina,4,1,89.0,87.0,0.42000000000000004,"North Carolina -2.5, 87-84 (58%)",False
+2024,3,2024-03-29,N.C. State,Marquette,11,2,67.0,58.0,0.24,"Marquette -7.6, 79-72 (76%)",False
+2024,3,2024-03-29,Tennessee,Creighton,2,3,82.0,75.0,0.56,"Tennessee -1.5, 72-71 (56%)",False
+2024,3,2024-03-29,Duke,Houston,4,1,54.0,51.0,0.27,"Houston -5.7, 69-63 (73%)",False
+2024,3,2024-03-29,Purdue,Gonzaga,1,5,80.0,68.0,0.68,"Purdue -5.3, 82-77 (68%)",False
+2024,4,2024-03-30,Connecticut,Illinois,1,3,77.0,52.0,0.76,"Connecticut -7.7, 82-74 (76%)",False
+2024,4,2024-03-30,Alabama,Clemson,4,6,89.0,82.0,0.55,"Alabama -1.3, 82-81 (55%)",False
+2024,4,2024-03-31,N.C. State,Duke,11,4,76.0,64.0,0.22999999999999998,"Duke -7.8, 77-69 (77%)",False
+2024,4,2024-03-31,Purdue,Tennessee,1,2,72.0,66.0,0.62,"Purdue -3.1, 75-72 (62%)",False
+2024,5,2024-04-06,Purdue,N.C. State,1,11,63.0,50.0,0.84,"Purdue -11.1, 81-70 (84%)",False
+2024,5,2024-04-06,Connecticut,Alabama,1,4,86.0,72.0,0.81,"Connecticut -10.1, 86-76 (81%)",False
+2024,6,2024-04-08,Connecticut,Purdue,1,1,75.0,60.0,0.61,"Connecticut -2.8, 73-71 (61%)",False
+2025,1,2025-03-20,Texas A&M,Yale,4,13,80.0,71.0,0.81,"Texas A&M -8.7, 75-66 (81%)",False
+2025,1,2025-03-20,BYU,VCU,6,11,80.0,71.0,0.63,"BYU -3.4, 75-72 (63%)",False
+2025,1,2025-03-20,Wisconsin,Montana,3,14,85.0,66.0,0.92,"Wisconsin -16.3, 85-68 (92%)",False
+2025,1,2025-03-20,Drake,Missouri,11,6,67.0,57.0,0.26,"Missouri -6.2, 70-64 (74%)",False
+2025,1,2025-03-20,Texas Tech,UNC Wilmington,3,14,82.0,72.0,0.92,"Texas Tech -15.6, 81-65 (92%)",False
+2025,1,2025-03-20,Houston,SIU Edwardsville,1,16,78.0,40.0,0.99,"Houston -24.1, 75-51 (99%)",False
+2025,1,2025-03-20,Gonzaga,Georgia,8,9,89.0,68.0,0.66,"Gonzaga -4.2, 77-73 (66%)",False
+2025,1,2025-03-20,Michigan,UC San Diego,5,12,68.0,65.0,0.63,"Michigan -3.3, 72-68 (63%)",False
+2025,1,2025-03-20,Arkansas,Kansas,10,7,79.0,72.0,0.31999999999999995,"Kansas -4.7, 73-69 (68%)",False
+2025,1,2025-03-20,St. John's,Nebraska Omaha,2,15,83.0,53.0,0.91,"St. John's -14.8, 81-66 (91%)",False
+2025,1,2025-03-20,UCLA,Utah St.,7,10,72.0,47.0,0.68,"UCLA -4.8, 77-72 (68%)",False
+2025,1,2025-03-20,Purdue,High Point,4,13,75.0,63.0,0.83,"Purdue -10.5, 82-71 (83%)",False
+2025,1,2025-03-20,McNeese St.,Clemson,12,5,69.0,67.0,0.24,"Clemson -6.7, 70-63 (76%)",False
+2025,1,2025-03-20,Creighton,Louisville,9,8,89.0,75.0,0.37,"Louisville -3.4, 75-72 (63%)",False
+2025,1,2025-03-20,Auburn,Alabama St.,1,16,83.0,63.0,0.99,"Auburn -30.4, 91-60 (99%)",False
+2025,1,2025-03-20,Tennessee,Wofford,2,15,77.0,62.0,0.95,"Tennessee -16.8, 75-58 (95%)",False
+2025,1,2025-03-21,Alabama,Robert Morris,2,15,90.0,81.0,0.96,"Alabama -22.5, 95-72 (96%)",False
+2025,1,2025-03-21,Illinois,Xavier,6,11,86.0,73.0,0.62,"Illinois -3.5, 83-79 (62%)",False
+2025,1,2025-03-21,Kentucky,Troy,3,14,76.0,57.0,0.87,"Kentucky -12.3, 81-69 (87%)",False
+2025,1,2025-03-21,Mississippi,North Carolina,6,11,71.0,64.0,0.51,"Mississippi -0.3, 79-78 (51%)",False
+2025,1,2025-03-21,Iowa St.,Lipscomb,3,14,82.0,55.0,0.9,"Iowa St. -13.8, 79-65 (90%)",False
+2025,1,2025-03-21,Oregon,Liberty,5,12,81.0,52.0,0.59,"Oregon -2.2, 70-68 (59%)",False
+2025,1,2025-03-21,Arizona,Akron,4,13,93.0,65.0,0.9,"Arizona -15.9, 92-76 (90%)",False
+2025,1,2025-03-21,Colorado St.,Memphis,12,5,78.0,70.0,0.61,"Colorado St. -2.9, 75-72 (61%)",False
+2025,1,2025-03-21,Maryland,Grand Canyon,4,13,81.0,49.0,0.87,"Maryland -12.5, 82-69 (87%)",False
+2025,1,2025-03-21,Connecticut,Oklahoma,8,9,67.0,59.0,0.58,"Connecticut -2.0, 75-73 (58%)",False
+2025,1,2025-03-21,Florida,Norfolk St.,1,16,95.0,69.0,0.98,"Florida -25.4, 90-64 (98%)",False
+2025,1,2025-03-21,Saint Mary's,Vanderbilt,7,10,59.0,56.0,0.67,"Saint Mary's -4.2, 70-66 (67%)",False
+2025,1,2025-03-21,Michigan St.,Bryant,2,15,87.0,62.0,0.94,"Michigan St. -18.4, 85-66 (94%)",False
+2025,1,2025-03-21,New Mexico,Marquette,10,7,75.0,66.0,0.39,"Marquette -2.9, 77-74 (61%)",False
+2025,1,2025-03-21,Baylor,Mississippi St.,9,8,75.0,72.0,0.55,"Baylor -1.4, 73-72 (55%)",False
+2025,1,2025-03-21,Duke,Mount St. Mary's,1,16,93.0,49.0,0.99,"Duke -28.7, 86-57 (99%)",False
+2025,2,2025-03-22,Texas Tech,Drake,3,11,77.0,64.0,0.79,"Texas Tech -7.3, 66-59 (79%)",False
+2025,2,2025-03-22,Houston,Gonzaga,1,8,81.0,76.0,0.75,"Houston -6.7, 72-65 (75%)",False
+2025,2,2025-03-22,Tennessee,UCLA,2,7,67.0,58.0,0.61,"Tennessee -2.4, 65-63 (61%)",False
+2025,2,2025-03-22,Auburn,Creighton,1,9,82.0,70.0,0.82,"Auburn -10.0, 81-71 (82%)",False
+2025,2,2025-03-22,BYU,Wisconsin,6,3,91.0,89.0,0.48,"Wisconsin -0.5, 78-77 (52%)",False
+2025,2,2025-03-22,Michigan,Texas A&M,5,4,91.0,79.0,0.47,"Texas A&M -0.7, 70-69 (53%)",False
+2025,2,2025-03-22,Purdue,McNeese St.,4,12,76.0,62.0,0.75,"Purdue -6.9, 74-67 (75%)",False
+2025,2,2025-03-22,Arkansas,St. John's,10,2,75.0,66.0,0.29000000000000004,"St. John's -5.3, 73-68 (71%)",False
+2025,2,2025-03-23,Florida,Connecticut,1,8,77.0,75.0,0.81,"Florida -9.5, 80-71 (81%)",False
+2025,2,2025-03-23,Michigan St.,New Mexico,2,10,71.0,63.0,0.72,"Michigan St. -6.1, 77-71 (72%)",False
+2025,2,2025-03-23,Duke,Baylor,1,9,89.0,66.0,0.84,"Duke -10.1, 75-65 (84%)",False
+2025,2,2025-03-23,Arizona,Oregon,4,5,87.0,83.0,0.68,"Arizona -5.1, 79-74 (68%)",False
+2025,2,2025-03-23,Kentucky,Illinois,3,6,84.0,75.0,0.51,"Kentucky -0.2, 86-85 (51%)",False
+2025,2,2025-03-23,Mississippi,Iowa St.,6,3,91.0,78.0,0.31999999999999995,"Iowa St. -4.7, 75-70 (68%)",False
+2025,2,2025-03-23,Maryland,Colorado St.,4,12,72.0,71.0,0.75,"Maryland -6.9, 75-68 (75%)",False
+2025,2,2025-03-23,Alabama,Saint Mary's,2,7,80.0,66.0,0.67,"Alabama -4.6, 76-71 (67%)",False
+2025,3,2025-03-27,Alabama,BYU,2,6,113.0,88.0,0.6,"Alabama -3.2, 89-86 (60%)",False
+2025,3,2025-03-27,Duke,Arizona,1,4,100.0,93.0,0.75,"Duke -7.3, 80-73 (75%)",False
+2025,3,2025-03-27,Texas Tech,Arkansas,3,10,85.0,83.0,0.73,"Texas Tech -6.5, 77-70 (73%)",False
+2025,3,2025-03-27,Florida,Maryland,1,4,87.0,71.0,0.63,"Florida -3.6, 79-76 (63%)",False
+2025,3,2025-03-28,Auburn,Michigan,1,5,78.0,65.0,0.79,"Auburn -8.6, 80-72 (79%)",False
+2025,3,2025-03-28,Michigan St.,Mississippi,2,6,73.0,70.0,0.6,"Michigan St. -2.4, 73-70 (60%)",False
+2025,3,2025-03-28,Tennessee,Kentucky,2,3,78.0,65.0,0.61,"Tennessee -2.7, 74-71 (61%)",False
+2025,3,2025-03-28,Houston,Purdue,1,4,62.0,60.0,0.8,"Houston -8.0, 70-62 (80%)",False
+2025,4,2025-03-29,Florida,Texas Tech,1,3,84.0,79.0,0.65,"Florida -4.1, 80-76 (65%)",False
+2025,4,2025-03-29,Duke,Alabama,1,2,85.0,65.0,0.66,"Duke -4.9, 86-82 (66%)",False
+2025,4,2025-03-30,Houston,Tennessee,1,2,69.0,50.0,0.69,"Houston -4.2, 62-58 (69%)",False
+2025,4,2025-03-30,Auburn,Michigan St.,1,2,70.0,64.0,0.71,"Auburn -5.6, 76-70 (71%)",False
+2025,5,2025-04-05,Florida,Auburn,1,1,79.0,73.0,0.45999999999999996,"Auburn -1.2, 80-79 (54%)",False
+2025,5,2025-04-05,Houston,Duke,1,1,70.0,67.0,0.53,"Houston -0.6, 65-64 (53%)",False
+2025,6,2025-04-07,Florida,Houston,1,1,65.0,63.0,0.36,"Houston -3.6, 71-67 (64%)",False
+2026,1,2026-03-19,Duke,Siena,1,16,71.0,65.0,0.98,"Duke -24.5, 81-56 (98%)",False
+2026,1,2026-03-19,TCU,Ohio St.,9,8,66.0,64.0,0.31000000000000005,"Ohio St. -5.0, 76-71 (69%)",False
+2026,1,2026-03-19,Michigan,Howard,1,16,101.0,80.0,0.98,"Michigan -27.3, 91-64 (98%)",False
+2026,1,2026-03-19,Saint Louis,Georgia,9,8,102.0,77.0,0.45999999999999996,"Georgia -1.3, 89-87 (54%)",False
+2026,1,2026-03-19,Louisville,South Florida,6,11,83.0,79.0,0.74,"Louisville -7.4, 85-78 (74%)",False
+2026,1,2026-03-19,Michigan St.,North Dakota St.,3,14,92.0,67.0,0.9,"Michigan St. -13.8, 78-64 (90%)",False
+2026,1,2026-03-19,Texas,BYU,11,6,79.0,71.0,0.43999999999999995,"BYU -1.8, 84-82 (56%)",False
+2026,1,2026-03-19,Gonzaga,Kennesaw St.,3,14,73.0,64.0,0.93,"Gonzaga -18.2, 88-70 (93%)",False
+2026,1,2026-03-19,High Point,Wisconsin,12,5,83.0,82.0,0.15000000000000002,"Wisconsin -12.5, 89-77 (85%)",False
+2026,1,2026-03-19,Arkansas,Hawaii,4,13,97.0,78.0,0.89,"Arkansas -14.6, 88-73 (89%)",False
+2026,1,2026-03-19,Houston,Idaho,2,15,78.0,47.0,0.96,"Houston -19.0, 78-59 (96%)",False
+2026,1,2026-03-19,Texas A&M,Saint Mary's,10,7,63.0,50.0,0.4,"Saint Mary's -2.8, 77-74 (60%)",False
+2026,1,2026-03-19,Illinois,Penn,3,14,105.0,70.0,0.96,"Illinois -21.0, 86-65 (96%)",False
+2026,1,2026-03-19,VCU,North Carolina,11,6,82.0,78.0,0.39,"North Carolina -3.2, 79-76 (61%)",False
+2026,1,2026-03-19,Nebraska,Troy,4,13,76.0,47.0,0.92,"Nebraska -14.3, 76-61 (92%)",False
+2026,1,2026-03-19,Vanderbilt,McNeese St.,5,12,78.0,68.0,0.84,"Vanderbilt -10.9, 81-70 (84%)",False
+2026,1,2026-03-20,Utah St.,Villanova,9,8,86.0,76.0,0.54,"Utah St. -1.1, 74-73 (54%)",False
+2026,1,2026-03-20,UCLA,UCF,7,10,75.0,71.0,0.7,"UCLA -5.6, 80-75 (70%)",False
+2026,1,2026-03-20,Iowa St.,Tennessee St.,2,15,108.0,74.0,0.98,"Iowa St. -24.5, 89-64 (98%)",False
+2026,1,2026-03-20,St. John's,Northern Iowa,5,12,79.0,53.0,0.82,"St. John's -8.7, 70-61 (82%)",False
+2026,1,2026-03-20,Kansas,Cal Baptist,4,13,68.0,60.0,0.86,"Kansas -10.4, 72-62 (86%)",False
+2026,1,2026-03-20,Arizona,LIU,1,16,92.0,58.0,0.99,"Arizona -28.7, 90-62 (99%)",False
+2026,1,2026-03-20,Miami FL,Missouri,7,10,80.0,66.0,0.56,"Miami FL -1.5, 77-75 (56%)",False
+2026,1,2026-03-20,Purdue,Queens,2,15,104.0,71.0,0.97,"Purdue -24.9, 95-70 (97%)",False
+2026,1,2026-03-20,Kentucky,Santa Clara,7,10,89.0,84.0,0.5,"Santa Clara -0.1, 82-81 (50%)",False
+2026,1,2026-03-20,Virginia,Wright St.,3,14,82.0,73.0,0.92,"Virginia -15.1, 80-65 (92%)",False
+2026,1,2026-03-20,Tennessee,Miami OH,6,11,78.0,56.0,0.85,"Tennessee -11.3, 81-70 (85%)",False
+2026,1,2026-03-20,Connecticut,Furman,2,15,82.0,71.0,0.96,"Connecticut -19.1, 78-59 (96%)",False
+2026,1,2026-03-20,Alabama,Hofstra,4,13,90.0,70.0,0.85,"Alabama -12.3, 88-75 (85%)",False
+2026,1,2026-03-20,Texas Tech,Akron,5,12,91.0,71.0,0.83,"Texas Tech -10.9, 85-74 (83%)",False
+2026,1,2026-03-20,Iowa,Clemson,9,8,67.0,61.0,0.55,"Iowa -1.0, 66-65 (55%)",False
+2026,1,2026-03-20,Florida,Prairie View A&M,1,16,114.0,55.0,0.99,"Florida -31.1, 95-63 (99%)",False
+2026,2,2026-03-21,Illinois,VCU,3,11,76.0,55.0,0.83,"Illinois -10.9, 83-72 (83%)",False
+2026,2,2026-03-21,Michigan,Saint Louis,1,9,95.0,72.0,0.86,"Michigan -13.2, 90-76 (86%)",False
+2026,2,2026-03-21,Nebraska,Vanderbilt,4,5,74.0,72.0,0.44999999999999996,"Vanderbilt -1.2, 74-73 (55%)",False
+2026,2,2026-03-21,Duke,TCU,1,9,81.0,58.0,0.89,"Duke -12.6, 76-64 (89%)",False
+2026,2,2026-03-21,Michigan St.,Louisville,3,6,77.0,69.0,0.55,"Michigan St. -1.2, 76-75 (55%)",False
+2026,2,2026-03-21,Houston,Texas A&M,2,10,88.0,57.0,0.82,"Houston -9.6, 77-67 (82%)",False
+2026,2,2026-03-21,Texas,Gonzaga,11,3,74.0,68.0,0.29000000000000004,"Gonzaga -5.9, 79-73 (71%)",False
+2026,2,2026-03-21,Arkansas,High Point,4,12,94.0,88.0,0.85,"Arkansas -13.1, 93-80 (85%)",False
+2026,2,2026-03-22,Arizona,Utah St.,1,9,78.0,66.0,0.83,"Arizona -11.0, 84-73 (83%)",False
+2026,2,2026-03-22,Iowa,Florida,9,1,73.0,72.0,0.21999999999999997,"Florida -8.1, 77-68 (78%)",False
+2026,2,2026-03-22,Tennessee,Virginia,6,3,79.0,72.0,0.54,"Tennessee -0.8, 69-68 (54%)",False
+2026,2,2026-03-22,St. John's,Kansas,5,4,67.0,65.0,0.57,"St. John's -1.8, 72-71 (57%)",False
+2026,2,2026-03-22,Iowa St.,Kentucky,2,7,82.0,63.0,0.78,"Iowa St. -8.1, 78-69 (78%)",False
+2026,2,2026-03-22,Connecticut,UCLA,2,7,73.0,57.0,0.64,"Connecticut -3.5, 71-68 (64%)",False
+2026,2,2026-03-22,Purdue,Miami FL,2,7,79.0,69.0,0.78,"Purdue -8.2, 81-72 (78%)",False
+2026,2,2026-03-22,Alabama,Texas Tech,4,5,90.0,65.0,0.44999999999999996,"Texas Tech -1.4, 86-85 (55%)",False
+2026,3,2026-03-26,Purdue,Texas,2,11,79.0,77.0,0.8,"Purdue -9.4, 82-73 (80%)",False
+2026,3,2026-03-26,Arizona,Arkansas,1,4,109.0,88.0,0.76,"Arizona -8.3, 88-80 (76%)",False
+2026,3,2026-03-26,Illinois,Houston,3,2,65.0,55.0,0.45999999999999996,"Houston -1.1, 70-69 (54%)",False
+2026,3,2026-03-26,Iowa,Nebraska,9,4,77.0,71.0,0.43000000000000005,"Nebraska -1.6, 67-66 (57%)",False
+2026,3,2026-03-27,Connecticut,Michigan St.,2,3,67.0,63.0,0.52,"Connecticut -0.5, 70-69 (52%)",False
+2026,3,2026-03-27,Duke,St. John's,1,5,80.0,75.0,0.7,"Duke -5.2, 74-69 (70%)",False
+2026,3,2026-03-27,Tennessee,Iowa St.,6,2,76.0,62.0,0.38,"Iowa St. -2.9, 71-68 (62%)",False
+2026,3,2026-03-27,Michigan,Alabama,1,4,90.0,77.0,0.74,"Michigan -7.9, 93-85 (74%)",False
+2026,4,2026-03-28,Arizona,Purdue,1,2,79.0,64.0,0.64,"Arizona -3.9, 79-75 (64%)",False
+2026,4,2026-03-28,Illinois,Iowa,3,9,71.0,59.0,0.75,"Illinois -6.7, 75-68 (75%)",False
+2026,4,2026-03-29,Connecticut,Duke,2,1,73.0,72.0,0.32999999999999996,"Duke -4.2, 70-66 (67%)",False
+2026,4,2026-03-29,Michigan,Tennessee,1,6,95.0,62.0,0.7,"Michigan -5.6, 77-71 (70%)",False
+2026,5,2026-04-04,Connecticut,Illinois,2,3,71.0,62.0,0.38,"Illinois -2.9, 72-69 (62%)",False
+2026,5,2026-04-04,Michigan,Arizona,1,1,91.0,73.0,0.51,"Michigan -0.3, 81-80 (51%)",False
+2026,6,2026-04-06,Michigan,Connecticut,1,2,69.0,63.0,0.71,"Michigan -5.8, 77-71 (71%)",False
