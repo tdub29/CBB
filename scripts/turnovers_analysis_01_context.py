@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.ticker import FuncFormatter
 
+from size_analysis_common import break_at_missing_years
 from turnovers_analysis_common import (
     ACCENT,
     CURRENT_FIELD_YEAR,
@@ -65,6 +66,7 @@ def plot_context(context: pd.DataFrame, out_path: Path) -> None:
     tor_values = context["avg_tor"].to_numpy(dtype=float)
     tord_values = context["avg_tord"].to_numpy(dtype=float)
     blk_values = context["avg_blk_pct"].to_numpy(dtype=float)
+    line_years, line_tor, line_tord, line_blk = break_at_missing_years(years, tor_values, tord_values, blk_values)
 
     set_project_theme()
     fig = plt.figure(figsize=(15.4, 9.2), constrained_layout=False)
@@ -86,18 +88,18 @@ def plot_context(context: pd.DataFrame, out_path: Path) -> None:
         ax.tick_params(axis="x", length=0, pad=7)
         ax.tick_params(axis="y", length=0, pad=6, labelsize=10.0)
 
-    ax_turnover.plot(years, tor_values, color=ACCENT, linewidth=3.0, marker="o", markersize=4.8, label="Offensive turnover rate")
-    ax_turnover.plot(years, tord_values, color=HIGHLIGHT, linewidth=2.8, marker="o", markersize=4.5, alpha=0.95, label="Defensive turnovers forced")
-    ax_turnover.fill_between(years, tor_values, tord_values, color=PROJECT_PALETTE["steel"], alpha=0.10)
+    ax_turnover.plot(line_years, line_tor, color=ACCENT, linewidth=3.0, marker="o", markersize=4.8, label="Offensive turnover rate")
+    ax_turnover.plot(line_years, line_tord, color=HIGHLIGHT, linewidth=2.8, marker="o", markersize=4.5, alpha=0.95, label="Defensive turnovers forced")
+    ax_turnover.fill_between(line_years, line_tor, line_tord, color=PROJECT_PALETTE["steel"], alpha=0.10)
     ax_turnover.set_title(
-        "Field turnover environment over time",
+        "All-D1 turnover rates over time",
         fontsize=13.4,
         fontweight="bold",
         color=TEXT_DARK,
         pad=10,
     )
-    ax_turnover.set_ylabel("Field average", fontsize=11.0, fontweight="semibold")
-    ax_turnover.legend(loc="upper right", frameon=False, fontsize=11.2, labelcolor=TEXT_DARK)
+    ax_turnover.set_ylabel("All-D1 average", fontsize=11.0, fontweight="semibold")
+    ax_turnover.legend(loc="lower left", frameon=False, fontsize=11.2, labelcolor=TEXT_DARK)
     ax_turnover.text(
         TRANSFER_PORTAL_YEAR + 0.2,
         float(np.nanmax(np.r_[tor_values, tord_values])),
@@ -109,10 +111,11 @@ def plot_context(context: pd.DataFrame, out_path: Path) -> None:
         color=LABEL_TEXT,
         bbox=styled_box(),
     )
-    ax_turnover.text(
-        years[-1] + 0.35,
-        tor_values[-1] + 0.06,
+    ax_turnover.annotate(
         f"{tor_values[-1]:.1f}",
+        (years[-1] + 0.35, tor_values[-1]),
+        xytext=(0, 9),
+        textcoords="offset points",
         ha="left",
         va="center",
         fontsize=9.8,
@@ -120,10 +123,11 @@ def plot_context(context: pd.DataFrame, out_path: Path) -> None:
         color=LABEL_TEXT,
         bbox=styled_box(),
     )
-    ax_turnover.text(
-        years[-1] + 0.35,
-        tord_values[-1] - 0.08,
+    ax_turnover.annotate(
         f"{tord_values[-1]:.1f}",
+        (years[-1] + 0.35, tord_values[-1]),
+        xytext=(0, -9),
+        textcoords="offset points",
         ha="left",
         va="center",
         fontsize=9.8,
@@ -131,7 +135,7 @@ def plot_context(context: pd.DataFrame, out_path: Path) -> None:
         color=LABEL_TEXT,
         bbox=styled_box(),
     )
-    ax_blk.plot(years, blk_values, color=PROJECT_PALETTE["lake_blue"], linewidth=2.9, marker="o", markersize=4.6)
+    ax_blk.plot(line_years, line_blk, color=PROJECT_PALETTE["lake_blue"], linewidth=2.9, marker="o", markersize=4.6)
     ax_blk.set_title("Block rate over time", fontsize=12.8, fontweight="bold", color=TEXT_DARK, pad=10)
     ax_blk.text(
         TRANSFER_PORTAL_YEAR + 0.2,
@@ -156,12 +160,12 @@ def plot_context(context: pd.DataFrame, out_path: Path) -> None:
         bbox=styled_box(),
     )
     ax_blk.set_xlabel("Season", fontsize=11.0, fontweight="semibold")
-    ax_blk.set_ylabel("Field average", fontsize=11.0, fontweight="semibold")
+    ax_blk.set_ylabel("All-D1 average", fontsize=11.0, fontweight="semibold")
     fig.suptitle("Turnover context over time", fontsize=23, fontweight="bold", y=0.975)
     fig.text(
         0.5,
         0.91,
-        f"Tournament-field averages from 2008-{CURRENT_FIELD_YEAR} with 2020 excluded; turnovers on top, one block context panel below",
+        f"All-D1 averages, 2008-{CURRENT_FIELD_YEAR} (2020 excluded). Across all D1 teams the committed and forced turnover rates nearly coincide by construction.",
         ha="center",
         va="center",
         fontsize=10.2,
@@ -178,11 +182,12 @@ def write_summary(context: pd.DataFrame, out_path: Path) -> None:
     lines = [
         "# Turnovers Analysis 1: Context Over Time",
         "",
-        f"- Field-average offensive turnover rate moved from `{first['avg_tor']:.2f}` in 2008 to `{last['avg_tor']:.2f}` in {CURRENT_FIELD_YEAR}.",
-        f"- Field-average defensive turnover pressure moved from `{first['avg_tord']:.2f}` to `{last['avg_tord']:.2f}` over the same span.",
-        f"- The field-level gap between those two turnover series is tiny on average (`{(context['avg_tor'] - context['avg_tord']).abs().mean():.2f}`), so they should be shown as one shared environment story rather than two separate headline panels.",
+        f"- Averages are over all D1 teams in each season (`field_team_count`: `{int(context['field_team_count'].min())}`-`{int(context['field_team_count'].max())}`), not just tournament teams.",
+        f"- All-D1 average offensive turnover rate moved from `{first['avg_tor']:.2f}` in 2008 to `{last['avg_tor']:.2f}` in {CURRENT_FIELD_YEAR}.",
+        f"- All-D1 average defensive turnover rate moved from `{first['avg_tord']:.2f}` to `{last['avg_tord']:.2f}` over the same span.",
+        f"- The two series differ by `{(context['avg_tor'] - context['avg_tord']).abs().mean():.2f}` on average. That is expected by construction: across all D1 teams, every turnover one team commits is one its opponent forces, so the two averages nearly coincide and carry essentially the same information.",
         f"- Block pressure context: `BLK%` moved from `{first['avg_blk_pct']:.2f}` to `{last['avg_blk_pct']:.2f}`, while `BLKED%` moved from `{first['avg_blked_pct']:.2f}` to `{last['avg_blked_pct']:.2f}`.",
-        "- Interpretation: the field environment changed enough that turnover edges should be interpreted against modern baselines, not early-sample assumptions.",
+        f"- Interpretation: the D1 turnover rate moved by `{last['avg_tor'] - first['avg_tor']:+.2f}` points over the sample, so raw `TOR` values from different seasons are not on the same footing; compare teams within a season.",
         "",
         "## Table",
         "",

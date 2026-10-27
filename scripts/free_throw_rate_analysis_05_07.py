@@ -265,7 +265,7 @@ def plot_analysis_06(table: pd.DataFrame, out_path: Path) -> None:
         ax.tick_params(axis="x", length=0, pad=7)
         ax.tick_params(axis="y", length=0, pad=7)
 
-    fig.suptitle("Did the modern era change the whistle read?", fontsize=22, fontweight="bold", y=0.97)
+    fig.suptitle("Free-throw metrics vs seed-adjusted finish by era", fontsize=22, fontweight="bold", y=0.97)
     fig.text(
         0.5,
         0.905,

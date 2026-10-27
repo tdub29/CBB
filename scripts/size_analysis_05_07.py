@@ -20,6 +20,7 @@ from size_analysis_common import (
     SECONDARY,
     TEXT_DARK,
     TEXT_LIGHT,
+    TRANSFER_PORTAL_YEAR,
     apply_report_background,
     assign_era,
     build_overperformance_data,
@@ -1120,18 +1121,24 @@ def write_big_man_signal_md(path: Path, big_man_table: pd.DataFrame, raw_rho: fl
     band_only = big_man_table[big_man_table["segment"] != "Overall"].copy()
     strongest_positive = band_only.loc[band_only["overperformance_gap"].idxmax()]
     strongest_negative = band_only.loc[band_only["overperformance_gap"].idxmin()]
-    qualifier = band_only.loc[band_only["segment"] == "11-13"].iloc[0]
     low_signal = band_only[band_only["signal_band"] == "context only"]["segment"].astype(str).tolist()
+    tagged_text = ", ".join(
+        [
+            f"`{row.segment}` ({row.signal_band}, `{row.overperformance_gap:+.3f}`)"
+            for row in band_only.itertuples(index=False)
+            if row.signal_band != "context only"
+        ]
+    )
     lines = [
         "# Size Analysis 5A: Dominant Big-Man Signal",
         "",
         f"- Dominant big-team threshold: `{BIG_MAN_METRIC} >= {DOMINANT_BIG_MAN_THRESHOLD:.1f}`.",
         f"- Raw pooled relationship with finish depth: `{raw_rho:+.3f}` Spearman rho.",
         f"- Overall exact-seed split: dominant big teams average `{overall['dominant_mean_overperformance']:+.3f}` vs `{overall['other_mean_overperformance']:+.3f}` for the rest of the field.",
-        f"- Strongest seed-band pocket: `{strongest_positive['segment']}` at `{strongest_positive['overperformance_gap']:+.3f}` overperformance gap.",
-        f"- Secondary qualifier band: `11-13` at `{qualifier['overperformance_gap']:+.3f}` overperformance gap.",
-        f"- Weakest pocket: `{strongest_negative['segment']}` at `{strongest_negative['overperformance_gap']:+.3f}` overperformance gap.",
-        f"- Interpretation: a dominant big team is not a broad all-bracket lever. It is a conditional support signal, and the cleanest historical pockets are `5-6` and `7-8`, with `11-13` as softer support. Low-signal bands: {', '.join([f'`{value}`' for value in low_signal])}.",
+        f"- Largest band gap (dominant minus other overperformance): `{strongest_positive['segment']}` at `{strongest_positive['overperformance_gap']:+.3f}`.",
+        f"- Smallest band gap: `{strongest_negative['segment']}` at `{strongest_negative['overperformance_gap']:+.3f}`.",
+        f"- Tagged bands: {tagged_text}. Bands tagged `context only`: {', '.join([f'`{value}`' for value in low_signal])}.",
+        f"- Interpretation: the gap changes sign across seed bands, and each band holds only `{int(band_only['dominant_team_count'].min())}`-`{int(band_only['dominant_team_count'].max())}` dominant teams. The `signal_band` tags were chosen from this same table and no band gap carries an uncertainty test here, so the tags are a hypothesis, not a validated signal.",
         "",
         "## Table",
         "",
@@ -1149,7 +1156,7 @@ def write_analysis_05_md(path: Path, archetype_table: pd.DataFrame, primary_metr
         f"- Metric used here: `{primary_metric}` (`{metric_label(primary_metric)}`).",
         f"- Best archetype: `{best['archetype']}` at `{best['mean_overperformance']:+.3f}` mean finish vs exact-seed expectation.",
         f"- Worst archetype: `{worst['archetype']}` at `{worst['mean_overperformance']:+.3f}` mean finish vs exact-seed expectation.",
-        "- Interpretation: size is most actionable when it shows up as a seed-relative archetype rather than as a raw top-to-bottom ranking.",
+        f"- Interpretation: the best and worst archetypes differ by `{best['mean_overperformance'] - worst['mean_overperformance']:+.3f}` rounds of finish vs exact-seed expectation; no uncertainty test is run on that gap here.",
         "",
         "## Table",
         "",
@@ -1218,7 +1225,7 @@ def write_analysis_07_md(
     former_champion_text = (
         ", ".join(
             [
-                f"`{row.team}` ({int(row.projected_seed)}) â€” {row.title_history}"
+                f"`{row.team}` ({int(row.projected_seed)}) — {row.title_history}"
                 for row in former_champions.itertuples(index=False)
             ]
         )
@@ -1274,34 +1281,33 @@ def write_analysis_07_md(
     lines = [
         f"# Size Analysis 7: {CURRENT_FIELD_YEAR} Field Application",
         "",
-        f"Projected seeds from `data/raw/2026_expected_seeds_update.csv` are joined to the `{CURRENT_FIELD_YEAR}` size sample. The scatter is contextual: logos to the right of their seed markers are bigger on `{primary_metric}` than that seed line usually carries. Full-sample trends drive the read; recent trends only raise or lower confidence.",
+        f"Projected seeds from `data/raw/2026_expected_seeds_update.csv` are joined to the `{CURRENT_FIELD_YEAR}` size sample. The scatter is contextual: logos to the right of their seed markers are bigger on `{primary_metric}` than that seed line usually carries. Baselines (`full_*`) average each seed line over all `2008-2025` tournaments; the `recent_*` columns use `{TRANSFER_PORTAL_YEAR}-2025` only and are shown for comparison.",
         "",
-        "## What tends to carry over most reliably",
+        "## Historical relationship (2008-2025)",
         "",
-        f"- Exact-seed-adjusted `{primary_metric}` is still context, not destiny. Across the full `2008-2025` tournament sample, the seed-adjusted relationship with overperformance is `{seed_adjusted_rho:+.3f}`.",
-        f"- The direction still holds over time. `{primary_metric}` was positively correlated with finish depth in `{positive_years}/{len(yearly)}` completed tournament seasons.",
-        f"- The most actionable seed pockets in the historical sample are: {', '.join([f'`{row.seed_group}` ({row.full_group_rho:+.3f})' for row in high_use.itertuples(index=False)]) or 'none'}",
-        "- Use those pockets as the main place to weight size, then treat the rest of the field as context or tiebreaker territory.",
+        f"- Across the full tournament sample, the exact-seed-adjusted relationship between `{primary_metric}` and overperformance is `{seed_adjusted_rho:+.3f}`.",
+        f"- Raw (not seed-adjusted) `{primary_metric}` was positively correlated with finish depth in `{positive_years}/{len(yearly)}` completed tournament seasons; that raw relationship carries seed strength with it.",
+        f"- Seed bands tagged `High-use pocket` (full-sample band rho >= 0.25 and recent band rho > 0): {', '.join([f'`{row.seed_group}` ({row.full_group_rho:+.3f})' for row in high_use.itertuples(index=False)]) or 'none'}.",
+        "- The tiers are picked from the same sample's band rhos and are not corrected for multiple testing; see `reports/robustness_summary.md` before reading any band as a real effect.",
         "",
-        "## What recent trends may also carry over",
+        f"## Recent seasons ({TRANSFER_PORTAL_YEAR}-2025)",
         "",
-        f"- Recent seasons (`2022-2025`) are a qualifier rather than a reset. The only full-sample pocket still worth monitoring is {secondary_use_text}.",
-        "- Recent results do not create a new strong size pocket on their own, so they should raise or lower confidence only after the full-sample case is already clear.",
-        "- If a 2026 team sits above both its full-sample and recent EFFHGT baselines, confidence can move up one level. If only the recent baseline likes it, keep the conclusion soft.",
+        f"- Seed bands tagged `Secondary-use pocket` (full-sample band rho >= 0.10 or recent band rho >= 0.15): {secondary_use_text}.",
+        "- `carryover_confidence_note` is higher when a team sits above (or below) both its full-sample and its recent seed baseline, and is marked `mixed evidence` when the two disagree.",
         "",
-        "## 2026 seed bands to weight size most",
+        "## Seed-band tiers in the table",
         "",
         f"- High-use pockets: {', '.join([f'`{row.seed_group}`' for row in high_use.itertuples(index=False)]) or 'none'}",
         f"- Secondary-use pockets: {', '.join([f'`{row.seed_group}`' for row in secondary_use.itertuples(index=False)]) or 'none'}",
-        "- In low-use pockets, big or long teams still matter as context, but they do not earn the same independent bracket weight.",
-        f"- For dominant-big-team support, use the separate `reports/figures/size_2026_big_man.png` page rather than overloading this main size chart.",
+        "- All other seed bands are tagged `Low-use pocket`.",
+        f"- Dominant-big-team view: `reports/figures/size_2026_big_man.png`.",
         f"- Gold-backed logos in the chart mark former NCAA champions in the projected `{CURRENT_FIELD_YEAR}` field: {former_champion_text}.",
         "",
-        "## Specific 2026 teams to view positively, negatively, or cautiously",
+        f"## {CURRENT_FIELD_YEAR} teams furthest from their seed baseline",
         "",
-        f"- Stronger carryover cases: {format_team_list(positive_teams)}",
-        f"- Weak carryover cases: {format_team_list(negative_teams)}",
-        f"- Caution flags: {format_team_list(cautious_teams)}",
+        f"- `carryover_direction` = positive: {format_team_list(positive_teams)}",
+        f"- `carryover_direction` = negative: {format_team_list(negative_teams)}",
+        f"- Cautious or mixed: {format_team_list(cautious_teams)}",
         "",
         "## Table",
         "",
@@ -1312,6 +1318,22 @@ def write_analysis_07_md(
 
 def write_analysis_07_big_man_md(path: Path, field_table: pd.DataFrame, big_man_table: pd.DataFrame) -> None:
     overall = big_man_table.loc[big_man_table["segment"] == "Overall"].iloc[0]
+    band_rows = big_man_table[big_man_table["segment"] != "Overall"]
+    band_gap_text = ", ".join(
+        [
+            f"`{row.segment}` `{row.overperformance_gap:+.3f}` ({row.dominant_team_count} dominant teams)"
+            for row in band_rows.itertuples(index=False)
+        ]
+    )
+    primary_text = ", ".join([f"`{value}`" for value in sorted(PRIMARY_BIG_MAN_SEED_GROUPS)])
+    secondary_text = ", ".join([f"`{value}`" for value in sorted(SECONDARY_BIG_MAN_SEED_GROUPS)])
+    tagged_groups = PRIMARY_BIG_MAN_SEED_GROUPS | SECONDARY_BIG_MAN_SEED_GROUPS
+    largest_gaps = set(band_rows.nlargest(len(tagged_groups), "overperformance_gap")["segment"].astype(str))
+    tag_reason = (
+        f"because their dominant-minus-other overperformance gaps were the {len(tagged_groups)} largest in this same 2008-2025 sample"
+        if largest_gaps == tagged_groups
+        else f"by hand; they are not exactly the {len(tagged_groups)} largest dominant-minus-other gaps in the 2008-2025 sample"
+    )
     primary_positive = field_table[
         (field_table["seed_group"].isin(sorted(PRIMARY_BIG_MAN_SEED_GROUPS)))
         & (field_table["big_man_support_note"] == "stronger big-man support case")
@@ -1370,19 +1392,19 @@ def write_analysis_07_big_man_md(path: Path, field_table: pd.DataFrame, big_man_
     lines = [
         f"# Size Analysis 7B: {CURRENT_FIELD_YEAR} Dominant Big-Man Support",
         "",
-        f"The dominant-big-team threshold is locked at `{BIG_MAN_METRIC} >= {DOMINANT_BIG_MAN_THRESHOLD:.1f}`. Historically that split matters most in `5-8` seeds, with `11-13` as a softer qualifier. It is a support screen, not a standalone bracket model.",
+        f"The dominant-big-team threshold is locked at `{BIG_MAN_METRIC} >= {DOMINANT_BIG_MAN_THRESHOLD:.1f}`. Seed bands {primary_text} are tagged primary and {secondary_text} secondary {tag_reason} (see `reports/size_big_man_signal_summary.md`). The tags are picked in-sample and carry no uncertainty test, so this is a descriptive screen, not a validated signal.",
         "",
-        "## What the threshold means historically",
+        "## Historical split (2008-2025)",
         "",
-        f"- Overall exact-seed split: dominant big teams average `{overall['dominant_mean_overperformance']:+.3f}` vs `{overall['other_mean_overperformance']:+.3f}` below the line.",
-        "- The real leverage lives in the mid-seed pocket, not at the top or bottom of the bracket.",
-        "- Use the threshold first, then use the exact-seed baseline deltas to see whether a 2026 team is unusually strong or weak for that line.",
+        f"- Overall exact-seed split: dominant big teams average `{overall['dominant_mean_overperformance']:+.3f}` vs `{overall['other_mean_overperformance']:+.3f}` for teams below the threshold.",
+        f"- Dominant-minus-other gap by seed band: {band_gap_text}.",
+        f"- `full_big_man_delta` is each {CURRENT_FIELD_YEAR} team's `{BIG_MAN_METRIC}` minus its projected seed line's 2008-2025 average.",
         "",
-        "## 2026 teams with the clearest support",
+        f"## {CURRENT_FIELD_YEAR} teams by `big_man_support_note`",
         "",
-        f"- Stronger big-man support cases (`5-8` seeds): {format_team_list(primary_positive)}",
-        f"- Softer qualifier cases (`11-13` seeds): {format_team_list(secondary_positive)}",
-        f"- Weak support cases in the actionable bands: {format_team_list(weak_cases)}",
+        f"- `stronger big-man support case` in primary bands ({primary_text}): {format_team_list(primary_positive)}",
+        f"- `some support from recent trends` in secondary bands ({secondary_text}): {format_team_list(secondary_positive)}",
+        f"- `weak big-man support case`: {format_team_list(weak_cases)}",
         "",
         "## Table",
         "",

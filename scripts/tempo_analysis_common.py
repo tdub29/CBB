@@ -291,6 +291,6 @@ def choose_primary_metric(over_df: pd.DataFrame) -> pd.DataFrame:
     metric_df = pd.DataFrame(rows).sort_values("seed_adjusted_spearman", ascending=False, kind="stable").reset_index(drop=True)
     metric_df["primary_metric"] = "AdjT"
     metric_df["selection_note"] = (
-        "AdjT is the metric under study by design; this ranking does not select it. AdjOE, AdjDE, and Barthag are support lenses for explaining where tempo helps or fails."
+        "AdjT is the metric under study by design; this ranking does not select it. AdjOE, AdjDE, and Barthag are ranked alongside it for comparison."
     )
     return metric_df

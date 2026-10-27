@@ -1,4 +1,4 @@
-# Three-Point Analysis 4: Where It Matters By Seed Band
+# Three-Point Analysis 4: Three-Point Metrics vs Finish by Seed Band
 
 - Strongest `3PRATE` seed band: `5-6` at `+0.135`.
 - Strongest `3P%` seed band: `7-8` at `+0.141`.

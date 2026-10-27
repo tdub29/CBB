@@ -18,6 +18,7 @@ from size_analysis_common import (
     TEXT_LIGHT,
     TRANSFER_PORTAL_YEAR,
     apply_report_background,
+    break_at_missing_years,
     format_year_tick,
     get_size_base_paths,
     load_projected_field,
@@ -80,7 +81,7 @@ def plot_context(context_table: pd.DataFrame, primary_metric: str, out_path: Pat
     years = context_table["year"].to_numpy(dtype=float)
     eff = context_table["field_avg_effhgt"].to_numpy(dtype=float)
     big_counts = context_table["dominant_big_man_count"].to_numpy(dtype=float)
-    page_title = "Size context over time: field height and dominant big men"
+    page_title = "Size context over time: D1 height and dominant big men"
 
     set_project_theme()
     fig, axes = plt.subplots(2, 1, figsize=(16.5, 11.0), constrained_layout=False)
@@ -89,7 +90,7 @@ def plot_context(context_table: pd.DataFrame, primary_metric: str, out_path: Pat
 
     top_ax, bottom_ax = axes
 
-    top_ax.plot(years, eff, color=ACCENT, linewidth=2.8, marker="o", markersize=4.5)
+    top_ax.plot(*break_at_missing_years(years, eff), color=ACCENT, linewidth=2.8, marker="o", markersize=4.5)
     top_ax.axvline(TRANSFER_PORTAL_YEAR, color=SECONDARY, linestyle=":", linewidth=2.0, alpha=0.95, zorder=0)
     top_ax.spines["top"].set_visible(False)
     top_ax.spines["right"].set_visible(False)
@@ -133,27 +134,27 @@ def plot_context(context_table: pd.DataFrame, primary_metric: str, out_path: Pat
         color=LABEL_TEXT,
         bbox=styled_box(),
     )
-    top_ax.set_ylabel("Field avg EFFHGT", fontsize=11.5, fontweight="semibold")
+    top_ax.set_ylabel("All-D1 avg EFFHGT", fontsize=11.5, fontweight="semibold")
     top_ax.set_xlabel("Season", fontsize=11.5, fontweight="semibold")
     top_ax.set_xlim(years.min() - 0.5, years.max() + 1.8)
     top_ax.set_ylim(float(np.nanmin(eff)) - 0.18, float(np.nanmax(eff)) + 0.03)
     top_ax.text(
         0.5,
         0.985,
-        "Each point is the field-average EFFHGT for one completed season",
+        "Each point is the all-D1 average EFFHGT for one season",
         transform=top_ax.transAxes,
         ha="center",
         va="top",
         fontsize=9.3,
         color=TEXT_LIGHT,
     )
-    top_ax.set_title("Field-average effective height", fontsize=12.8, fontweight="bold", color=TEXT_DARK, pad=10)
+    top_ax.set_title("All-D1 average effective height", fontsize=12.8, fontweight="bold", color=TEXT_DARK, pad=10)
     for label, year in zip(top_ax.get_xticklabels(), years):
         if int(year) == CURRENT_FIELD_YEAR:
             label.set_fontweight("bold")
-            label.set_color(LABEL_TEXT)
+            label.set_color(TEXT_DARK)
 
-    bottom_ax.plot(years, big_counts, color=HIGHLIGHT, linewidth=2.8, marker="o", markersize=4.8)
+    bottom_ax.plot(*break_at_missing_years(years, big_counts), color=HIGHLIGHT, linewidth=2.8, marker="o", markersize=4.8)
     bottom_ax.axvline(TRANSFER_PORTAL_YEAR, color=SECONDARY, linestyle=":", linewidth=2.0, alpha=0.95, zorder=0)
     bottom_ax.spines["top"].set_visible(False)
     bottom_ax.spines["right"].set_visible(False)
@@ -177,7 +178,7 @@ def plot_context(context_table: pd.DataFrame, primary_metric: str, out_path: Pat
     bottom_ax.text(
         0.5,
         0.985,
-        f"Count of tournament teams whose top C posted max_c_porpag >= {DOMINANT_BIG_MAN_THRESHOLD:.1f}; 2026 uses the projected field and no positional data exists in 2008-2009",
+        f"Tournament teams whose top C posted max_c_porpag >= {DOMINANT_BIG_MAN_THRESHOLD:.1f}; {CURRENT_FIELD_YEAR} uses the projected field",
         transform=bottom_ax.transAxes,
         ha="center",
         va="top",
@@ -232,13 +233,13 @@ def plot_context(context_table: pd.DataFrame, primary_metric: str, out_path: Pat
     for label, year in zip(bottom_ax.get_xticklabels(), years):
         if int(year) == CURRENT_FIELD_YEAR:
             label.set_fontweight("bold")
-            label.set_color(LABEL_TEXT)
+            label.set_color(TEXT_DARK)
 
     fig.suptitle(page_title, fontsize=23, fontweight="bold", y=0.988)
     fig.text(
         0.5,
         0.948,
-        f"Field-level EFFHGT and dominant-big-man counts from 2008-{CURRENT_FIELD_YEAR}, with 2020 excluded and positional data starting in {POSITIONAL_DATA_START_YEAR}",
+        f"All-D1 average EFFHGT and tournament-team dominant-big-man counts from 2008-{CURRENT_FIELD_YEAR}, with 2020 excluded and positional data starting in {POSITIONAL_DATA_START_YEAR}",
         ha="center",
         va="center",
         fontsize=10.2,
@@ -265,9 +266,9 @@ def write_summary(
         "# Size Analysis 1: Size Context Over Time",
         "",
         f"- Primary size metric: `{primary_metric}` (`{metric_label(primary_metric)}`).",
-        f"- Full-field `EFFHGT` moved from `{earliest_row['field_avg_effhgt']:.2f}` in `{int(earliest_row['year'])}` to `{latest_row['field_avg_effhgt']:.2f}` in `{int(latest_row['year'])}` (`{field_eff_change:+.2f}`); the chart includes `{CURRENT_FIELD_YEAR}`.",
+        f"- All-D1 average `EFFHGT` (`field_team_count`: `{int(context_table['field_team_count'].min())}`-`{int(context_table['field_team_count'].max())}` teams per season) moved from `{earliest_row['field_avg_effhgt']:.2f}` in `{int(earliest_row['year'])}` to `{latest_row['field_avg_effhgt']:.2f}` in `{int(latest_row['year'])}` (`{field_eff_change:+.2f}`); the chart includes `{CURRENT_FIELD_YEAR}`.",
         f"- Dominant-big-man count starts in `{int(dominant_big_earliest['year'])}` because there is no positional data for `2008-2009`; it moved from `{int(dominant_big_earliest['dominant_big_man_count'])}` in `{int(dominant_big_earliest['year'])}` to `{int(dominant_big_latest['dominant_big_man_count'])}` in `{int(dominant_big_latest['year'])}` (`{dominant_big_change:+d}`), using `max_c_porpag >= {DOMINANT_BIG_MAN_THRESHOLD:.1f}`. The `{CURRENT_FIELD_YEAR}` point uses the projected field.",
-        "- Interpretation: this chart is field-level context only; it does not use conference or power-conference framing.",
+        "- Interpretation: this chart is context only (all-D1 height, tournament-team big-man counts); it does not test any relationship with tournament results.",
         "",
         "## Table",
         "",

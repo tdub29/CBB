@@ -2,7 +2,8 @@
 
 - Strongest BLK% seed band: `14-16` at `+0.071`.
 - Strongest BLKED% seed band: `9-10` at `+0.168`.
-- Interpretation: block metrics are not uniform either, so they belong as seed-band-specific support rather than a global headline.
+- BLK% band rhos run from `-0.047` to `+0.071`; BLKED% from `-0.078` to `+0.168`.
+- Interpretation: these are descriptive band correlations; `reports/robustness_summary.md` tests each one against a within-seed permutation null.
 
 ## Table
 

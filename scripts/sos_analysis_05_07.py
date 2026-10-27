@@ -720,7 +720,7 @@ def plot_analysis_06(era_table: pd.DataFrame, out_path: Path) -> None:
     metric_specs = [
         ("pooled_raw_rho", "Pooled raw SOS vs finish"),
         ("seed_adjusted_rho", "Exact-seed adjusted SOS vs overperformance"),
-        ("seed_11_13_rho", "11-13 seed-group SOS pocket"),
+        ("seed_11_13_rho", "Seeds 11-13: SOS vs finish within the band"),
     ]
     x = np.arange(len(era_table))
 
@@ -733,11 +733,15 @@ def plot_analysis_06(era_table: pd.DataFrame, out_path: Path) -> None:
         values = era_table[column].to_numpy(dtype=float)
         ax.plot(x, values, color=ACCENT, linewidth=2.4, marker="o", markersize=7)
         ax.axhline(0, color=SECONDARY, linestyle=":", linewidth=1.2)
+        low = min(float(np.nanmin(values)), 0.0)
+        high = max(float(np.nanmax(values)), 0.0)
+        ax.set_ylim(low - 0.12 * (high - low), high + 0.32 * (high - low))
         for idx, value in enumerate(values):
-            ax.text(
-                idx,
-                value + 0.018,
+            ax.annotate(
                 f"{value:+.3f}",
+                (idx, value),
+                xytext=(0, 9),
+                textcoords="offset points",
                 ha="center",
                 va="bottom",
                 fontsize=10,
@@ -757,7 +761,7 @@ def plot_analysis_06(era_table: pd.DataFrame, out_path: Path) -> None:
     axes[-1].set_xlabel("Era", fontsize=11, fontweight="semibold")
     axes[1].set_ylabel("Spearman rho", fontsize=11, fontweight="semibold")
     fig.suptitle(
-        "SOS matters more in modern tournament eras than it did early in the sample",
+        "SOS vs tournament finish by era",
         fontsize=21,
         fontweight="bold",
         y=0.97,
@@ -1249,32 +1253,32 @@ def write_analysis_07_md(
     lines = [
         f"# SOS Analysis 7: {CURRENT_FIELD_YEAR} Field Application",
         "",
-        f"Projected seeds from `data/raw/2026_expected_seeds_update.csv` are joined to the `{CURRENT_FIELD_YEAR}` SOS sample. The scatter is contextual: logos to the right of their seed markers faced a tougher schedule than that seed line usually carries. Full-sample trends drive the read; recent trends only raise or lower confidence.",
+        f"Projected seeds from `data/raw/2026_expected_seeds_update.csv` are joined to the `{CURRENT_FIELD_YEAR}` SOS sample. The scatter is contextual: logos to the right of their seed markers faced a tougher schedule than that seed line usually carries. Baselines (`full_*`) average each seed line over all `2008-2025` tournaments; the `recent_*` columns use `{TRANSFER_PORTAL_YEAR}-2025` only and are shown for comparison.",
         "",
-        "## What tends to carry over most reliably",
+        "## Historical relationship (2008-2025)",
         "",
-        f"- Exact-seed-adjusted `Elite SOS` is still context, not destiny. Across the full `2008-2025` tournament sample, the seed-adjusted relationship with overperformance is only `{seed_adjusted_rho:+.3f}`.",
-        f"- The directional signal still holds at the season level. `Elite SOS` was positively correlated with finish depth in `{positive_years}/{total_years}` completed tournament seasons.",
-        f"- The strongest full-sample pocket remains `{strongest_full_group['seed_group']}` seeds (`rho = {float(strongest_full_group['full_group_rho']):+.3f}`), so that is still the cleanest place to trust SOS as more than background context.",
-        "- Outside those stronger seed pockets, treat big SOS numbers as context rather than as an automatic upgrade over the projected seed line.",
+        f"- Across the full tournament sample, the exact-seed-adjusted relationship between `Elite SOS` and overperformance is `{seed_adjusted_rho:+.3f}` (uncertainty: `reports/robustness_summary.md`, claim (a)).",
+        f"- Raw (not seed-adjusted) `Elite SOS` was positively correlated with finish depth in `{positive_years}/{total_years}` completed tournament seasons; that raw relationship carries seed strength with it.",
+        f"- Largest full-sample seed-band rho: `{strongest_full_group['seed_group']}` seeds (`rho = {float(strongest_full_group['full_group_rho']):+.3f}`). Band rhos are picked from the same sample and are not corrected for multiple testing here; see `reports/robustness_summary.md`.",
         "",
-        "## What recent trends may also carry over",
+        f"## Recent seasons ({TRANSFER_PORTAL_YEAR}-2025)",
         "",
-        f"- Recent seasons do not replace the full-sample rule. The `11-13` pocket is still positive in `2022-2025` (`rho = {recent_11_13_value:+.3f}`), which reinforces the older signal rather than overturning it.",
-        f"- Recent years also showed a stronger `1-2` seed effect (`rho = {recent_1_2_value:+.3f}`), but that is a qualifier, not a license to make blanket high-seed SOS claims.",
-        "- Use recent trends to raise or lower confidence once the full-sample case is already clear; do not let recent-only noise outrank the longer sample.",
+        f"- `11-13` seed-band rho in `{TRANSFER_PORTAL_YEAR}-2025`: `{recent_11_13_value:+.3f}`.",
+        f"- `1-2` seed-band rho in `{TRANSFER_PORTAL_YEAR}-2025`: `{recent_1_2_value:+.3f}`.",
+        f"- Recent-only bands draw on `{2025 - TRANSFER_PORTAL_YEAR + 1}` tournaments, so these estimates are noisier than the full-sample ones.",
         "",
-        "## Conference tailwinds and headwinds for 2026",
+        f"## Conference groupings in the projected {CURRENT_FIELD_YEAR} field",
         "",
-        f"- Tailwinds in this projected field: {tailwind_text}",
-        f"- Headwinds in this projected field: {headwind_text}",
-        f"- Mixed conference reads: {mixed_text}",
+        "- Conference labels (`conference_full_signal`) come from each conference's 2008-2025 mean overperformance against exact-seed expectation; `reports/robustness_summary.md` (claim (c)) gives their uncertainty.",
+        f"- Above expectation historically: {tailwind_text}",
+        f"- Below expectation historically: {headwind_text}",
+        f"- Mixed: {mixed_text}",
         "",
-        "## Specific 2026 teams to view positively, negatively, or cautiously",
+        f"## {CURRENT_FIELD_YEAR} teams furthest from their seed baseline",
         "",
-        f"- Stronger carryover cases: {format_team_list(positive_teams)}",
-        f"- Weak carryover cases: {format_team_list(negative_teams)}",
-        f"- Caution flags: {format_team_list(cautious_teams)}",
+        f"- `carryover_direction` = positive: {format_team_list(positive_teams)}",
+        f"- `carryover_direction` = negative: {format_team_list(negative_teams)}",
+        f"- Cautious or mixed: {format_team_list(cautious_teams)}",
         "",
         "## Table",
         "",
@@ -1333,7 +1337,7 @@ def main() -> int:
         [
             f"Best conference vs seed expectation: `{best_conf['Conf']}` at `{best_conf['mean_overperformance']:+.3f}`",
             f"Worst conference vs seed expectation: `{worst_conf['Conf']}` at `{worst_conf['mean_overperformance']:+.3f}`",
-            "Interpretation: conference context carries more usable signal than raw team SOS when the goal is to find seed-relative overperformance.",
+            "Interpretation: these conference means are descriptive; `reports/robustness_summary.md` (claim (c)) gives per-conference intervals and a test of whether conferences differ at all.",
         ],
         conference_table,
     )
@@ -1350,7 +1354,7 @@ def main() -> int:
             f"Primary metric: `{pretty_metric(primary_metric)}`",
             f"Strongest exact-seed-adjusted era: `{strongest_era['era']}` at `{strongest_era['seed_adjusted_rho']:+.3f}`",
             f"Weakest exact-seed-adjusted era: `{weakest_era['era']}` at `{weakest_era['seed_adjusted_rho']:+.3f}`",
-            "Interpretation: the modern era shows more SOS sensitivity than the earliest part of the sample, especially in selective seed pockets.",
+            f"Interpretation: the exact-seed-adjusted rho ranges from `{weakest_era['seed_adjusted_rho']:+.3f}` to `{strongest_era['seed_adjusted_rho']:+.3f}` across eras of `{int(era_table['team_count'].min())}`-`{int(era_table['team_count'].max())}` teams. The difference between eras is not tested here, so treat it as descriptive.",
         ],
         era_table,
     )

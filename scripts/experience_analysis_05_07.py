@@ -869,7 +869,10 @@ def write_analysis_07_summary(path: Path, field_table: pd.DataFrame, coach_prima
         "",
         f"- Main player visual metric: `{PLAYER_VISUAL_METRIC}` (`{player_visual_label()}`).",
         f"- Coach support layer: `{coach_primary_metric}` (`{metric_label(coach_primary_metric)}`), using `{COACH_ANALYSIS_START_YEAR}+` seasons.",
-        "- Full-sample exact-seed baselines drive the read; recent baselines are a qualifier only.",
+        f"- Each team is placed against its projected seed line's average over all sample seasons (`full_*` columns); the "
+        f"`recent_*` columns use {TRANSFER_PORTAL_YEAR}-2025 seed lines only and are shown for comparison. These are "
+        "descriptive positions, not predictions; see `reports/robustness_summary.md` for whether experience tracks "
+        "seed-relative finish.",
         f"- Stronger experience cases: {format_team_list(positive)}",
         f"- Weaker experience cases: {format_team_list(negative)}",
         "",

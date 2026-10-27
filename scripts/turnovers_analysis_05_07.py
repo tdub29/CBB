@@ -110,8 +110,14 @@ def plot_analysis_05(table: pd.DataFrame, out_path: Path) -> None:
     ax.scatter(values, y, color=ACCENT, s=96, zorder=3)
     for y_pos, value in zip(y, values):
         ax.text(value + (0.012 if value >= 0 else -0.012), y_pos, f"{value:+.3f}", ha="left" if value >= 0 else "right", va="center", fontsize=9.8, fontweight="bold", color=LABEL_TEXT, bbox=styled_box())
+    span = float(np.nanmax(np.abs(values))) or 0.1
+    ax.set_xlim(min(float(np.nanmin(values)), 0.0) - 0.35 * span, max(float(np.nanmax(values)), 0.0) + 0.35 * span)
     ax.set_yticks(y)
-    ax.set_yticklabels(plot_df["archetype"].tolist(), fontsize=10.4, fontweight="semibold")
+    ax.set_yticklabels(
+        [f"{row.archetype} (n = {int(row.team_count)})" for row in plot_df.itertuples(index=False)],
+        fontsize=10.4,
+        fontweight="semibold",
+    )
     ax.set_xlabel("Mean overperformance vs exact seed", fontsize=11.0, fontweight="semibold")
     ax.grid(False)
     ax.spines["top"].set_visible(False)
@@ -119,7 +125,7 @@ def plot_analysis_05(table: pd.DataFrame, out_path: Path) -> None:
     ax.tick_params(axis="x", length=0, pad=6)
     ax.tick_params(axis="y", length=0, pad=8)
     fig.suptitle("Turnover archetypes versus overperformance", fontsize=22, fontweight="bold", y=0.97)
-    fig.text(0.5, 0.90, "Blocks and tempo are support layers inside the archetype view; ball security is the primary axis.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
+    fig.text(0.5, 0.90, "Teams split by turnover-rate edge (clean = at or below seed baseline) and defensive-disruption edge vs exact-seed baselines.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=220, bbox_inches="tight")
     plt.close(fig)

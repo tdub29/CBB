@@ -2,7 +2,7 @@
 
 - Best conference vs seed expectation: `Horz` at `+0.420`
 - Worst conference vs seed expectation: `MWC` at `-0.342`
-- Interpretation: conference context carries more usable signal than raw team SOS when the goal is to find seed-relative overperformance.
+- Interpretation: these conference means are descriptive; `reports/robustness_summary.md` (claim (c)) gives per-conference intervals and a test of whether conferences differ at all.
 
 ## Table
 

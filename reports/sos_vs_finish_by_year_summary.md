@@ -1,10 +1,10 @@
 # SOS Analysis 3: SOS vs Finish by Year
 
 - Primary metric: `Elite SOS`
-- Headline finding: `17` of `17` tournament years showed a positive SOS-to-finish relationship.
+- `17` of `17` tournament years showed a positive raw (not seed-adjusted) SOS-to-finish relationship.
 - Strongest year: `2025` at rho `0.621`.
 - Weakest year: `2010` at rho `0.329`.
-- Interpretation: the pooled signal is not a one-off artifact; it shows up every year in this sample.
+- Interpretation: the raw pooled gradient is positive in `17` of `17` years, so it is not driven by one season. It includes seed structure; Analysis 2 shows how much is left within seed lines.
 
 ## Yearly Correlations
 
