@@ -43,11 +43,11 @@ EXCLUDE_YEAR = 2020  # No NCAA tournament
 
 
 def _find_latest_training_csv(processed_dir: Path) -> Path | None:
-    """Return path to most recent cbbtrainingdata_*.csv."""
+    """Return path to most recent full export, cbbtrainingdata_YYYYMMDD.csv (not the _last2seasons_ cut)."""
     processed_dir = Path(processed_dir)
     if not processed_dir.exists():
         return None
-    files = list(processed_dir.glob("cbbtrainingdata_*.csv"))
+    files = list(processed_dir.glob("cbbtrainingdata_[0-9]*.csv"))
     if not files:
         return None
     return max(files, key=lambda p: p.stat().st_mtime)

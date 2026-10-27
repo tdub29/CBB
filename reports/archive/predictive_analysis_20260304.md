@@ -1,5 +1,7 @@
 # Predictive Analysis Report (20260304)
 
+> **VOID.** Every metric here comes from feature sets that contained `PAKE`/`PASE`, which are tournament wins minus expectation and so are computed from the target (fixed in commit b117223). The CV also split teams from the same bracket across folds. Kept as history only; current numbers are in `reports/predictive_analysis_20261025.md`.
+
 ## Run Configuration
 - input_csv: `data/processed/cbb_training_clean.csv`
 - holdout_year: `2025`
@@ -152,7 +154,7 @@
 - holdout_mae: `0.060167`
 - holdout_rows_scored: `64`
 - final_retrain_rows: `1088`
-- model_artifact: `models\analysis_best_model_20260304.joblib`
+- model_artifact: `models\analysis_best_model_20260304.joblib` (deleted in commit 8ae9537; its features included `PAKE`/`PASE`)
 
 ![Holdout Actual vs Predicted](figures/holdout_2025_actual_vs_pred.png)
 

@@ -36,3 +36,8 @@ model:
   ridge_alpha: 1.0
   optimize_ridge_alpha: true
   ridge_alpha_grid: [0.0, 0.01, 0.1, 0.3, 1.0, 3.0, 10.0]
+  # Seed-stratified stack (14 hand-picked per-band ridges) on top of the general model.
+  # Off: in walk-forward its MSE edge over the general model is not distinguishable from
+  # zero, so the simpler model is the default. Evidence: Section 5 of the latest
+  # reports/predictive_analysis_*.md. true = general model + seed stack.
+  use_seed_models: false

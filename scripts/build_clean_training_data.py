@@ -32,7 +32,9 @@ def main() -> None:
         if not input_path.is_absolute():
             input_path = project_root / input_path
     else:
-        candidates = sorted(processed_dir.glob("cbbtrainingdata_*.csv"), reverse=True)
+        # Full exports only: cbbtrainingdata_YYYYMMDD.csv. The `_last2seasons_` research cut
+        # also matches cbbtrainingdata_*.csv and sorts first, but it holds only two seasons.
+        candidates = sorted(processed_dir.glob("cbbtrainingdata_[0-9]*.csv"), reverse=True)
         if not candidates:
             print("No cbbtrainingdata_*.csv found in data/processed. Run the pipeline first.", file=sys.stderr)
             sys.exit(1)
