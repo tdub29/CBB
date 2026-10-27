@@ -132,6 +132,22 @@ def format_year_tick(value: float, _: object) -> str:
     return str(int(value)) if float(value).is_integer() else ""
 
 
+def break_at_missing_years(years: object, *series: object) -> tuple[np.ndarray, ...]:
+    """Fill every missing season (e.g. 2020) with NaN so a plotted line breaks there instead of bridging it.
+
+    Returns `(years, *series)` on a gap-free yearly grid; `years` must be whole numbers.
+    """
+    year_values = np.asarray(years, dtype=float)
+    full_years = np.arange(year_values.min(), year_values.max() + 1.0)
+    positions = np.searchsorted(full_years, year_values)
+    filled_series = []
+    for values in series:
+        filled = np.full(len(full_years), np.nan)
+        filled[positions] = np.asarray(values, dtype=float)
+        filled_series.append(filled)
+    return (full_years, *filled_series)
+
+
 def metric_slug(metric: str) -> str:
     return {
         "EFFHGT": "effhgt",

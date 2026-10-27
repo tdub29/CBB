@@ -245,12 +245,16 @@ def plot_seed_group(table: pd.DataFrame, out_path: Path) -> None:
         ax.spines["right"].set_visible(False)
         ax.tick_params(axis="x", length=0, pad=7)
         ax.tick_params(axis="y", length=0, pad=7)
+        low = min(float(np.nanmin(values)), 0.0)
+        high = max(float(np.nanmax(values)), 0.0)
+        ax.set_ylim(low - 0.15 * (high - low), high + 0.15 * (high - low))
         for rect in bars:
             value = float(rect.get_height())
-            ax.text(
-                rect.get_x() + rect.get_width() / 2,
-                value + (0.012 if value >= 0 else -0.012),
+            ax.annotate(
                 f"{value:+.3f}",
+                (rect.get_x() + rect.get_width() / 2, value),
+                xytext=(0, 6 if value >= 0 else -6),
+                textcoords="offset points",
                 ha="center",
                 va="bottom" if value >= 0 else "top",
                 fontsize=8.8,
@@ -259,7 +263,7 @@ def plot_seed_group(table: pd.DataFrame, out_path: Path) -> None:
                 bbox=styled_box(),
             )
 
-    fig.suptitle("Where tempo matters by seed band", fontsize=22, fontweight="bold", y=0.97)
+    fig.suptitle("Tempo vs seed-adjusted finish by seed band", fontsize=22, fontweight="bold", y=0.97)
     fig.text(
         0.5,
         0.91,

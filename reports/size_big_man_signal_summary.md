@@ -3,10 +3,10 @@
 - Dominant big-team threshold: `max_c_porpag >= 4.0`.
 - Raw pooled relationship with finish depth: `+0.180` Spearman rho.
 - Overall exact-seed split: dominant big teams average `+0.050` vs `-0.009` for the rest of the field.
-- Strongest seed-band pocket: `5-6` at `+0.468` overperformance gap.
-- Secondary qualifier band: `11-13` at `+0.183` overperformance gap.
-- Weakest pocket: `9-10` at `-0.201` overperformance gap.
-- Interpretation: a dominant big team is not a broad all-bracket lever. It is a conditional support signal, and the cleanest historical pockets are `5-6` and `7-8`, with `11-13` as softer support. Low-signal bands: `1-2`, `3-4`, `9-10`, `14-16`.
+- Largest band gap (dominant minus other overperformance): `5-6` at `+0.468`.
+- Smallest band gap: `9-10` at `-0.201`.
+- Tagged bands: `5-6` (primary support pocket, `+0.468`), `7-8` (primary support pocket, `+0.177`), `11-13` (secondary support pocket, `+0.183`). Bands tagged `context only`: `1-2`, `3-4`, `9-10`, `14-16`.
+- Interpretation: the gap changes sign across seed bands, and each band holds only `7`-`41` dominant teams. The `signal_band` tags were chosen from this same table and no band gap carries an uncertainty test here, so the tags are a hypothesis, not a validated signal.
 
 ## Table
 

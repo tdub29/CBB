@@ -1,31 +1,31 @@
 # SOS Analysis 7: 2026 Field Application
 
-Projected seeds from `data/raw/2026_expected_seeds_update.csv` are joined to the `2026` SOS sample. The scatter is contextual: logos to the right of their seed markers faced a tougher schedule than that seed line usually carries. Full-sample trends drive the read; recent trends only raise or lower confidence.
+Projected seeds from `data/raw/2026_expected_seeds_update.csv` are joined to the `2026` SOS sample. The scatter is contextual: logos to the right of their seed markers faced a tougher schedule than that seed line usually carries. Baselines (`full_*`) average each seed line over all `2008-2025` tournaments; the `recent_*` columns use `2022-2025` only and are shown for comparison.
 
-## What tends to carry over most reliably
+## Historical relationship (2008-2025)
 
-- Exact-seed-adjusted `Elite SOS` is still context, not destiny. Across the full `2008-2025` tournament sample, the seed-adjusted relationship with overperformance is only `+0.061`.
-- The directional signal still holds at the season level. `Elite SOS` was positively correlated with finish depth in `17/17` completed tournament seasons.
-- The strongest full-sample pocket remains `11-13` seeds (`rho = +0.313`), so that is still the cleanest place to trust SOS as more than background context.
-- Outside those stronger seed pockets, treat big SOS numbers as context rather than as an automatic upgrade over the projected seed line.
+- Across the full tournament sample, the exact-seed-adjusted relationship between `Elite SOS` and overperformance is `+0.061` (uncertainty: `reports/robustness_summary.md`, claim (a)).
+- Raw (not seed-adjusted) `Elite SOS` was positively correlated with finish depth in `17/17` completed tournament seasons; that raw relationship carries seed strength with it.
+- Largest full-sample seed-band rho: `11-13` seeds (`rho = +0.313`). Band rhos are picked from the same sample and are not corrected for multiple testing here; see `reports/robustness_summary.md`.
 
-## What recent trends may also carry over
+## Recent seasons (2022-2025)
 
-- Recent seasons do not replace the full-sample rule. The `11-13` pocket is still positive in `2022-2025` (`rho = +0.331`), which reinforces the older signal rather than overturning it.
-- Recent years also showed a stronger `1-2` seed effect (`rho = +0.428`), but that is a qualifier, not a license to make blanket high-seed SOS claims.
-- Use recent trends to raise or lower confidence once the full-sample case is already clear; do not let recent-only noise outrank the longer sample.
+- `11-13` seed-band rho in `2022-2025`: `+0.331`.
+- `1-2` seed-band rho in `2022-2025`: `+0.428`.
+- Recent-only bands draw on `4` tournaments, so these estimates are noisier than the full-sample ones.
 
-## Conference tailwinds and headwinds for 2026
+## Conference groupings in the projected 2026 field
 
-- Tailwinds in this projected field: `SEC` (10 projected teams, full-sample tailwind, +0.103 full); `B10` (9 projected teams, full-sample tailwind, +0.060 full); `ACC` (8 projected teams, full-sample tailwind with recent reinforcement, +0.097 full); `MAC` (2 projected teams, full-sample tailwind, +0.058 full)
-- Headwinds in this projected field: `B12` (8 projected teams, full-sample headwind, -0.114 full); `BE` (3 projected teams, full-sample headwind, -0.057 full); `A10` (2 projected teams, full-sample headwind with recent reinforcement, -0.150 full)
-- Mixed conference reads: `WCC` (3 projected teams, mixed or unclear conference signal); `Horz` (1 projected teams, full-sample tailwind with recent reinforcement); `CUSA` (1 projected teams, full-sample tailwind with recent reinforcement); `Ivy` (1 projected teams, full-sample tailwind with recent reinforcement); `MVC` (1 projected teams, full-sample tailwind)
+- Conference labels (`conference_full_signal`) come from each conference's 2008-2025 mean overperformance against exact-seed expectation; `reports/robustness_summary.md` (claim (c)) gives their uncertainty.
+- Above expectation historically: `SEC` (10 projected teams, full-sample tailwind, +0.103 full); `B10` (9 projected teams, full-sample tailwind, +0.060 full); `ACC` (8 projected teams, full-sample tailwind with recent reinforcement, +0.097 full); `MAC` (2 projected teams, full-sample tailwind, +0.058 full)
+- Below expectation historically: `B12` (8 projected teams, full-sample headwind, -0.114 full); `BE` (3 projected teams, full-sample headwind, -0.057 full); `A10` (2 projected teams, full-sample headwind with recent reinforcement, -0.150 full)
+- Mixed: `WCC` (3 projected teams, mixed or unclear conference signal); `Horz` (1 projected teams, full-sample tailwind with recent reinforcement); `CUSA` (1 projected teams, full-sample tailwind with recent reinforcement); `Ivy` (1 projected teams, full-sample tailwind with recent reinforcement); `MVC` (1 projected teams, full-sample tailwind)
 
-## Specific 2026 teams to view positively, negatively, or cautiously
+## 2026 teams furthest from their seed baseline
 
-- Stronger carryover cases: `Missouri` (11) — +8.46 vs full seed baseline; full-sample tailwind; `Michigan` (1) — +8.30 vs full seed baseline; full-sample tailwind; `Duke` (1) — +6.96 vs full seed baseline; full-sample tailwind with recent reinforcement; `Illinois` (2) — +6.47 vs full seed baseline; full-sample tailwind; `Florida` (1) — +6.39 vs full seed baseline; full-sample tailwind
-- Weak carryover cases: `Miami OH` (10) — -19.85 vs full seed baseline; full-sample tailwind; `Saint Louis` (10) — -13.18 vs full seed baseline; full-sample headwind with recent reinforcement; `High Point` (12) — -11.25 vs full seed baseline; full-sample headwind with recent reinforcement; `Utah St.` (9) — -6.16 vs full seed baseline; full-sample headwind; `South Florida` (11) — -5.84 vs full seed baseline; recent-only headwind
-- Caution flags: `Kansas` (4) — +11.24 vs full seed baseline; full-sample headwind; `Alabama` (4) — +10.64 vs full seed baseline; full-sample tailwind; `BYU` (7) — +10.42 vs full seed baseline; full-sample headwind; `Texas Tech` (5) — +9.91 vs full seed baseline; full-sample headwind; `Kentucky` (6) — +9.69 vs full seed baseline; full-sample tailwind
+- `carryover_direction` = positive: `Missouri` (11) — +8.46 vs full seed baseline; full-sample tailwind; `Michigan` (1) — +8.30 vs full seed baseline; full-sample tailwind; `Duke` (1) — +6.96 vs full seed baseline; full-sample tailwind with recent reinforcement; `Illinois` (2) — +6.47 vs full seed baseline; full-sample tailwind; `Florida` (1) — +6.39 vs full seed baseline; full-sample tailwind
+- `carryover_direction` = negative: `Miami OH` (10) — -19.85 vs full seed baseline; full-sample tailwind; `Saint Louis` (10) — -13.18 vs full seed baseline; full-sample headwind with recent reinforcement; `High Point` (12) — -11.25 vs full seed baseline; full-sample headwind with recent reinforcement; `Utah St.` (9) — -6.16 vs full seed baseline; full-sample headwind; `South Florida` (11) — -5.84 vs full seed baseline; recent-only headwind
+- Cautious or mixed: `Kansas` (4) — +11.24 vs full seed baseline; full-sample headwind; `Alabama` (4) — +10.64 vs full seed baseline; full-sample tailwind; `BYU` (7) — +10.42 vs full seed baseline; full-sample headwind; `Texas Tech` (5) — +9.91 vs full seed baseline; full-sample headwind; `Kentucky` (6) — +9.69 vs full seed baseline; full-sample tailwind
 
 ## Table
 

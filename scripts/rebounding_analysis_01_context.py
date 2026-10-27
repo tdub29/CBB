@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import pandas as pd
 
+from size_analysis_common import break_at_missing_years
 from rebounding_analysis_common import (
     ACCENT,
     HIGHLIGHT,
@@ -58,7 +59,7 @@ def plot_context(table: pd.DataFrame, out_path: Path) -> None:
     years = table["year"].to_numpy()
 
     for ax, (column, title, color) in zip(axes, specs):
-        ax.plot(years, table[column], color=color, linewidth=2.8, marker="o", markersize=4.8)
+        ax.plot(*break_at_missing_years(years, table[column]), color=color, linewidth=2.8, marker="o", markersize=4.8)
         ax.axvline(2022, color=PROJECT_PALETTE["steel"], linestyle=":", linewidth=1.2)
         ax.set_title(title, fontsize=13.0, fontweight="bold", color=TEXT_DARK, pad=10)
         ax.set_xlabel("Season", fontsize=11.0, fontweight="semibold")

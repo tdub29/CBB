@@ -1,33 +1,32 @@
 # Size Analysis 7: 2026 Field Application
 
-Projected seeds from `data/raw/2026_expected_seeds_update.csv` are joined to the `2026` size sample. The scatter is contextual: logos to the right of their seed markers are bigger on `EFFHGT` than that seed line usually carries. Full-sample trends drive the read; recent trends only raise or lower confidence.
+Projected seeds from `data/raw/2026_expected_seeds_update.csv` are joined to the `2026` size sample. The scatter is contextual: logos to the right of their seed markers are bigger on `EFFHGT` than that seed line usually carries. Baselines (`full_*`) average each seed line over all `2008-2025` tournaments; the `recent_*` columns use `2022-2025` only and are shown for comparison.
 
-## What tends to carry over most reliably
+## Historical relationship (2008-2025)
 
-- Exact-seed-adjusted `EFFHGT` is still context, not destiny. Across the full `2008-2025` tournament sample, the seed-adjusted relationship with overperformance is `-0.008`.
-- The direction still holds over time. `EFFHGT` was positively correlated with finish depth in `16/17` completed tournament seasons.
-- The most actionable seed pockets in the historical sample are: none
-- Use those pockets as the main place to weight size, then treat the rest of the field as context or tiebreaker territory.
+- Across the full tournament sample, the exact-seed-adjusted relationship between `EFFHGT` and overperformance is `-0.008`.
+- Raw (not seed-adjusted) `EFFHGT` was positively correlated with finish depth in `16/17` completed tournament seasons; that raw relationship carries seed strength with it.
+- Seed bands tagged `High-use pocket` (full-sample band rho >= 0.25 and recent band rho > 0): none.
+- The tiers are picked from the same sample's band rhos and are not corrected for multiple testing; see `reports/robustness_summary.md` before reading any band as a real effect.
 
-## What recent trends may also carry over
+## Recent seasons (2022-2025)
 
-- Recent seasons (`2022-2025`) are a qualifier rather than a reset. The only full-sample pocket still worth monitoring is `1-2` (full +0.108, recent -0.054).
-- Recent results do not create a new strong size pocket on their own, so they should raise or lower confidence only after the full-sample case is already clear.
-- If a 2026 team sits above both its full-sample and recent EFFHGT baselines, confidence can move up one level. If only the recent baseline likes it, keep the conclusion soft.
+- Seed bands tagged `Secondary-use pocket` (full-sample band rho >= 0.10 or recent band rho >= 0.15): `1-2` (full +0.108, recent -0.054).
+- `carryover_confidence_note` is higher when a team sits above (or below) both its full-sample and its recent seed baseline, and is marked `mixed evidence` when the two disagree.
 
-## 2026 seed bands to weight size most
+## Seed-band tiers in the table
 
 - High-use pockets: none
 - Secondary-use pockets: `1-2`
-- In low-use pockets, big or long teams still matter as context, but they do not earn the same independent bracket weight.
-- For dominant-big-team support, use the separate `reports/figures/size_2026_big_man.png` page rather than overloading this main size chart.
-- Gold-backed logos in the chart mark former NCAA champions in the projected `2026` field: `Duke` (1) â€” 2010 (1); 2015 (1), `Florida` (1) â€” 2025 (1), `Connecticut` (2) â€” 2011 (3); 2014 (7); 2023 (4); 2024 (1), `Virginia` (3) â€” 2019 (1), `Kansas` (4) â€” 2008 (1); 2022 (1), `Louisville` (6) â€” 2013 (1), `North Carolina` (6) â€” 2009 (1); 2017 (1), `Kentucky` (6) â€” 2012 (1), `Villanova` (9) â€” 2016 (2); 2018 (1).
+- All other seed bands are tagged `Low-use pocket`.
+- Dominant-big-team view: `reports/figures/size_2026_big_man.png`.
+- Gold-backed logos in the chart mark former NCAA champions in the projected `2026` field: `Duke` (1) — 2010 (1); 2015 (1), `Florida` (1) — 2025 (1), `Connecticut` (2) — 2011 (3); 2014 (7); 2023 (4); 2024 (1), `Virginia` (3) — 2019 (1), `Kansas` (4) — 2008 (1); 2022 (1), `Louisville` (6) — 2013 (1), `North Carolina` (6) — 2009 (1); 2017 (1), `Kentucky` (6) — 2012 (1), `Villanova` (9) — 2016 (2); 2018 (1).
 
-## Specific 2026 teams to view positively, negatively, or cautiously
+## 2026 teams furthest from their seed baseline
 
-- Stronger carryover cases: `Illinois` (2) — +2.36 vs full seed baseline; `some support from recent trends`; `Missouri` (11) — +2.32 vs full seed baseline; `some support from recent trends`; `North Carolina` (6) — +2.22 vs full seed baseline; `some support from recent trends`; `Florida` (1) — +2.05 vs full seed baseline; `some support from recent trends`; `Wisconsin` (5) — +2.01 vs full seed baseline; `some support from recent trends`
-- Weak carryover cases: `Akron` (12) — -2.02 vs full seed baseline; `mixed evidence`; `TCU` (8) — -1.25 vs full seed baseline; `mixed evidence`; `Texas Tech` (5) — -1.24 vs full seed baseline; `mixed evidence`; `N.C. State` (10) — -1.01 vs full seed baseline; `mixed evidence`; `Vanderbilt` (4) — -0.90 vs full seed baseline; `mixed evidence`
-- Caution flags: `Akron` (12) — -2.02 vs full seed baseline; `mixed evidence`; `TCU` (8) — -1.25 vs full seed baseline; `mixed evidence`; `Texas Tech` (5) — -1.24 vs full seed baseline; `mixed evidence`; `N.C. State` (10) — -1.01 vs full seed baseline; `mixed evidence`; `Vanderbilt` (4) — -0.90 vs full seed baseline; `mixed evidence`
+- `carryover_direction` = positive: `Illinois` (2) — +2.36 vs full seed baseline; `some support from recent trends`; `Missouri` (11) — +2.32 vs full seed baseline; `some support from recent trends`; `North Carolina` (6) — +2.22 vs full seed baseline; `some support from recent trends`; `Florida` (1) — +2.05 vs full seed baseline; `some support from recent trends`; `Wisconsin` (5) — +2.01 vs full seed baseline; `some support from recent trends`
+- `carryover_direction` = negative: `Akron` (12) — -2.02 vs full seed baseline; `mixed evidence`; `TCU` (8) — -1.25 vs full seed baseline; `mixed evidence`; `Texas Tech` (5) — -1.24 vs full seed baseline; `mixed evidence`; `N.C. State` (10) — -1.01 vs full seed baseline; `mixed evidence`; `Vanderbilt` (4) — -0.90 vs full seed baseline; `mixed evidence`
+- Cautious or mixed: `Akron` (12) — -2.02 vs full seed baseline; `mixed evidence`; `TCU` (8) — -1.25 vs full seed baseline; `mixed evidence`; `Texas Tech` (5) — -1.24 vs full seed baseline; `mixed evidence`; `N.C. State` (10) — -1.01 vs full seed baseline; `mixed evidence`; `Vanderbilt` (4) — -0.90 vs full seed baseline; `mixed evidence`
 
 ## Table
 
