@@ -4,7 +4,7 @@
 Each claim is first re-derived with the same loaders and table builders that produced the
 published number, then stress-tested:
 
-a) SOS within-seed Spearman (reports/sos_vs_finish_seed_controlled_summary.md)
+a) SOS within-seed Spearman (reports/sos_vs_finish_pooled_summary.md)
 b) every seed-band Spearman in reports/*_vs_finish_by_seed_group_table.csv
 c) conference overperformance vs exact-seed expectation (reports/sos_conf_vs_overperformance_summary.md)
 
@@ -73,8 +73,7 @@ def get_paths() -> dict[str, Path]:
     return {
         "reports": reports,
         "sos_sample": REPO_ROOT / "data" / "processed" / "sos_sample.csv",
-        "published_sos_md": reports / "sos_vs_finish_seed_controlled_summary.md",
-        "published_sos_pooled_md": reports / "sos_vs_finish_pooled_summary.md",
+        "published_sos_md": reports / "sos_vs_finish_pooled_summary.md",
         "published_conf_csv": reports / "sos_conf_vs_overperformance_table.csv",
         "md": reports / "robustness_summary.md",
         "csv_sos": reports / "robustness_sos_within_seed.csv",
@@ -1375,7 +1374,8 @@ def write_summary(
         "fresh `0..n-1` index, then call `overperformance.corr(edge)`. pandas aligns on index labels, so each correlation was",
         "computed only on the few rows whose original labels fall in `0..n-1`, paired with the wrong teams. The script now",
         "keeps the row index, and the regenerated reports carry the aligned values. For the record, `old_code_rho` replays",
-        "the old call and `aligned_rho` is the corrected value:",
+        "the old call and `aligned_rho` is the corrected value. Both use the negated `Exp` rank, so a positive rho means",
+        "more-experienced teams tended to finish deeper (raw) or further above their seed line (bands, pooled seed-adjusted):",
         "",
         markdown_table(experience_audit, digits=4),
         "",
@@ -1520,8 +1520,6 @@ def main(argv: list[str] | None = None) -> int:
 
     sos_cell = build_sos_within_seed_cell(paths["sos_sample"], paths["published_sos_md"])
     sos_row = pd.Series(evaluate_cell(sos_cell, args.n_resamples))
-    pooled_value, _ = read_published_md_value(paths["published_sos_pooled_md"])
-    sos_row["published_rho_pooled_summary"] = pooled_value
     pd.DataFrame([sos_row]).round(6).to_csv(paths["csv_sos"], index=False)
 
     band_cells, experience_audit = build_band_cells(paths)
