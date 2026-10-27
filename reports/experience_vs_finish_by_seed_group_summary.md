@@ -1,5 +1,6 @@
 # Experience Analysis: Overperformance by Seed Band
 
+- Sign convention: `player_exp_rho` correlates finish vs exact-seed expectation with the negated season-wide `Exp` rank edge, and `coach_exp_rho` with the coach metric's edge, so a positive rho means teams more experienced than their seed peers tended to finish further above seed expectation.
 - Strongest player Exp. seed band: `3-4` at `+0.108`.
 - Strongest coach Exp. seed band: `14-16` at `+0.208` (`Coach tourney games (5y)`).
 - Weakest player Exp. seed band: `14-16` at `-0.048`.

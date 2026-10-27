@@ -181,7 +181,7 @@ def plot_analysis_02(df: pd.DataFrame, over_df: pd.DataFrame, summary_table: pd.
     right_ax.axhline(0, color=SECONDARY, linestyle=":", linewidth=1.4, zorder=0)
     right_ax.axvline(0, color=SECONDARY, linestyle=":", linewidth=1.4, zorder=0)
     right_ax.plot(seed_line_x, seed_line_y, color=ACCENT, linestyle="--", linewidth=2.6, zorder=2)
-    right_ax.set_xlabel("Season-wide Exp rank edge vs exact-seed baseline", fontsize=11, fontweight="semibold")
+    right_ax.set_xlabel("Season-wide Exp rank edge vs exact-seed baseline (positive = more experienced)", fontsize=11, fontweight="semibold")
     right_ax.set_ylabel("Finish vs exact-seed expectation", fontsize=11, fontweight="semibold")
     right_ax.set_title("Exact-seed controlled view", fontsize=13, fontweight="bold", color=TEXT_DARK, pad=16)
     right_ax.text(
@@ -429,11 +429,18 @@ def plot_analysis_04(df: pd.DataFrame, over_df: pd.DataFrame, coach_primary_metr
 
 def write_analysis_02_summary(path: Path, summary_table: pd.DataFrame) -> None:
     row = summary_table.iloc[0]
+    raw_direction = "shallower" if row["raw_spearman"] < 0 else "deeper"
+    seed_direction = "below" if row["seed_adjusted_spearman"] < 0 else "above"
     lines = [
         "# Experience Analysis 2: Player Experience vs Finish (Pooled)",
         "",
-        f"- Raw season-wide `Exp` rank relationship with finish depth: `{row['raw_spearman']:+.3f}`.",
-        f"- Exact-seed-controlled season-wide `Exp` rank edge relationship: `{row['seed_adjusted_spearman']:+.3f}`.",
+        "- Sign convention: both rhos (and the table's `raw_spearman` / `seed_adjusted_spearman`) use the negated "
+        "season-wide `Exp` rank, so higher = more experienced.",
+        f"- Raw relationship between player experience and finish depth: `{row['raw_spearman']:+.3f}` "
+        f"(more-experienced teams tended to finish {raw_direction}).",
+        f"- Within exact seed line (experience edge vs exact-seed baseline against finish vs exact-seed expectation): "
+        f"`{row['seed_adjusted_spearman']:+.3f}` (teams more experienced than their seed peers tended to finish "
+        f"{seed_direction} seed expectation).",
         f"- Champion average `Exp.` vs R64 average: `{row['champ_avg_exp']:.2f}` vs `{row['r64_avg_exp']:.2f}` (`{row['champ_minus_r64_exp']:+.2f}`).",
         f"- Champion average season-wide `Exp` rank vs R64 average: `{row['champ_avg_exp_rank']:.1f}` vs `{row['r64_avg_exp_rank']:.1f}` (`{row['champ_minus_r64_exp_rank']:+.1f}`, where lower rank means more experience).",
         "- Interpretation: the controlled panel expresses each team's season-wide Exp rank as an edge versus its exact-seed baseline.",
@@ -530,6 +537,17 @@ def build_seed_group_table(
     return pd.DataFrame(rows), seed_df
 
 
+def modal_finish_share(subset: pd.DataFrame) -> float:
+    """Share of teams sitting at their exact seed line's most common finish depth (ties for a rank correlation)."""
+    if subset.empty:
+        return float("nan")
+    modal_counts = subset.groupby("seed_int")["finish_depth"].agg(lambda values: int(values.value_counts().iloc[0]))
+    return float(modal_counts.sum() / len(subset))
+
+
+TIE_NOTE = "Dashed line = least-squares fit; rho = rank correlation, so the two can disagree when many teams share one finish."
+
+
 def _over_with_seed_group(over_df: pd.DataFrame) -> pd.DataFrame:
     out = over_df.copy()
     if "seed_group" not in out.columns:
@@ -590,7 +608,7 @@ def plot_seed_group_player(
         ax.text(
             0.04,
             0.93,
-            f"rho = {row['player_exp_rho']:+.3f}\nn = {int(row['team_count'])}",
+            f"rho = {row['player_exp_rho']:+.3f}\nn = {int(row['team_count'])}\n{modal_finish_share(subset):.0%} at seed-line modal finish",
             transform=ax.transAxes,
             ha="left",
             va="top",
@@ -605,7 +623,7 @@ def plot_seed_group_player(
         ax.set_ylabel("Finish - seed expectation", fontsize=10.5, fontweight="semibold")
     for ax in axes[1, :-1]:
         ax.set_xlabel(
-            "Season-wide Exp rank edge vs exact-seed baseline",
+            "Exp rank edge vs seed baseline (+ = more experienced)",
             fontsize=10.5,
             fontweight="semibold",
         )
@@ -618,7 +636,7 @@ def plot_seed_group_player(
     fig.text(
         0.5,
         0.91,
-        "Each panel shows team-level overperformance vs season-wide Exp rank edge within one seed band",
+        f"Each panel shows team-level overperformance vs season-wide Exp rank edge within one seed band. {TIE_NOTE}",
         ha="center",
         va="center",
         fontsize=9.9,
@@ -683,7 +701,7 @@ def plot_seed_group_coach(
         ax.text(
             0.04,
             0.93,
-            f"rho = {row['coach_exp_rho']:+.3f}\nn = {int(row['coach_team_count'])}",
+            f"rho = {row['coach_exp_rho']:+.3f}\nn = {int(row['coach_team_count'])}\n{modal_finish_share(subset):.0%} at seed-line modal finish",
             transform=ax.transAxes,
             ha="left",
             va="top",
@@ -711,7 +729,7 @@ def plot_seed_group_coach(
     fig.text(
         0.5,
         0.91,
-        f"Each panel shows team-level overperformance vs {metric_label(coach_primary_metric)} (vs seed baseline) within one seed band",
+        f"Each panel shows team-level overperformance vs {metric_label(coach_primary_metric)} (vs seed baseline) within one seed band. {TIE_NOTE}",
         ha="center",
         va="center",
         fontsize=9.9,
@@ -735,6 +753,9 @@ def write_seed_group_summary(
     lines = [
         "# Experience Analysis: Overperformance by Seed Band",
         "",
+        "- Sign convention: `player_exp_rho` correlates finish vs exact-seed expectation with the negated season-wide "
+        "`Exp` rank edge, and `coach_exp_rho` with the coach metric's edge, so a positive rho means teams more "
+        "experienced than their seed peers tended to finish further above seed expectation.",
         f"- Strongest player Exp. seed band: `{strongest_player['seed_group']}` at `{strongest_player['player_exp_rho']:+.3f}`.",
         f"- Strongest coach Exp. seed band: `{strongest_coach['seed_group']}` at `{strongest_coach['coach_exp_rho']:+.3f}` (`{metric_label(coach_primary_metric)}`).",
         f"- Weakest player Exp. seed band: `{weakest_player['seed_group']}` at `{weakest_player['player_exp_rho']:+.3f}`.",
