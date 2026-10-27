@@ -352,7 +352,7 @@ def prepare_design(
 def build_estimator(algorithm: str, params: dict[str, Any], random_state: int) -> Pipeline:
     if algorithm == "ridge":
         # fit_intercept=False after StandardScaler forces every prediction to average 0
-        # instead of the mean round; see _build_regression_model in madness.py.
+        # instead of the mean round; see _build_regression_model in src/modeling/ridge.py.
         model = Ridge(alpha=float(params["alpha"]), random_state=random_state, fit_intercept=True)
         return Pipeline(
             steps=[

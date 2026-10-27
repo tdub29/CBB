@@ -15,7 +15,7 @@ if str(project_root) not in sys.path:
 
 import pandas as pd
 
-# Match pipeline schema (madness.py)
+# Match pipeline schema (TEAM_TABLE_COL_NAMES in src/ingestion/team_tables.py)
 TEAM_TABLE_COL_NAMES = [
     "TEAM", "ADJOE", "ADJDE", "BARTHAG", "RECORD", "WINS", "GAMES",
     "EFG", "EFGD.", "FTRATE", "FTRATED", "TOV%", "TOV%D", "OREB%", "OPOREB%",
