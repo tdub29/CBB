@@ -11,11 +11,11 @@ from sklearn.pipeline import Pipeline
 from src.config import DEFAULT_CONFIG
 from src.evaluation.leakage import assert_no_target_leakage
 from src.modeling.design import (
-    GEN_FEATURES,
     GEN_POLY,
     ROUND_MAX,
     ROUND_MIN,
     SEED_MODELS,
+    general_features,
 )
 from src.modeling.ridge import season_cv_predict, train_general_model, tune_ridge_alpha
 from src.models.win_probability import compute_strength
@@ -27,6 +27,7 @@ def oof_predround(
     training_data: pd.DataFrame,
     ridge_alpha: float = DEFAULT_CONFIG["model"]["ridge_alpha"],
     n_splits: int | None = None,
+    features: list[str] | None = None,
 ) -> pd.Series:
     """
     Out-of-fold general-model predictions, grouped by season.
@@ -34,10 +35,12 @@ def oof_predround(
     Each row's value comes from a general model fit without that row's season. Seed
     models used to train on the in-sample fit instead, so they learned to trust a
     predround that had already seen the answer, and their LOO scores inherited it.
+    features must be the general model's list (default general_features(), as in
+    train_general_model), so the column is the same model the stack is applied on top of.
     """
     _, _, preds, _ = season_cv_predict(
         training_data,
-        GEN_FEATURES,
+        list(general_features() if features is None else features),
         poly=GEN_POLY,
         ridge_alpha=ridge_alpha,
         n_splits=n_splits,
@@ -149,22 +152,25 @@ def fit_predict_stack(
     ridge_alpha: float = DEFAULT_CONFIG["model"]["ridge_alpha"],
     optimize_ridge_alpha: bool = DEFAULT_CONFIG["model"]["optimize_ridge_alpha"],
     ridge_alpha_grid: list[float] | None = None,
+    features: list[str] | None = None,
 ) -> np.ndarray:
     """
     Fit general + seed-stratified models on train_df alone, as run_pipeline does, and
     predict test_df.
 
     Training rows get out-of-fold predround (grouped by season, inside train_df); test
-    rows get predround from the general model fit on all of train_df.
+    rows get predround from the general model fit on all of train_df. features is the
+    general model's list (default general_features()).
     """
     gen_model, gen_feats, gen_meta = train_general_model(
         train_df,
         ridge_alpha=ridge_alpha,
         optimize_ridge_alpha=optimize_ridge_alpha,
         ridge_alpha_grid=ridge_alpha_grid,
+        features=features,
     )
     train = train_df.copy()
-    train[PREDROUND_OOF_COL] = oof_predround(train, ridge_alpha=gen_meta["ridge_alpha"])
+    train[PREDROUND_OOF_COL] = oof_predround(train, ridge_alpha=gen_meta["ridge_alpha"], features=features)
     seed_models, _ = train_seed_models(
         train,
         ridge_alpha=ridge_alpha,

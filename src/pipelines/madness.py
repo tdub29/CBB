@@ -114,6 +114,7 @@ from src.ingestion.torvik import (  # noqa: F401
 from src.modeling.artifacts import _save_model_artifacts  # noqa: F401
 from src.modeling.baseline import fit_seed_baseline, predict_seed_baseline  # noqa: F401
 from src.modeling.design import (  # noqa: F401
+    COACH_FEATURES,
     GEN_FEATURES,
     GEN_POLY,
     ROUND_MAX,
@@ -122,6 +123,7 @@ from src.modeling.design import (  # noqa: F401
     _add_poly_features,
     _get_Xy,
     _resolve_features,
+    general_features,
     tournament_model_frame,
 )
 from src.modeling.ridge import (  # noqa: F401
@@ -259,16 +261,21 @@ def train_pipeline_models(
     """
     Fit the production models on every row of model_data (see tournament_model_frame).
 
-    Returns (general model, its features, its meta, seed models, seed meta). The seed
-    models are only trained when runtime_cfg["use_seed_models"] is true, and then on
-    out-of-fold predround grouped by season.
+    Returns (general model, its features, its meta, seed models, seed meta). The general
+    model uses the coach columns only when runtime_cfg["use_coach_features"] is true. The
+    seed models are only trained when runtime_cfg["use_seed_models"] is true, and then on
+    out-of-fold predround from that same general feature list, grouped by season.
     """
+    features = general_features(runtime_cfg["use_coach_features"])
+    if not runtime_cfg["use_coach_features"]:
+        print("Coach features disabled (model.use_coach_features: false); the general model leaves them out.")
     print(f"Training general model on {len(model_data)} tournament rows...")
     gen_model, gen_feats, gen_meta = train_general_model(
         model_data,
         ridge_alpha=runtime_cfg["ridge_alpha"],
         optimize_ridge_alpha=runtime_cfg["optimize_ridge_alpha"],
         ridge_alpha_grid=runtime_cfg["ridge_alpha_grid"],
+        features=features,
     )
     seed_models: dict[int, tuple[Pipeline, list[str]]] = {}
     seed_meta: dict[int, dict[str, Any]] = {}
@@ -279,7 +286,7 @@ def train_pipeline_models(
     # Seed models train on out-of-fold predround, grouped by season. The in-sample fit has
     # already seen each row's result, so seed models trained on it over-trust it.
     data = model_data.copy()
-    data[PREDROUND_OOF_COL] = oof_predround(data, ridge_alpha=gen_meta["ridge_alpha"])
+    data[PREDROUND_OOF_COL] = oof_predround(data, ridge_alpha=gen_meta["ridge_alpha"], features=features)
     print("Training seed-stratified models...")
     seed_models, seed_meta = train_seed_models(
         data,

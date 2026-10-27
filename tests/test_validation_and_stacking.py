@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
+import yaml
 
 from src.pipelines import madness
 
@@ -96,7 +97,7 @@ def test_seed_baseline_uses_training_seasons_only() -> None:
 
 def test_oof_predround_never_sees_its_own_season() -> None:
     df = _synthetic_seasons()
-    oof = madness.oof_predround(df, ridge_alpha=1.0)
+    oof = madness.oof_predround(df, ridge_alpha=1.0, features=madness.GEN_FEATURES)
 
     # Scramble the outcomes of one season. Its out-of-fold predround must not move,
     # because the model that produced it was fit without that season.
@@ -104,7 +105,7 @@ def test_oof_predround_never_sees_its_own_season() -> None:
     scrambled = df.copy()
     in_season = scrambled["year"] == target_year
     scrambled.loc[in_season, "round"] = scrambled.loc[in_season, "round"].to_numpy()[::-1] + 2.0
-    oof_scrambled = madness.oof_predround(scrambled, ridge_alpha=1.0)
+    oof_scrambled = madness.oof_predround(scrambled, ridge_alpha=1.0, features=madness.GEN_FEATURES)
     np.testing.assert_allclose(oof[in_season], oof_scrambled[in_season])
     assert not np.allclose(oof[~in_season], oof_scrambled[~in_season])  # other seasons did see it
 
@@ -124,7 +125,7 @@ def test_in_sample_predround_is_over_optimistic_on_noise() -> None:
         df = _synthetic_seasons(n_seasons=6, per_seed=2, signal=False, rng_seed=rng_seed)
         X, y = madness._get_Xy(df, madness.GEN_FEATURES, poly=madness.GEN_POLY)
         in_sample = madness._build_regression_model(0.0).fit(X, y).predict(X)
-        oof = madness.oof_predround(df, ridge_alpha=0.0)
+        oof = madness.oof_predround(df, ridge_alpha=0.0, features=madness.GEN_FEATURES)
         corr_in.append(float(np.corrcoef(in_sample, df["round"])[0, 1]))
         corr_oof.append(float(np.corrcoef(oof, df["round"])[0, 1]))
     assert np.mean(corr_in) > 0.2  # the in-sample fit "predicts" noise
@@ -239,14 +240,23 @@ def test_tournament_model_frame_keeps_scored_tournament_rows_only() -> None:
     assert out[["year", "seed"]].values.tolist() == [[2019, 1.0], [2021, 4.0]]
 
 
+@pytest.mark.parametrize("use_coach_features", [False, True])
 @pytest.mark.parametrize("use_seed_models", [False, True])
-def test_train_pipeline_models_fits_on_tournament_rows(use_seed_models: bool, monkeypatch) -> None:
+def test_train_pipeline_models_fits_on_tournament_rows(
+    use_seed_models: bool, use_coach_features: bool, monkeypatch
+) -> None:
     # Smoke test for run_pipeline's modeling step, which used to end on an unfitted model:
     # tournament_model_frame -> general model -> (OOF predround -> seed models) or nothing.
     df = _synthetic_seasons(n_seasons=5)
     df = pd.concat([df, df.head(4).assign(seed=np.nan, round=np.nan)], ignore_index=True)  # non-tournament rows
     cfg = madness._validate_runtime_config(
-        {"model": {"use_seed_models": use_seed_models, "ridge_alpha_grid": [0.1, 1.0, 10.0]}}
+        {
+            "model": {
+                "use_seed_models": use_seed_models,
+                "use_coach_features": use_coach_features,
+                "ridge_alpha_grid": [0.1, 1.0, 10.0],
+            }
+        }
     )
     model_data = madness.tournament_model_frame(df)
     assert len(model_data) == len(df) - 4
@@ -263,13 +273,23 @@ def test_train_pipeline_models_fits_on_tournament_rows(use_seed_models: bool, mo
     gen_model, gen_feats, gen_meta, seed_models, seed_meta = madness.train_pipeline_models(model_data, cfg)
 
     assert list(model_data.columns) == columns_before  # the caller's frame is not modified
+    # model.use_coach_features decides whether the general model sees the coach columns.
+    assert set(madness.COACH_FEATURES) <= set(model_data.columns)
+    assert any(f in madness.COACH_FEATURES for f in gen_feats) == use_coach_features
+    assert set(madness.general_features(use_coach_features)) <= set(gen_feats)
     strength = madness.compute_strength(model_data, gen_model, gen_feats)
     assert strength.notna().all() and abs(strength.mean() - model_data["round"].mean()) < 0.5
     assert np.isfinite(gen_meta["mse"])
     if use_seed_models:
-        # Seed models saw out-of-fold predround (general model refit without each season), not the in-sample fit.
-        expected = madness.oof_predround(model_data, ridge_alpha=gen_meta["ridge_alpha"])
+        # Seed models saw out-of-fold predround (general model refit without each season), not the in-sample fit,
+        # and from the same general feature list as the general model.
+        features = madness.general_features(use_coach_features)
+        expected = madness.oof_predround(model_data, ridge_alpha=gen_meta["ridge_alpha"], features=features)
         np.testing.assert_allclose(seen["frame"][madness.PREDROUND_OOF_COL].to_numpy(), expected.to_numpy())
+        other = madness.oof_predround(
+            model_data, ridge_alpha=gen_meta["ridge_alpha"], features=madness.general_features(not use_coach_features)
+        )
+        assert not np.allclose(seen["frame"][madness.PREDROUND_OOF_COL].to_numpy(), other.to_numpy())
         in_sample = madness.compute_strength(model_data, gen_model, gen_feats).to_numpy()
         assert not np.allclose(seen["frame"][madness.PREDROUND_OOF_COL].to_numpy(), in_sample)
         assert len(seed_models) == len(madness.SEED_MODELS)
@@ -316,19 +336,44 @@ def test_run_pipeline_end_to_end_writes_models_and_report(monkeypatch, tmp_path:
     assert len(reports) == 1
     text = reports[0].read_text(encoding="utf-8")
     assert "Disabled (`model.use_seed_models: false`)" in text
+    assert "- Coach features in the general model: False" in text
+    features_line = next(line for line in text.splitlines() if line.startswith("- Features ("))
+    assert "Barthag" in features_line and "coach_" not in features_line  # coach columns off by default
     assert "Leave-one-season-out MSE at the selected `alpha` (grid minimum)" in text
     assert "(selected)" in text  # the alpha tuning table was written
 
 
-def test_general_model_features_override_drops_columns() -> None:
+def test_general_features_switch_drops_only_the_coach_columns() -> None:
+    with_coach = madness.general_features(True)
+    no_coach = madness.general_features(False)
+    assert with_coach == madness.GEN_FEATURES
+    assert len(madness.COACH_FEATURES) == 6 and all(f.startswith("coach_") for f in madness.COACH_FEATURES)
+    assert no_coach == [f for f in madness.GEN_FEATURES if f not in madness.COACH_FEATURES]  # order kept
+    assert madness.general_features() == no_coach  # model.use_coach_features is off by default
+
+    # The library default is the configured default: no coach columns unless a list asks for them.
     df = _synthetic_seasons(n_seasons=4)
-    no_coach = [f for f in madness.GEN_FEATURES if not f.startswith("coach_")]
-    assert len(no_coach) < len(madness.GEN_FEATURES)
     _, default_feats, _ = madness.train_general_model(df, ridge_alpha_grid=[1.0])
-    _, ablated_feats, _ = madness.train_general_model(df, ridge_alpha_grid=[1.0], features=no_coach)
-    assert any(f.startswith("coach_") for f in default_feats)
-    assert not any(f.startswith("coach_") for f in ablated_feats)
-    assert {"Barthag_2", "AdjDE_2", "seed_2", "seed_3"} <= set(ablated_feats)  # GEN_POLY still applies
+    _, coach_feats, _ = madness.train_general_model(df, ridge_alpha_grid=[1.0], features=with_coach)
+    assert not set(madness.COACH_FEATURES) & set(default_feats)
+    assert set(madness.COACH_FEATURES) <= set(coach_feats)
+    assert {"Barthag_2", "AdjDE_2", "seed_2", "seed_3"} <= set(default_feats)  # GEN_POLY still applies
     test = df[df["year"] == df["year"].max()]
-    pred = madness.fit_predict_general(df, test, ridge_alpha_grid=[1.0], features=no_coach)
-    assert pred.shape == (len(test),) and np.isfinite(pred).all()
+    for feats in (no_coach, with_coach):
+        pred = madness.fit_predict_general(df, test, ridge_alpha_grid=[1.0], features=feats)
+        assert pred.shape == (len(test),) and np.isfinite(pred).all()
+        pred = madness.fit_predict_stack(df, test, ridge_alpha_grid=[1.0], features=feats)
+        assert pred.shape == (len(test),) and np.isfinite(pred).all()
+
+
+def test_use_coach_features_is_a_validated_config_switch() -> None:
+    assert madness._validate_runtime_config({})["use_coach_features"] is False
+    assert madness._validate_runtime_config({"model": {"use_coach_features": True}})["use_coach_features"] is True
+    # The shipped value must be a YAML boolean: a quoted "false" would read as true.
+    shipped = yaml.safe_load((REPO_ROOT / "configs" / "default.yaml").read_text(encoding="utf-8"))
+    assert isinstance(shipped["model"]["use_coach_features"], bool)
+    run_analysis = _load_run_analysis()
+    assert run_analysis.load_pipeline_model_config()["use_coach_features"] is shipped["model"]["use_coach_features"]
+    # run_analysis scores the general model with the other coach setting under its own name.
+    assert run_analysis.coach_variant_name(False) == run_analysis.WITH_COACH_NAME
+    assert run_analysis.coach_variant_name(True) == run_analysis.NO_COACH_NAME

@@ -16,11 +16,11 @@ from src.config import DEFAULT_CONFIG
 from src.evaluation.leakage import assert_no_target_leakage
 from src.evaluation.splits import season_cv_label, season_group_splits, season_years
 from src.modeling.design import (
-    GEN_FEATURES,
     GEN_POLY,
     _add_poly_features,
     _get_Xy,
     _resolve_features,
+    general_features,
 )
 from src.models.win_probability import compute_strength
 
@@ -143,10 +143,12 @@ def train_general_model(
     """
     Train the general model; alpha and the reported MSE both come from season-grouped CV.
 
-    features defaults to GEN_FEATURES. Passing another list (with GEN_POLY still applied
-    to whichever of its terms are present) is for ablations in scripts/run_analysis.py.
+    features defaults to general_features(), the list model.use_coach_features selects by
+    default (no coach columns). run_pipeline passes the list its config selects; other lists
+    (with GEN_POLY still applied to whichever of its terms are present) are for the
+    comparisons in scripts/run_analysis.py.
     """
-    features = list(GEN_FEATURES if features is None else features)
+    features = list(general_features() if features is None else features)
     assert_no_target_leakage(training_data, features, "round", label="general_model")
     alpha_used = float(ridge_alpha)
     tuning: dict[str, Any] = {"tuned": False, "alpha_selected": None, "cv": None, "results": []}

@@ -79,6 +79,7 @@ def _write_optimization_report(
     lines.append(f"- Training years: {year_start}-{year_end} (excluded: {', '.join(map(str, exclude_years)) or 'none'})")
     lines.append(f"- Ridge alpha tuning: {runtime_cfg['optimize_ridge_alpha']}")
     lines.append(f"- Seed-stratified models: {runtime_cfg['use_seed_models']}")
+    lines.append(f"- Coach features in the general model: {runtime_cfg['use_coach_features']}")
     lines.append(f"- Alpha grid: {runtime_cfg['ridge_alpha_grid']}")
     lines.append(f"- Bradley-Terry k: {runtime_cfg['k_bradley_terry']}")
     lines.append(f"- Monte Carlo sims: {runtime_cfg['n_sims']:,}")

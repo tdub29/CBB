@@ -5,11 +5,13 @@ Bracket simulation and win probabilities are in src/models/.
 
 from .baseline import fit_seed_baseline, predict_seed_baseline
 from .design import (
+    COACH_FEATURES,
     GEN_FEATURES,
     GEN_POLY,
     ROUND_MAX,
     ROUND_MIN,
     SEED_MODELS,
+    general_features,
     tournament_model_frame,
 )
 from .ridge import (
@@ -28,11 +30,13 @@ from .stack import (
 __all__ = [
     "fit_seed_baseline",
     "predict_seed_baseline",
+    "COACH_FEATURES",
     "GEN_FEATURES",
     "GEN_POLY",
     "ROUND_MAX",
     "ROUND_MIN",
     "SEED_MODELS",
+    "general_features",
     "tournament_model_frame",
     "fit_predict_general",
     "season_cv_predict",

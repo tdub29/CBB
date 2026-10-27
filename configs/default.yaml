@@ -41,3 +41,9 @@ model:
   # zero, so the simpler model is the default. Evidence: Section 5 of the latest
   # reports/predictive_analysis_*.md. true = general model + seed stack.
   use_seed_models: false
+  # The 6 coach_* columns of GEN_FEATURES in the general model (and so in the predround the
+  # seed stack reads). Off by the same walk-forward MSE rule as use_seed_models: the general
+  # model's MSE is not shown to be lower with them, and without them every general-model
+  # feature predates the 2025 holdout. The columns stay in the training data. Evidence:
+  # Headline of the latest reports/predictive_analysis_*.md. true = all of GEN_FEATURES.
+  use_coach_features: false
