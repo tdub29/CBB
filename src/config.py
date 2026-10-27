@@ -33,6 +33,7 @@ DEFAULT_CONFIG = {
         "optimize_ridge_alpha": True,
         "ridge_alpha_grid": [0.0, 0.01, 0.1, 0.3, 1.0, 3.0, 10.0],
         "use_seed_models": False,
+        "use_coach_features": False,
     },
 }
 
@@ -100,6 +101,9 @@ def _validate_runtime_config(cfg: dict) -> dict[str, Any]:
     use_seed_models = bool(
         _get_cfg_model(cfg, "use_seed_models", DEFAULT_CONFIG["model"]["use_seed_models"])
     )
+    use_coach_features = bool(
+        _get_cfg_model(cfg, "use_coach_features", DEFAULT_CONFIG["model"]["use_coach_features"])
+    )
 
     if n_sims <= 0:
         raise ValueError(f"model.n_sims must be > 0 (got {n_sims})")
@@ -121,4 +125,5 @@ def _validate_runtime_config(cfg: dict) -> dict[str, Any]:
         "optimize_ridge_alpha": optimize_ridge_alpha,
         "ridge_alpha_grid": alpha_grid,
         "use_seed_models": use_seed_models,
+        "use_coach_features": use_coach_features,
     }

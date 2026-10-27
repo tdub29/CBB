@@ -40,6 +40,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from src.models.win_probability import compute_strength  # noqa: E402
 from src.pipelines.madness import (  # noqa: E402
+    COACH_FEATURES,
     DEFAULT_CONFIG,
     GEN_FEATURES,
     GEN_POLY,
@@ -53,6 +54,7 @@ from src.pipelines.madness import (  # noqa: E402
     fit_predict_general,
     fit_predict_stack,
     fit_seed_baseline,
+    general_features,
     oof_predround,
     predict_seed_baseline,
     season_cv_label,
@@ -110,15 +112,17 @@ SEED_GROUPS = [(1, 4), (5, 8), (9, 12), (13, 16)]
 BASELINE_NAME = "seed_mean_baseline"
 MEDIAN_BASELINE_NAME = "seed_median_baseline"
 BASELINE_NAMES = (BASELINE_NAME, MEDIAN_BASELINE_NAME)
+# general_ridge and the stack are the pipeline's models, so their general feature list
+# follows model.use_coach_features (see general_features).
 GENERAL_NAME = "general_ridge"
 STACK_NAME = "seed_stratified_stack"
-# Ablation for the holdout's provenance: the coach features entered GEN_FEATURES after the
-# 2025 tournament. Without them the feature list is that of the predround model in
-# madness.R at commit 21a1e96 (2025-01-16) minus WAB, which the current training data does
-# not have. Only the list carries over: the R model was OLS without an intercept.
+# The general model with the other coach setting is scored too, so the comparison stays in
+# the report. The coach features entered GEN_FEATURES after the 2025 tournament. Without
+# them the feature list is that of the predround model in madness.R at commit 21a1e96
+# (2025-01-16) minus WAB, which the current training data does not have. Only the list
+# carries over: the R model was OLS without an intercept.
 NO_COACH_NAME = "general_ridge_no_coach"
-COACH_FEATURES = [f for f in GEN_FEATURES if f.startswith("coach_")]
-NO_COACH_FEATURES = [f for f in GEN_FEATURES if f not in COACH_FEATURES]
+WITH_COACH_NAME = "general_ridge_with_coach"
 
 # A recipe fits on a training frame and predicts a test frame; nothing else is shared.
 Recipe = Callable[[pd.DataFrame, pd.DataFrame], np.ndarray]
@@ -603,15 +607,26 @@ def load_pipeline_model_config() -> dict[str, Any]:
     return _validate_runtime_config(cfg)
 
 
-def compare_predround_sources(train_df: pd.DataFrame, pipeline_kwargs: dict[str, Any]) -> pd.DataFrame:
+def coach_variant_name(use_coach_features: bool) -> str:
+    """The general model with the coach setting the pipeline does not use."""
+    return NO_COACH_NAME if use_coach_features else WITH_COACH_NAME
+
+
+def compare_predround_sources(
+    train_df: pd.DataFrame,
+    pipeline_kwargs: dict[str, Any],
+    features: list[str],
+) -> pd.DataFrame:
     """Seed-model season-CV MSE when predround is the in-sample fit (old) vs out-of-fold (new)."""
-    gen_model, gen_feats, gen_meta = train_general_model(train_df, **pipeline_kwargs)
+    gen_model, gen_feats, gen_meta = train_general_model(train_df, features=features, **pipeline_kwargs)
     in_sample = train_df.copy()
     # Deliberately the old, leaky input, only to measure what it did to the seed-model scores.
     in_sample[PREDROUND_OOF_COL] = compute_strength(in_sample, gen_model, gen_feats).to_numpy()
     _, meta_in = train_seed_models(in_sample, **pipeline_kwargs)
     out_of_fold = train_df.copy()
-    out_of_fold[PREDROUND_OOF_COL] = oof_predround(out_of_fold, ridge_alpha=gen_meta["ridge_alpha"])
+    out_of_fold[PREDROUND_OOF_COL] = oof_predround(
+        out_of_fold, ridge_alpha=gen_meta["ridge_alpha"], features=features
+    )
     _, meta_oof = train_seed_models(out_of_fold, **pipeline_kwargs)
 
     rows = []
@@ -1184,6 +1199,13 @@ def main() -> int:
         "optimize_ridge_alpha": pipeline_cfg["optimize_ridge_alpha"],
         "ridge_alpha_grid": pipeline_cfg["ridge_alpha_grid"],
     }
+    # general_ridge and the stack use the general feature list the config selects; the
+    # other coach setting is scored as its own candidate.
+    use_coach = bool(pipeline_cfg["use_coach_features"])
+    pipeline_features = general_features(use_coach)
+    variant_name = coach_variant_name(use_coach)
+    variant_features = general_features(not use_coach)
+    with_coach_name, no_coach_name = (GENERAL_NAME, variant_name) if use_coach else (variant_name, GENERAL_NAME)
 
     # Section 2: Feature optimization.
     print("[Run] Section 2: Feature Optimization", flush=True)
@@ -1235,9 +1257,9 @@ def main() -> int:
     candidates: dict[str, Recipe] = {
         BASELINE_NAME: seed_baseline_recipe,
         MEDIAN_BASELINE_NAME: seed_median_baseline_recipe,
-        GENERAL_NAME: partial(fit_predict_general, **pipeline_kwargs),
-        NO_COACH_NAME: partial(fit_predict_general, features=NO_COACH_FEATURES, **pipeline_kwargs),
-        STACK_NAME: partial(fit_predict_stack, **pipeline_kwargs),
+        GENERAL_NAME: partial(fit_predict_general, features=pipeline_features, **pipeline_kwargs),
+        variant_name: partial(fit_predict_general, features=variant_features, **pipeline_kwargs),
+        STACK_NAME: partial(fit_predict_stack, features=pipeline_features, **pipeline_kwargs),
         feature_ridge_name: ridge_recipe(best_feature_spec, best_feature_list, args.cv_folds, args.random_state),
         winner_name: estimator_recipe(
             winner_algorithm, winner_params, best_feature_spec, best_feature_list, args.random_state
@@ -1281,8 +1303,8 @@ def main() -> int:
     mae_tests = {n: paired_season_test(wf_per[n], wf_per[MEDIAN_BASELINE_NAME], "mae") for n in non_baseline}
     stack_vs_general_mse = paired_season_test(wf_per[STACK_NAME], wf_per[GENERAL_NAME], "mse")
     stack_vs_general_mae = paired_season_test(wf_per[STACK_NAME], wf_per[GENERAL_NAME], "mae")
-    coach_vs_no_coach_mse = paired_season_test(wf_per[GENERAL_NAME], wf_per[NO_COACH_NAME], "mse")
-    coach_vs_no_coach_mae = paired_season_test(wf_per[GENERAL_NAME], wf_per[NO_COACH_NAME], "mae")
+    coach_vs_no_coach_mse = paired_season_test(wf_per[with_coach_name], wf_per[no_coach_name], "mse")
+    coach_vs_no_coach_mae = paired_season_test(wf_per[with_coach_name], wf_per[no_coach_name], "mae")
     families = (
         (mse_tests, (stack_vs_general_mse, coach_vs_no_coach_mse)),
         (mae_tests, (stack_vs_general_mae, coach_vs_no_coach_mae)),
@@ -1411,7 +1433,7 @@ def main() -> int:
     seed_level_df = pd.DataFrame(seed_level_rows)
     low_seeds = seed_mae_df.iloc[-1]
     low_level = seed_level_df.iloc[-1]
-    predround_df = compare_predround_sources(pre_holdout_df, pipeline_kwargs)
+    predround_df = compare_predround_sources(pre_holdout_df, pipeline_kwargs, pipeline_features)
 
     # Section 6: Holdout detail + final retrain of the search winner.
     print("[Run] Section 6: Holdout + Final Retrain", flush=True)
@@ -1453,6 +1475,7 @@ def main() -> int:
             "train_rows": int(len(y_all)),
             "holdout_year": int(hy),
             "pipeline_default_model": default_model,
+            "pipeline_use_coach_features": use_coach,
             "created_at": datetime.now().isoformat(timespec="seconds"),
         },
         model_artifact_path,
@@ -1486,10 +1509,26 @@ def main() -> int:
     n_mse_holm_sig = sum(mse_tests[n]["p_holm"] < 0.05 for n in non_baseline) + sum(
         e["p_holm"] < 0.05 for e in families[0][1]
     )
-    coach_lower_mse = bool(evals[GENERAL_NAME]["wf"]["mse"] < evals[NO_COACH_NAME]["wf"]["mse"])
+    # Same rule as for the seed models: keep the coach features only if the general model's
+    # walk-forward MSE is lower with them AND the 95% interval on the per-season gap lies below zero.
+    coach_lower_mse = bool(evals[with_coach_name]["wf"]["mse"] < evals[no_coach_name]["wf"]["mse"])
     coach_helps = bool(coach_lower_mse and coach_vs_no_coach_mse["hi"] < 0)
-    general_terms = set(GEN_FEATURES) | {f"{b}_2" for b in GEN_POLY} | {f"{b}_3" for b, d in GEN_POLY.items() if d >= 3}
-    feature_ridge_matches_general = set(best_feature_list) == general_terms
+    coach_config_matches = use_coach == coach_helps
+    if use_coach:
+        general_desc = "all of `GEN_FEATURES`, `model.use_coach_features: true`"
+    else:
+        general_desc = (
+            f"`GEN_FEATURES` without the {len(COACH_FEATURES)} coach features, `model.use_coach_features: false`"
+        )
+    poly_terms = {f"{b}_2" for b in GEN_POLY} | {f"{b}_3" for b, d in GEN_POLY.items() if d >= 3}
+    feature_ridge_twin = next(
+        (
+            name
+            for name, feats in ((GENERAL_NAME, pipeline_features), (variant_name, variant_features))
+            if set(best_feature_list) == set(feats) | poly_terms
+        ),
+        None,
+    )
 
     lines: list[str] = []
     lines.append(f"# Predictive Analysis Report ({run_tag})")
@@ -1524,8 +1563,10 @@ def main() -> int:
         "walk-forward seasons, so every model-vs-seed walk-forward gap is optimistic by an unknown amount "
         f"(Validation Protocol); the {hy} holdout is the least-biased comparison."
     )
-    lines.append(f"- **`{GENERAL_NAME}`** (pipeline default when the stack is off): {model_line(GENERAL_NAME)}")
-    lines.append(f"- **`{STACK_NAME}`** (general model + 14 seed-band models): {model_line(STACK_NAME)}")
+    lines.append(
+        f"- **`{GENERAL_NAME}`** (pipeline default when the stack is off; {general_desc}): {model_line(GENERAL_NAME)}"
+    )
+    lines.append(f"- **`{STACK_NAME}`** (`{GENERAL_NAME}` + 14 seed-band models): {model_line(STACK_NAME)}")
     lines.append(
         f"- **Do the seed models help?** Stack minus general, walk-forward per-season MSE gap "
         f"`{stack_vs_general_mse['d']:+.4f}` {format_ci(stack_vs_general_mse)}, lower in "
@@ -1544,28 +1585,49 @@ def main() -> int:
         f"- **Multiplicity.** After Holm adjustment over the {n_primary} primary (MSE) comparisons, "
         f"{n_mse_holm_sig} of {n_primary} gaps have adjusted p < 0.05. Intervals in this report are unadjusted "
         "95% Student-t intervals over seasons."
+        + (
+            ""
+            if use_coach
+            else " The stack's comparisons in this family changed when `model.use_coach_features` was set to false "
+            "(Validation Protocol, Uncertainty)."
+        )
     )
     lines.append(
         f"- **Holdout provenance.** {hy} is excluded from every fit and every selection step in this script and "
         f"scored once. It is not blind to feature design: the {len(COACH_FEATURES)} coach features in `GEN_FEATURES` "
         "were added after the 2025 tournament (absent at commit 0f6eb0c, 2026-01-31; the decision log in "
         "`docs/modeling_plan.md` dates them 2026-03), and every seed model consumes the general model's `predround`. "
-        f"`{NO_COACH_NAME}` drops them, which leaves the feature list of the `predround` model in `madness.R` at "
-        "commit 21a1e96 (2025-01-16) minus `WAB`, a column the current data does not have. Only the list carries "
-        "over: the R model was OLS without an intercept, scored by row-level jackknife; this one is ridge with an "
-        f"intercept and a season-grouped alpha. It is the only candidate whose whole feature list predates {hy}: "
-        f"{model_line(NO_COACH_NAME)} The 14 seed-band lists come from the same commit, less `WAB` (Section 5)."
+        + (
+            f"`{NO_COACH_NAME}` drops them, which leaves"
+            if use_coach
+            else f"With `model.use_coach_features: false`, `{GENERAL_NAME}` and the `predround` the stack reads leave "
+            "them out. That leaves"
+        )
+        + " the feature list of the `predround` model in `madness.R` at commit 21a1e96 (2025-01-16) minus `WAB`, "
+        "a column the current data does not have. Only the list carries over: the R model was OLS without an "
+        "intercept, scored by row-level jackknife; this one is ridge with an intercept and a season-grouped alpha. "
+        f"`{no_coach_name}` is the only candidate whose whole feature list predates {hy}"
+        + (f": {model_line(NO_COACH_NAME)}" if use_coach else " (scores above).")
+        + " The stack adds the 14 seed-band lists: 13 come from the same commit, less `WAB`, and band 9 also "
+        f"dropped `W` in the Python port (commit 0f6eb0c, 2026-01-31), after the {hy} tournament (Section 5)."
     )
     lines.append(
-        f"- **Do the coach features help?** `{GENERAL_NAME}` minus `{NO_COACH_NAME}`, walk-forward per-season MSE gap "
-        f"`{coach_vs_no_coach_mse['d']:+.4f}` {format_ci(coach_vs_no_coach_mse)} (Holm p "
+        f"- **Do the coach features help?** `{with_coach_name}` minus `{no_coach_name}`, walk-forward per-season MSE "
+        f"gap `{coach_vs_no_coach_mse['d']:+.4f}` {format_ci(coach_vs_no_coach_mse)} (Holm p "
         f"`{coach_vs_no_coach_mse['p_holm']:.3f}`), lower with them in {coach_vs_no_coach_mse['seasons_better']} of "
-        f"{coach_vs_no_coach_mse['n_seasons']} seasons; {hy} holdout RMSE `{evals[GENERAL_NAME]['holdout']['rmse']:.4f}` "
-        f"with them vs `{evals[NO_COACH_NAME]['holdout']['rmse']:.4f}` without. "
+        f"{coach_vs_no_coach_mse['n_seasons']} seasons; {hy} holdout RMSE "
+        f"`{evals[with_coach_name]['holdout']['rmse']:.4f}` with them vs "
+        f"`{evals[no_coach_name]['holdout']['rmse']:.4f}` without. "
         + (
-            "They earn their place by the same MSE rule as the seed models."
+            "They earn their place by the same MSE rule as the seed models"
             if coach_helps
-            else "By the same MSE rule used for the seed models, they are not shown to help."
+            else "By the same MSE rule used for the seed models, they are not shown to help"
+        )
+        + f", so the rule sets `model.use_coach_features: {str(coach_helps).lower()}`."
+        + (
+            ""
+            if use_coach
+            else f" `{WITH_COACH_NAME}` (all of `GEN_FEATURES`, reported for comparison): {model_line(WITH_COACH_NAME)}"
         )
     )
     lines.append(
@@ -1582,6 +1644,7 @@ def main() -> int:
     lines.append(f"- random_state: `{args.random_state}`")
     lines.append(f"- pipeline_ridge_alpha_grid (configs/default.yaml): `{pipeline_cfg['ridge_alpha_grid']}`")
     lines.append(f"- pipeline_use_seed_models (configs/default.yaml): `{str(pipeline_cfg['use_seed_models']).lower()}`")
+    lines.append(f"- pipeline_use_coach_features (configs/default.yaml): `{str(use_coach).lower()}`")
     lines.append(f"- interval: `{int(CI_LEVEL * 100)}% Student-t over walk-forward seasons, Holm within each family`")
     lines.append("")
     lines.append("## Validation Protocol")
@@ -1604,7 +1667,7 @@ def main() -> int:
         f"`{feature_ridge_name}` and `{winner_name}`, and the search winner's algorithm and hyperparameters, were "
         f"picked by grouped CV over {pre_lo}-{pre_hi}. So every model-vs-seed walk-forward gap is optimistic by "
         f"an unknown amount, and so is every gap between models. The {hy} holdout is the least-biased comparison, "
-        f"and `{NO_COACH_NAME}` is the only candidate whose whole feature list predates {hy}."
+        f"and `{no_coach_name}` is the only candidate whose whole feature list predates {hy}."
     )
     lines.append(
         f"- **Holdout**: {hy}, fit on every season before it and scored once. Nothing in this script is selected "
@@ -1617,8 +1680,8 @@ def main() -> int:
     lines.append(
         "- **Stack**: seed-model training rows get out-of-fold `predround` (general model refit without that "
         "season, inside the training window); test rows get `predround` from the general model fit on the "
-        "whole window. `general_ridge` and `seed_stratified_stack` call the pipeline code in "
-        "`src/pipelines/madness.py` directly."
+        f"whole window. `{GENERAL_NAME}` and `{STACK_NAME}` call the pipeline code in `src/pipelines/madness.py` "
+        "directly, with the general feature list `model.use_coach_features` selects."
     )
     lines.append(
         f"- **Uncertainty**: every gap is a mean of per-season differences over the {n_wf} walk-forward seasons, "
@@ -1626,6 +1689,16 @@ def main() -> int:
         "within its family, and a two-sided sign test on the season count. Primary family: MSE vs the seed mean "
         "for each model, stack vs general, and the general model with vs without the coach features. Secondary "
         "family: the same comparisons on MAE, with the seed median as the baseline."
+        + (
+            ""
+            if use_coach
+            else f" Membership changed when `model.use_coach_features` was set to false (2026-10): the stack's two "
+            f"comparisons (vs the seed mean, and vs `{GENERAL_NAME}`) now test the stack built on the general model "
+            f"without the coach features. The two general models are the same models as before under new names "
+            f"(`{GENERAL_NAME}` was `{NO_COACH_NAME}`, `{WITH_COACH_NAME}` was `{GENERAL_NAME}`), and the coach "
+            f"comparison is the same pair. Each family still has {n_primary} comparisons, but two of its p-values "
+            "changed, so every Holm-adjusted p can move."
+        )
     )
     lines.append(
         "- All predictions are clipped to [0, 6] before scoring. Spearman is the mean within-season rank "
@@ -1668,6 +1741,11 @@ def main() -> int:
         "The kitchen-sink set is every numeric column except outcomes, `PAKE`/`PASE`, `year` and table-parse "
         "artifacts (`blank`, `_extra_*`)."
     )
+    lines.append(
+        "`baseline_raw_poly` is all of `GEN_FEATURES` with `GEN_POLY`, coach features included whatever "
+        "`model.use_coach_features` says; every other set is built from it or from every numeric column, so this "
+        "search does not depend on that switch."
+    )
     lines.append("")
     lines.append(markdown_table(feature_results, max_rows=None, float_digits=4))
     lines.append("")
@@ -1707,7 +1785,7 @@ def main() -> int:
     lines.append(
         "`wf_d_mse` = mean over walk-forward seasons of (model MSE - seed-mean MSE); negative = better. "
         f"`p_holm` is adjusted over {n_primary} comparisons: these rows, stack vs general (Section 5) and "
-        f"`{GENERAL_NAME}` vs `{NO_COACH_NAME}` (Headline). "
+        f"`{with_coach_name}` vs `{no_coach_name}` (Headline). "
         "`p_sign` is a two-sided sign test on `seasons_better`."
     )
     lines.append("")
@@ -1728,14 +1806,14 @@ def main() -> int:
         f"`{winner_name}` and `{feature_ridge_name}`, a feature set (and, for the search winner, hyperparameters) "
         "chosen by grouped CV over seasons that include the walk-forward test seasons."
     )
-    if feature_ridge_matches_general:
+    if feature_ridge_twin is not None:
         lines.append(
-            f"- `{feature_ridge_name}` uses the same features as `{GENERAL_NAME}`. They differ in the alpha grid, the "
-            "CV used to tune alpha, and missing values (median imputation here, 0 in the pipeline)."
+            f"- `{feature_ridge_name}` uses the same features as `{feature_ridge_twin}`. They differ in the alpha "
+            "grid, the CV used to tune alpha, and missing values (median imputation here, 0 in the pipeline)."
         )
     lines.append(
-        f"- `{NO_COACH_NAME}` is `{GENERAL_NAME}` without the {len(COACH_FEATURES)} coach features (see Holdout "
-        "provenance)."
+        f"- `{variant_name}` is `{GENERAL_NAME}` {'without' if use_coach else 'plus'} the {len(COACH_FEATURES)} "
+        "coach features (see Holdout provenance)."
     )
     lines.append("")
     lines.append(f"![Walk-forward error by season]({figures_rel}/{walk_forward_path.name})")
@@ -1753,11 +1831,12 @@ def main() -> int:
     )
     lines.append(
         "The 14 lists were hand-picked, not selected out of sample. 13 of them match `madness.R` as committed on "
-        "2025-01-16 (commit 21a1e96) once the `WAB` terms are removed, and band 9 has since dropped `W`, so they "
-        f"were fixed before the {hy} tournament but after seeing earlier seasons, including the walk-forward ones. "
-        "There each list was kept only if its row-level jackknife MSE over the band's 2008-2024 tournament rows "
-        "beat the best so far, with the in-sample `predround` as an input. Any gain from that selection favours "
-        "the stack in the comparison below."
+        "2025-01-16 (commit 21a1e96) once the `WAB` terms are removed, so they were fixed before the "
+        f"{hy} tournament but after seeing earlier seasons, including the walk-forward ones. Band 9 also dropped "
+        f"`W` when it was ported to Python (commit 0f6eb0c, 2026-01-31, after the {hy} tournament). "
+        "In `madness.R` each list was kept only if its row-level jackknife MSE over the band's 2008-2024 "
+        "tournament rows beat the best so far, with the in-sample `predround` as an input. Any gain from that "
+        "selection favours the stack in the comparison below."
     )
     lines.append("")
     lines.append(
@@ -1857,7 +1936,8 @@ def main() -> int:
     )
     lines.append(
         f"- Against seed alone, `{default_model}` is {pct_better(evals[default_model]['wf']['rmse'], base['wf']['rmse']):+.1f}% "
-        f"on walk-forward RMSE (per-season MSE gap interval {includes_zero(default_mse)}) and "
+        f"on walk-forward RMSE (unadjusted per-season MSE gap interval {includes_zero(default_mse)}; Holm p "
+        f"`{default_mse['p_holm']:.3f}`) and "
         f"{pct_better(evals[default_model]['wf']['mae'], med['wf']['mae']):+.1f}% on walk-forward MAE vs the seed "
         f"median (interval {includes_zero(default_mae)})."
     )
@@ -1869,15 +1949,18 @@ def main() -> int:
         f"{pct_better(evals[lowest_mse]['holdout']['rmse'], base['holdout']['rmse']):+.1f}% on the {hy} holdout."
     )
     lines.append(
-        f"- Coach features: {'kept by' if coach_helps else 'not supported by'} the same walk-forward MSE rule "
-        f"(gap {format_ci(coach_vs_no_coach_mse)}). `GEN_FEATURES` still includes them; this script reports the "
-        "ablation and does not change the pipeline's feature list."
+        f"- Coach features: {'kept by' if coach_helps else 'not supported by'} the same walk-forward MSE rule as the "
+        f"seed models (gap {format_ci(coach_vs_no_coach_mse)}), so `model.use_coach_features: "
+        f"{str(coach_helps).lower()}`. `configs/default.yaml` currently has `use_coach_features: "
+        f"{str(use_coach).lower()}`"
+        + (", which matches." if coach_config_matches else ", which does NOT match; change it.")
+        + f" The coach columns stay in the training data and in `GEN_FEATURES`; `{variant_name}` keeps the "
+        "comparison in this report."
         + (
             ""
             if coach_helps
-            else " Applied evenly, the MSE rule used for the seed stack would drop them. The decision log's "
-            "reason for adding them (2026-03) is a prior, that tournament coaching experience predicts results, "
-            "not a measured gain. Keeping or dropping them is an open decision (`docs/modeling_plan.md`, roadmap 5c)."
+            else " The decision log's reason for adding them (2026-03) is a prior, that tournament coaching "
+            "experience predicts results, not a measured gain."
         )
     )
     lines.append(

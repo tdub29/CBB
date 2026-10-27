@@ -4,17 +4,35 @@ from __future__ import annotations
 
 import pandas as pd
 
+from src.config import DEFAULT_CONFIG
+
 # General model features. Without the coach columns this is the feature list of the predround
 # model in madness.R (commit 21a1e96) minus WAB, hand-tuned there by row-level jackknife MSE on
 # the 2008-2024 tournaments; the coach columns were added later (see docs/modeling_plan.md).
+# This is every candidate; general_features() gives the list a general model is fit on.
 GEN_FEATURES = [
     "TOR", "Barthag", "AdjOE", "ORB", "EFGD%", "3P%", "AdjDE",
     "seed", "TALENT", "AST%",
     "coach_tourn_appearances_5y", "coach_tourn_wins_5y", "coach_years_with_program",
     "coach_tourn_win_pct_5y", "coach_tourn_games_5y", "coach_avg_wins_per_appearance",
 ]
+COACH_FEATURES = [f for f in GEN_FEATURES if f.startswith("coach_")]
 
 GEN_POLY = {"Barthag": 2, "AdjDE": 2, "seed": 3}
+
+
+def general_features(use_coach_features: bool = DEFAULT_CONFIG["model"]["use_coach_features"]) -> list[str]:
+    """
+    The general model's feature list: GEN_FEATURES, less COACH_FEATURES unless use_coach_features.
+
+    Off by default (model.use_coach_features: false), by the same walk-forward MSE rule that
+    turned the seed stack off: the general model's MSE is not shown to be lower with the coach
+    columns than without them. Without them every feature in the list predates the 2025
+    tournament. The coach columns stay in the training data. The numbers are in the Headline of
+    the latest reports/predictive_analysis_*.md.
+    """
+    return [f for f in GEN_FEATURES if use_coach_features or f not in COACH_FEATURES]
+
 
 # Seed model config: (hist_seeds, holdout_seeds, features)
 #
