@@ -7,6 +7,8 @@ Outputs from the main modeling pipeline ([run_pipeline.py](../../scripts/run_pip
 | File | Role | Description |
 |------|------|-------------|
 | `cbb_training_clean.csv` | **Canonical training set** | Single clean dataset: no duplicate columns, no redundant vars, all outcomes. Primary input for modeling. |
+| `cbbtrainingdata_YYYYMMDD.csv` | Full export (latest run) | One row per Team/year, before cleaning. `cbb_training_clean.csv` is built from it. |
+| `cbbtrainingdata_last2seasons_YYYYMMDD.csv` | Research cut (latest run) | The last two seasons of the full export. Not a training input. |
 
 ## Archive
 
@@ -19,4 +21,5 @@ Outputs from the main modeling pipeline ([run_pipeline.py](../../scripts/run_pip
 - Pipeline reads `data/raw/all_trank_team_tables.csv` and `data/raw/team_history_cache.csv` (and optional `data/external/coach_tournament_experience*.csv`).
 - Writes `cbbtrainingdata_YYYYMMDD.csv` and `cbb_training_clean.csv` here.
 - To regenerate clean from an existing export:  
-  `python scripts/build_clean_training_data.py [path/to/cbbtrainingdata_YYYYMMDD.csv]`
+  `python scripts/build_clean_training_data.py [path/to/cbbtrainingdata_YYYYMMDD.csv]`  
+  With no path it uses the newest full export (`cbbtrainingdata_YYYYMMDD.csv`), never the research cut.

@@ -85,7 +85,8 @@ proj_root <- if (file.exists("configs/default.yaml")) getwd() else {
   if (file.exists("../configs/default.yaml")) { setwd(".."); getwd() } else stop("Run from project root")
 }
 proc_dir <- file.path(proj_root, "data", "processed")
-files <- list.files(proc_dir, pattern = "^cbbtrainingdata_.*\\.csv$", full.names = TRUE)
+# Full exports only (cbbtrainingdata_YYYYMMDD.csv), not the cbbtrainingdata_last2seasons_* cut
+files <- list.files(proc_dir, pattern = "^cbbtrainingdata_[0-9]+\\.csv$", full.names = TRUE)
 if (length(files) == 0) stop("No cbbtrainingdata_*.csv found. Run pipeline first.")
 training_path <- files[order(file.info(files)$mtime, decreasing = TRUE)[1]]
 
