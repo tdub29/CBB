@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """
-Append all CSVs in data/raw/trank_postseason/, deduplicate, ensure years
+Append the per-year postseason tables in data/raw/trank_postseason/
+(trank_postseason_YYYY.csv, one season per file), deduplicate, ensure years
 2008--2025 (excluding 2020), and overwrite data/raw/trank_postseason_final.csv.
+
+A file whose YEAR column does not match the year in its name is skipped, so a
+misfiled table (e.g. a regular-season export) cannot replace a season's rows.
 """
 
 from __future__ import annotations
@@ -25,6 +29,7 @@ TEAM_TABLE_COL_NAMES = [
 ]
 
 REQUIRED_YEARS = {y for y in range(2008, 2026) if y != 2020}  # 2008..2025 except 2020
+SEASON_FILE_GLOB = "trank_postseason_[0-9][0-9][0-9][0-9].csv"
 
 
 def main() -> int:
@@ -36,13 +41,14 @@ def main() -> int:
         print(f"Directory not found: {season_dir}", file=sys.stderr)
         return 1
 
-    files = sorted(season_dir.glob("*.csv"))
+    files = sorted(season_dir.glob(SEASON_FILE_GLOB))
     if not files:
-        print("No CSV files in data/raw/trank_postseason/", file=sys.stderr)
+        print(f"No {SEASON_FILE_GLOB} files in data/raw/trank_postseason/", file=sys.stderr)
         return 1
 
     combined = []
     for f in files:
+        file_year = int(f.stem.rsplit("_", 1)[1])
         try:
             df = pd.read_csv(f, header=None)
             if df.empty or len(df.columns) < 4:
@@ -55,6 +61,10 @@ def main() -> int:
             df["YEAR"] = pd.to_numeric(df["YEAR"], errors="coerce")
             df = df.dropna(subset=["YEAR"])
             df["YEAR"] = df["YEAR"].astype(int)
+            years_in_file = sorted(int(y) for y in df["YEAR"].unique())
+            if years_in_file != [file_year]:
+                print(f"Skip {f.name}: YEAR column holds {years_in_file}, expected [{file_year}]", file=sys.stderr)
+                continue
             combined.append(df)
         except Exception as e:
             print(f"Skip {f.name}: {e}", file=sys.stderr)

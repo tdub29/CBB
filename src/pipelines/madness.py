@@ -2477,11 +2477,11 @@ def _build_narrative_summary(
         upset_line = f"{upset['Team']} (seed {int(upset['Seed'])}) with {upset['p_S16']:.1%} to reach S16"
 
     lines = [
-        f"Hook: Top 4 title probabilities account for {top4_share:.1%} of simulated championships.",
+        f"Summary: Top 4 title probabilities account for {top4_share:.1%} of simulated championships.",
         f"Context: bracket={bracket_path}, n_sims={n_sims:,}, k={k_bradley_terry:.2f}.",
-        f"Insight: Top title contenders -> {', '.join(top4_lines)}.",
-        f"Recommendation: Best upset candidate by S16 odds -> {upset_line}.",
-        "Call to action: rerun with --bracket PATH and adjusted --n-sims/--k for scenario testing.",
+        f"Top title contenders: {', '.join(top4_lines)}.",
+        f"Highest S16 odds among seeds 10+: {upset_line}.",
+        "Scenario testing: rerun with --bracket PATH and adjusted --n-sims/--k.",
     ]
     return "\n".join(lines)
 

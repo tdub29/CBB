@@ -165,7 +165,6 @@ def get_turnovers_base_paths() -> dict[str, Path]:
         "input_sample": project_root / "data" / "processed" / "turnovers_sample.csv",
         "metric_selection": project_root / "reports" / "turnovers_metric_selection.csv",
         "seeds_2026": project_root / "data" / "raw" / "2026_expected_seeds_update.csv",
-        "thread_dir": project_root / "reports" / "figures" / "turnovers_thread",
     }
 
 

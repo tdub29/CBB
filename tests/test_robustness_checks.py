@@ -220,7 +220,7 @@ def test_conference_ci_note_flags_each_rule() -> None:
 
 def test_read_published_md_value_keeps_the_printed_precision(tmp_path: Path) -> None:
     report = tmp_path / "summary.md"
-    report.write_text("- Headline finding: after controlling for seed, the within-seed Spearman relationship is `0.061`.\n")
+    report.write_text("- Result: after controlling for seed, the within-seed Spearman relationship is `0.061`.\n")
     value, tolerance = rc.read_published_md_value(report)
     assert value == pytest.approx(0.061)
     assert tolerance == pytest.approx(0.0005)

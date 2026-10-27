@@ -575,8 +575,8 @@ def write_outputs(
     lines = [
         "# SOS Analysis 1: Conference Strength by Year",
         "",
-        f"- Input: `{paths['input']}`",
-        f"- Figure: `{paths['figure']}`",
+        f"- Input: `{paths['input'].relative_to(REPO_ROOT).as_posix()}`",
+        f"- Figure: `{paths['figure'].relative_to(REPO_ROOT).as_posix()}`",
         f"- Rows analyzed: `{len(conf_year):,}` conference-year rows from `{years[0]}-{years[-1]}` (2020 excluded).",
         f"- Conference avg validation: max absolute diff between recomputed and stored `conf_avg_barthag` = `{max_diff:.10f}`.",
         "",

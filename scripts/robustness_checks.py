@@ -4,7 +4,7 @@
 Each claim is first re-derived with the same loaders and table builders that produced the
 published number, then stress-tested:
 
-a) SOS within-seed Spearman (reports/sos_vs_finish_seed_controlled_summary.md)
+a) SOS within-seed Spearman (reports/sos_vs_finish_pooled_summary.md)
 b) every seed-band Spearman in reports/*_vs_finish_by_seed_group_table.csv
 c) conference overperformance vs exact-seed expectation (reports/sos_conf_vs_overperformance_summary.md)
 
@@ -73,8 +73,7 @@ def get_paths() -> dict[str, Path]:
     return {
         "reports": reports,
         "sos_sample": REPO_ROOT / "data" / "processed" / "sos_sample.csv",
-        "published_sos_md": reports / "sos_vs_finish_seed_controlled_summary.md",
-        "published_sos_pooled_md": reports / "sos_vs_finish_pooled_summary.md",
+        "published_sos_md": reports / "sos_vs_finish_pooled_summary.md",
         "published_conf_csv": reports / "sos_conf_vs_overperformance_table.csv",
         "md": reports / "robustness_summary.md",
         "csv_sos": reports / "robustness_sos_within_seed.csv",
@@ -446,6 +445,8 @@ def _published_value(table: pd.DataFrame, column: str, seed_group: str) -> tuple
     count_column = "team_count" if "team_count" in table.columns else "team_count_all"
     if column.endswith("since_2014"):
         count_column = "team_count_since_2014"
+    if column == "coach_exp_rho" and "coach_team_count" in table.columns:
+        count_column = "coach_team_count"
     return float(row[column].iloc[0]), float(row[count_column].iloc[0])
 
 
@@ -673,8 +674,8 @@ def build_sos_band_cells(reports_dir: Path, sample_path: Path) -> list[Correlati
 
 
 def misaligned_player_rho(over_subset: pd.DataFrame, edge_values: np.ndarray) -> tuple[float, int]:
-    """Replicates experience_analysis_02_04.build_seed_group_table: the edge Series gets a fresh
-    0..n-1 index, so pandas pairs it with whichever overperformance rows share those labels."""
+    """Replicates the pre-fix experience_analysis_02_04.build_seed_group_table: the edge Series got a
+    fresh 0..n-1 index, so pandas paired it with whichever overperformance rows shared those labels."""
     edge = pd.Series(edge_values)
     paired = int(len(over_subset.index.intersection(edge.index)))
     return float(over_subset["overperformance"].corr(edge, method="spearman")), paired
@@ -701,11 +702,11 @@ def build_experience_cells(reports_dir: Path) -> tuple[list[CorrelationCell], pd
                 "scope": seed_group,
                 "rows": int(len(subset)),
                 "rows_actually_paired": paired,
-                "published_code_rho": published_like,
+                "old_code_rho": published_like,
                 "aligned_rho": float(subset["overperformance"].corr(pd.Series(edge_values, index=subset.index), method="spearman")),
             }
         )
-    # The pooled experience numbers (reports/player_exp_vs_finish_pooled_summary.md) use the same pattern.
+    # The pooled experience numbers (reports/player_exp_vs_finish_pooled_summary.md) had the same pattern.
     pooled_edge = -over[f"{player_slug}_vs_seed"].to_numpy(float)
     pooled_like, pooled_paired = misaligned_player_rho(over, pooled_edge)
     audit_rows.append(
@@ -713,7 +714,7 @@ def build_experience_cells(reports_dir: Path) -> tuple[list[CorrelationCell], pd
             "scope": "pooled seed-adjusted",
             "rows": int(len(over)),
             "rows_actually_paired": pooled_paired,
-            "published_code_rho": pooled_like,
+            "old_code_rho": pooled_like,
             "aligned_rho": float(over["overperformance"].corr(pd.Series(pooled_edge, index=over.index), method="spearman")),
         }
     )
@@ -724,7 +725,7 @@ def build_experience_cells(reports_dir: Path) -> tuple[list[CorrelationCell], pd
             "scope": "pooled raw",
             "rows": int(len(tournament_df)),
             "rows_actually_paired": int(len(tournament_df.index.intersection(pd.RangeIndex(len(raw_edge))))),
-            "published_code_rho": raw_like,
+            "old_code_rho": raw_like,
             "aligned_rho": float(
                 tournament_df["finish_depth"].corr(pd.Series(raw_edge, index=tournament_df.index), method="spearman")
             ),
@@ -750,7 +751,7 @@ def build_experience_cells(reports_dir: Path) -> tuple[list[CorrelationCell], pd
         recenter=True,
         estimator="exact-seed centered x and y",
         bands=SEED_GROUP_ORDER,
-        note="published value pairs misaligned rows (pandas index bug); rho here is the aligned value",
+        note="row-alignment bug fixed in experience_analysis_02_04.py; published and rho are both aligned",
     )
     coach_frame = common.build_overperformance_data(coach_tournament_df).reset_index(drop=True)
     cells.extend(
@@ -768,7 +769,7 @@ def build_experience_cells(reports_dir: Path) -> tuple[list[CorrelationCell], pd
             recenter=True,
             estimator=f"exact-seed centered x and y, {common.COACH_ANALYSIS_START_YEAR}+ only",
             bands=SEED_GROUP_ORDER,
-            note=f"published team_count column is the all-years count; coach rho uses {common.COACH_ANALYSIS_START_YEAR}+ only",
+            note=f"coach rho uses {common.COACH_ANALYSIS_START_YEAR}+ only; published n is the coach_team_count column",
         )
     )
     return cells, audit
@@ -1105,6 +1106,8 @@ def write_summary(
     sos_1113 = band_row(bands, "sos", "elite_sos_spearman", "11-13")
     exp_top = band_row(bands, "experience", "player_exp_rho", "1-2")
     exp_player = bands.loc[(bands["topic"] == "experience") & (bands["statistic"] == "player_exp_rho")]
+    old_band_rhos = experience_audit.loc[experience_audit["scope"].isin(SEED_GROUP_ORDER), "old_code_rho"]
+    old_exp_top = float(experience_audit.loc[experience_audit["scope"] == "1-2", "old_code_rho"].iloc[0])
     n_cells = len(bands)
     nominal = int((bands["p_perm"] < ALPHA).sum())
     bh_05 = bands.loc[bands["q_bh"] < ALPHA]
@@ -1204,8 +1207,8 @@ def write_summary(
         family_text,
         f"  The quoted size numbers (EFFHGT `{size_top['rho']:+.3f}` seeds 1-2, `{size_78['rho']:+.3f}` seeds 7-8) have "
         f"p = {p(size_top['p_perm'])} / {p(size_78['p_perm'])} and pooled q = {size_top['q_bh']:.3f} / {size_78['q_bh']:.3f}.",
-        f"  The published player-experience band values (e.g. `{exp_top['published_rho']:+.3f}` for seeds 1-2) come from a",
-        f"  row-misalignment bug; with rows aligned the largest |rho| is `{exp_player['rho'].abs().max():.3f}`.",
+        f"  The player-experience band values were corrected for a row-misalignment bug (seeds 1-2 was published as",
+        f"  `{old_exp_top:+.3f}`, now `{exp_top['published_rho']:+.3f}`); the largest |rho| is now `{exp_player['rho'].abs().max():.3f}`.",
         f"- **(c) Conference overperformance:** {lead_conf} `{horizon['mean_overperformance']:+.3f}` has median "
         f"`{horizon['median_overperformance']:+.3f}`; {butler_text}. Without {HORIZON_DROP_PROGRAM} the mean is "
         f"`{horizon_drop['mean_overperformance']:+.3f}` (p = {p(horizon_drop['p_perm'])}).",
@@ -1256,7 +1259,7 @@ def write_summary(
         ("(b) Size EFFHGT, seeds 1-2", size_top),
         ("(b) Size EFFHGT, seeds 7-8", size_78),
         ("(b) SOS Elite SOS, seeds 11-13 (largest published band rho)", sos_1113),
-        (f"(b) Player experience, seeds 1-2 (published {exp_top['published_rho']:+.3f}; aligned value shown)", exp_top),
+        (f"(b) Player experience, seeds 1-2 (was {old_exp_top:+.3f} before the row-alignment fix)", exp_top),
     ]
     for label, row in band_claims:
         lines.append(
@@ -1365,19 +1368,20 @@ def write_summary(
         f"{sos_1113['q_bh']:.3f}, per-table q = {sos_1113['q_bh_within_table']:.3f}, seed-and-season p = "
         f"{p(sos_1113['p_perm_seed_season'])}).",
         "",
-        "### Bug: the published player-experience correlations pair the wrong rows",
+        "### Fixed bug: the player-experience correlations used to pair the wrong rows",
         "",
-        "`scripts/experience_analysis_02_04.py` wraps the experience edge in `pd.Series(numpy_array)`, which gets a fresh",
-        "`0..n-1` index, then calls `overperformance.corr(edge)`. pandas aligns on index labels, so each correlation is",
-        "computed only on the few rows whose original labels fall in `0..n-1`, paired with the wrong teams. Replicating that",
-        "call reproduces every published value; aligning the rows gives:",
+        "`scripts/experience_analysis_02_04.py` used to wrap the experience edge in `pd.Series(numpy_array)`, which gets a",
+        "fresh `0..n-1` index, then call `overperformance.corr(edge)`. pandas aligns on index labels, so each correlation was",
+        "computed only on the few rows whose original labels fall in `0..n-1`, paired with the wrong teams. The script now",
+        "keeps the row index, and the regenerated reports carry the aligned values. For the record, `old_code_rho` replays",
+        "the old call and `aligned_rho` is the corrected value. Both use the negated `Exp` rank, so a positive rho means",
+        "more-experienced teams tended to finish deeper (raw) or further above their seed line (bands, pooled seed-adjusted):",
         "",
         markdown_table(experience_audit, digits=4),
         "",
         f"Aligned, the band estimates run from `{exp_player['rho'].min():+.3f}` to `{exp_player['rho'].max():+.3f}` "
-        f"(published: `{exp_player['published_rho'].min():+.3f}` to `{exp_player['published_rho'].max():+.3f}`). The pooled",
-        "numbers in `reports/player_exp_vs_finish_pooled_summary.md` use the same pattern (last two rows). The `rho` column of",
-        "`robustness_seed_band_correlations.csv` holds the aligned values; the experience script itself is not patched here.",
+        f"(old code: `{old_band_rhos.min():+.3f}` to `{old_band_rhos.max():+.3f}`). The pooled numbers in",
+        "`reports/player_exp_vs_finish_pooled_summary.md` had the same bug (last two rows) and are corrected too.",
         "",
         "## (c) Conference overperformance vs exact-seed expectation",
         "",
@@ -1516,8 +1520,6 @@ def main(argv: list[str] | None = None) -> int:
 
     sos_cell = build_sos_within_seed_cell(paths["sos_sample"], paths["published_sos_md"])
     sos_row = pd.Series(evaluate_cell(sos_cell, args.n_resamples))
-    pooled_value, _ = read_published_md_value(paths["published_sos_pooled_md"])
-    sos_row["published_rho_pooled_summary"] = pooled_value
     pd.DataFrame([sos_row]).round(6).to_csv(paths["csv_sos"], index=False)
 
     band_cells, experience_audit = build_band_cells(paths)

@@ -1,10 +1,11 @@
 # Turnovers Analysis 1: Context Over Time
 
-- Field-average offensive turnover rate moved from `21.23` in 2008 to `16.82` in 2026.
-- Field-average defensive turnover pressure moved from `21.16` to `16.81` over the same span.
-- The field-level gap between those two turnover series is tiny on average (`0.05`), so they should be shown as one shared environment story rather than two separate headline panels.
+- Averages are over all D1 teams in each season (`field_team_count`: `341`-`365`), not just tournament teams.
+- All-D1 average offensive turnover rate moved from `21.23` in 2008 to `16.82` in 2026.
+- All-D1 average defensive turnover rate moved from `21.16` to `16.81` over the same span.
+- The two series differ by `0.05` on average. That is expected by construction: across all D1 teams, every turnover one team commits is one its opponent forces, so the two averages nearly coincide and carry essentially the same information.
 - Block pressure context: `BLK%` moved from `9.03` to `9.47`, while `BLKED%` moved from `9.22` to `9.53`.
-- Interpretation: the field environment changed enough that turnover edges should be interpreted against modern baselines, not early-sample assumptions.
+- Interpretation: the D1 turnover rate moved by `-4.41` points over the sample, so raw `TOR` values from different seasons are not on the same footing; compare teams within a season.
 
 ## Table
 

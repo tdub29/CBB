@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import shutil
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
@@ -11,7 +10,7 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 import numpy as np
 import pandas as pd
 
-from size_analysis_common import cache_logo_images, load_logo_image
+from size_analysis_common import cache_logo_images, load_logo_image, repo_relative_logo_paths
 from three_point_analysis_common import (
     ACCENT,
     CURRENT_FIELD_YEAR,
@@ -51,7 +50,6 @@ def get_paths() -> dict[str, Path]:
         "input": base["input_sample"],
         "seeds_2026": base["seeds_2026"],
         "logo_cache": Path(__file__).resolve().parent.parent / "data" / "external" / "team_logos" / "espn_ncaam",
-        "thread_dir": base["thread_dir"],
         "fig_05": root / "reports" / "figures" / "three_point_rate_success_interaction.png",
         "fig_07": root / "reports" / "figures" / "three_point_2026_profile_map.png",
         "fig_07_defense": root / "reports" / "figures" / "three_point_2026_defense_field.png",
@@ -309,7 +307,7 @@ def plot_analysis_06(table: pd.DataFrame, out_path: Path) -> None:
         ax.tick_params(axis="x", length=0, pad=7)
         ax.tick_params(axis="y", length=0, pad=6)
 
-    fig.suptitle("Did the modern three-point era change the Day 5 read?", fontsize=22, fontweight="bold", y=0.97)
+    fig.suptitle("Did the modern three-point era change the relationship?", fontsize=22, fontweight="bold", y=0.97)
     fig.text(0.5, 0.905, "Each panel keeps one metric isolated so the modern-era comparison stays readable.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=220, bbox_inches="tight")
@@ -892,7 +890,7 @@ def write_summary_05(table: pd.DataFrame, out_path: Path) -> None:
         "# Three-Point Analysis 5: Rate and Success Interaction",
         "",
         f"- Best profile: `{best['profile']}` at `{best['mean_overperformance']:+.3f}` overperformance points.",
-        "- Interpretation: Day 5 should focus on how volume and success combine, not on either metric in isolation.",
+        "- Interpretation: the useful comparison is how volume and success combine, not either metric in isolation.",
         "- Figure structure: ranked profile view on the left, 3PRATE x 3P% overperformance heatmap on the right.",
         "",
         "## Table",
@@ -973,12 +971,6 @@ def write_summary_07_defense(table: pd.DataFrame, upset_history: pd.DataFrame, o
     out_path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def create_thread_assets(paths: dict[str, Path]) -> None:
-    thread_dir = paths["thread_dir"]
-    thread_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(paths["fig_05"], thread_dir / "1_three_point_hook.png")
-
-
 def main() -> int:
     paths = get_paths()
     full_df = load_three_point_data(paths["input"])
@@ -992,7 +984,7 @@ def main() -> int:
 
     table05.round(6).to_csv(paths["csv_05"], index=False)
     table06.round(6).to_csv(paths["csv_06"], index=False)
-    table07.round(6).to_csv(paths["csv_07"], index=False)
+    repo_relative_logo_paths(table07).round(6).to_csv(paths["csv_07"], index=False)
 
     plot_analysis_05(table05, over_df, paths["fig_05"])
     plot_analysis_07(table07, upset_history, overperformer_history, paths["fig_07"])
@@ -1001,7 +993,6 @@ def main() -> int:
     write_summary_06(table06, paths["md_06"])
     write_summary_07(table07, upset_history, paths["md_07"])
     write_summary_07_defense(table07, upset_history, paths["md_07_defense"])
-    create_thread_assets(paths)
     return 0
 
 
