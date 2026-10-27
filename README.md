@@ -14,6 +14,8 @@ Predicts how far each NCAA Men's tournament team advances (round 0 to 6) from [B
 
 Descriptive analysis of tournament results, showing how statistical relationships change within seed lines. The model-validation status is documented below.
 
+Illustrated topic analyses: [analysis briefs](reports/briefs/README.md).
+
 ## Validation
 
 The modeling table is 5,971 team-seasons by 122 columns, of which 1,088 are tournament teams with a seed and a result. `scripts/run_analysis.py` compares feature sets and algorithms with cross-validation and leave-one-out, then scores a blind 2025 holdout (64 teams).
@@ -75,8 +77,6 @@ scripts/      pipeline entry points, per-topic analyses, run_analysis.py
 src/          pipelines/madness.py (and .R), models/ (bracket, win probability, simulation)
 tests/        pytest suite
 ```
-
-Illustrated topic analyses: [analysis briefs](reports/briefs/README.md).
 
 ## More projects
 
