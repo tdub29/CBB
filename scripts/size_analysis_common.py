@@ -17,79 +17,34 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from src.visualization.palette import PROJECT_PALETTE, apply_report_background, set_project_theme
+from topic_analysis_common import (  # noqa: F401  (re-exported for the topic scripts)
+    ACCENT,
+    CURRENT_FIELD_YEAR,
+    ERAS,
+    FINISH_DEPTH,
+    FINISH_DISPLAY,
+    FINISH_ORDER,
+    HIGHLIGHT,
+    NEGATIVE,
+    POSITIVE,
+    PROJECTED_FIELD_ALIASES,
+    SECONDARY,
+    SEED_GROUP_MAP,
+    SEED_GROUP_ORDER,
+    TEXT_DARK,
+    TRANSFER_PORTAL_YEAR,
+    clean_projected_team_name,
+    format_year_tick,
+)
 
-FINISH_ORDER = [
-    "R64",
-    "R32",
-    "Sweet Sixteen",
-    "Elite Eight",
-    "Final Four",
-    "Finals",
-    "CHAMPS",
-]
-FINISH_DEPTH = {
-    "R64": 1,
-    "R32": 2,
-    "Sweet Sixteen": 3,
-    "Elite Eight": 4,
-    "Final Four": 5,
-    "Finals": 6,
-    "CHAMPS": 7,
-}
-FINISH_DISPLAY = {
-    "R64": "R64",
-    "R32": "R32",
-    "Sweet Sixteen": "Sweet 16",
-    "Elite Eight": "Elite 8",
-    "Final Four": "Final 4",
-    "Finals": "Finals",
-    "CHAMPS": "Champ",
-}
-SEED_GROUP_MAP = {
-    1: "1-2",
-    2: "1-2",
-    3: "3-4",
-    4: "3-4",
-    5: "5-6",
-    6: "5-6",
-    7: "7-8",
-    8: "7-8",
-    9: "9-10",
-    10: "9-10",
-    11: "11-13",
-    12: "11-13",
-    13: "11-13",
-    14: "14-16",
-    15: "14-16",
-    16: "14-16",
-}
-SEED_GROUP_ORDER = ["1-2", "3-4", "5-6", "7-8", "9-10", "11-13", "14-16"]
 CONFERENCE_RENAMES = {"P10": "P12"}
 POWER_CONFERENCES = {"ACC", "B10", "B12", "BE", "SEC", "P12"}
-TRANSFER_PORTAL_YEAR = 2022
-ERAS = [
-    ("2008-2011", 2008, 2011),
-    ("2012-2021", 2012, 2021),
-    ("2022-2025", 2022, 2025),
-]
-CURRENT_FIELD_YEAR = 2026
 PRIMARY_CANDIDATES = ["EFFHGT", "AVGHGT"]
 SUPPORT_METRICS = ["BLK%", "BLKED%"]
 POSITION_GROUP_SUPPORT_METRICS = ["max_c_porpag"]
-PROJECTED_FIELD_ALIASES = {
-    "Connecticut": "UConn",
-    "Miami FL": "Miami",
-    "McNeese St.": "McNeese",
-}
-ACCENT = PROJECT_PALETTE["signal_blue"]
-SECONDARY = PROJECT_PALETTE["steel"]
-HIGHLIGHT = PROJECT_PALETTE["sage"]
-TEXT_DARK = PROJECT_PALETTE["fog"]
 TEXT_LIGHT = PROJECT_PALETTE["steel"]
 LABEL_TEXT = PROJECT_PALETTE["deep_ocean"]
-POSITIVE = PROJECT_PALETTE["sage"]
 NEUTRAL = PROJECT_PALETTE["steel"]
-NEGATIVE = "#B26B67"
 
 
 def get_size_base_paths() -> dict[str, Path]:
@@ -128,10 +83,6 @@ def mean_label_box() -> dict[str, object]:
     )
 
 
-def format_year_tick(value: float, _: object) -> str:
-    return str(int(value)) if float(value).is_integer() else ""
-
-
 def break_at_missing_years(years: object, *series: object) -> tuple[np.ndarray, ...]:
     """Fill every missing season (e.g. 2020) with NaN so a plotted line breaks there instead of bridging it.
 
@@ -166,13 +117,6 @@ def metric_label(metric: str) -> str:
         "BLKED%": "Blocked %",
         "max_c_porpag": "Max big-man PORPAG",
     }.get(metric, metric)
-
-
-def clean_projected_team_name(value: object) -> str:
-    text = str(value).replace("\xa0", " ").strip()
-    text = re.sub(r"\*+", "", text)
-    text = re.sub(r"\s+\d+$", "", text).strip()
-    return text
 
 
 def normalize_team_key(value: object) -> str:
