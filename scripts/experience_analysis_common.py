@@ -28,6 +28,7 @@ from size_analysis_common import (
     format_year_tick,
     load_logo_image,
     normalize_team_key,
+    repo_relative_logo_paths,
     set_project_theme,
     styled_box,
 )
@@ -396,6 +397,7 @@ __all__ = [
     "get_experience_base_paths",
     "load_experience_data",
     "load_logo_image",
+    "repo_relative_logo_paths",
     "load_or_compute_coach_metric_selection",
     "load_projected_field",
     "load_tournament_data",

@@ -2,7 +2,8 @@
 
 - Strongest TOR seed band: `7-8` at `+0.184`.
 - Strongest TORD seed band: `11-13` at `+0.125`.
-- Interpretation: Day 4 should stay seed-band aware because the turnover-overperformance relationship changes materially across the bracket.
+- TOR band rhos run from `-0.084` to `+0.184`; TORD from `-0.062` to `+0.125`.
+- Interpretation: these are descriptive band correlations; `reports/robustness_summary.md` tests each one against a within-seed permutation null.
 
 ## Table
 

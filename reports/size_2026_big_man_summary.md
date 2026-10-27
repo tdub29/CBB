@@ -1,18 +1,18 @@
 # Size Analysis 7B: 2026 Dominant Big-Man Support
 
-The dominant-big-team threshold is locked at `max_c_porpag >= 4.0`. Historically that split matters most in `5-8` seeds, with `11-13` as a softer qualifier. It is a support screen, not a standalone bracket model.
+The dominant-big-team threshold is locked at `max_c_porpag >= 4.0`. Seed bands `5-6`, `7-8` are tagged primary and `11-13` secondary because their dominant-minus-other overperformance gaps were the 3 largest in this same 2008-2025 sample (see `reports/size_big_man_signal_summary.md`). The tags are picked in-sample and carry no uncertainty test, so this is a descriptive screen, not a validated signal.
 
-## What the threshold means historically
+## Historical split (2008-2025)
 
-- Overall exact-seed split: dominant big teams average `+0.050` vs `-0.009` below the line.
-- The real leverage lives in the mid-seed pocket, not at the top or bottom of the bracket.
-- Use the threshold first, then use the exact-seed baseline deltas to see whether a 2026 team is unusually strong or weak for that line.
+- Overall exact-seed split: dominant big teams average `+0.050` vs `-0.009` for teams below the threshold.
+- Dominant-minus-other gap by seed band: `1-2` `-0.146` (41 dominant teams), `3-4` `+0.057` (35 dominant teams), `5-6` `+0.468` (20 dominant teams), `7-8` `+0.177` (26 dominant teams), `9-10` `-0.201` (18 dominant teams), `11-13` `+0.183` (20 dominant teams), `14-16` `-0.117` (7 dominant teams).
+- `full_big_man_delta` is each 2026 team's `max_c_porpag` minus its projected seed line's 2008-2025 average.
 
-## 2026 teams with the clearest support
+## 2026 teams by `big_man_support_note`
 
-- Stronger big-man support cases (`5-8` seeds): `St. John's` (6) — `max_c_porpag` `4.65`, `+2.17` vs seed baseline; `Miami FL` (7) — `max_c_porpag` `4.25`, `+1.77` vs seed baseline
-- Softer qualifier cases (`11-13` seeds): none
-- Weak support cases in the actionable bands: `Northern Iowa` (13) — `max_c_porpag` `-0.04`, `-2.14` vs seed baseline; `Clemson` (8) — `max_c_porpag` `0.14`, `-2.30` vs seed baseline; `North Carolina` (6) — `max_c_porpag` `0.66`, `-1.82` vs seed baseline; `Wisconsin` (5) — `max_c_porpag` `0.72`, `-1.77` vs seed baseline; `Akron` (12) — `max_c_porpag` `0.50`, `-1.70` vs seed baseline
+- `stronger big-man support case` in primary bands (`5-6`, `7-8`): `St. John's` (6) — `max_c_porpag` `4.65`, `+2.17` vs seed baseline; `Miami FL` (7) — `max_c_porpag` `4.25`, `+1.77` vs seed baseline
+- `some support from recent trends` in secondary bands (`11-13`): none
+- `weak big-man support case`: `Northern Iowa` (13) — `max_c_porpag` `-0.04`, `-2.14` vs seed baseline; `Clemson` (8) — `max_c_porpag` `0.14`, `-2.30` vs seed baseline; `North Carolina` (6) — `max_c_porpag` `0.66`, `-1.82` vs seed baseline; `Wisconsin` (5) — `max_c_porpag` `0.72`, `-1.77` vs seed baseline; `Akron` (12) — `max_c_porpag` `0.50`, `-1.70` vs seed baseline
 
 ## Table
 

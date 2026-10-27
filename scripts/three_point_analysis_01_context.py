@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.ticker import FuncFormatter
 
+from size_analysis_common import break_at_missing_years
 from three_point_analysis_common import (
     ACCENT,
     CURRENT_FIELD_YEAR,
@@ -77,10 +78,11 @@ def plot_context(context: pd.DataFrame, out_path: Path) -> None:
     apply_report_background(fig, [ax])
     fig.subplots_adjust(top=0.85, bottom=0.14, left=0.08, right=0.96)
 
-    ax.plot(years, prate, color=ACCENT, linewidth=2.9, marker="o", markersize=4.8, label=metric_label("3PRATE"))
+    line_years, line_prate, line_three_pct = break_at_missing_years(years, prate, three_pct)
+    ax.plot(line_years, line_prate, color=ACCENT, linewidth=2.9, marker="o", markersize=4.8, label=metric_label("3PRATE"))
     ax.plot(
-        years,
-        three_pct,
+        line_years,
+        line_three_pct,
         color=HIGHLIGHT,
         linewidth=2.8,
         marker="o",
@@ -90,7 +92,7 @@ def plot_context(context: pd.DataFrame, out_path: Path) -> None:
     )
     ax.axvline(TRANSFER_PORTAL_YEAR, color=SECONDARY, linestyle=":", linewidth=1.9, alpha=0.95)
     ax.set_title("Three-point environment over time", fontsize=13.0, fontweight="bold", color=TEXT_DARK, pad=10)
-    ax.set_ylabel("Field average", fontsize=11.0, fontweight="semibold")
+    ax.set_ylabel("All-D1 average", fontsize=11.0, fontweight="semibold")
     ax.set_xlabel("Season", fontsize=11.0, fontweight="semibold")
     ax.xaxis.set_major_formatter(FuncFormatter(format_year_tick))
     ax.set_xticks(years)
@@ -119,7 +121,7 @@ def plot_context(context: pd.DataFrame, out_path: Path) -> None:
     fig.text(
         0.5,
         0.915,
-        f"Tournament-field averages for 3PRATE and 3P% from 2008-{CURRENT_FIELD_YEAR} (2020 excluded)",
+        f"All-D1 averages for 3PRATE and 3P% from 2008-{CURRENT_FIELD_YEAR} (2020 excluded)",
         ha="center",
         va="center",
         fontsize=10.2,
@@ -136,9 +138,9 @@ def write_summary(context: pd.DataFrame, out_path: Path) -> None:
     lines = [
         "# Three-Point Analysis 1: Context Over Time",
         "",
-        f"- Field-average `3PRATE` moved from `{first['avg_three_prate']:.2f}` in 2008 to `{last['avg_three_prate']:.2f}` in {CURRENT_FIELD_YEAR}.",
-        f"- Field-average `3P%` moved from `{first['avg_three_pct']:.2f}` in 2008 to `{last['avg_three_pct']:.2f}` in {CURRENT_FIELD_YEAR}.",
-        "- Interpretation: Day 5 needs modern context because three-point volume has drifted over time even before the bracket-specific tests start.",
+        f"- All-D1 average `3PRATE` moved from `{first['avg_three_prate']:.2f}` in 2008 to `{last['avg_three_prate']:.2f}` in {CURRENT_FIELD_YEAR}.",
+        f"- All-D1 average `3P%` moved from `{first['avg_three_pct']:.2f}` in 2008 to `{last['avg_three_pct']:.2f}` in {CURRENT_FIELD_YEAR}.",
+        "- Interpretation: three-point volume has drifted over time, so the later tournament tests need this era context.",
         "",
         "## Table",
         "",

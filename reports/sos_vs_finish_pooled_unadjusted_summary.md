@@ -2,7 +2,7 @@
 
 - Primary metric: `Elite SOS`
 - Metric rule: Elite SOS led by only 0.029 rho, below the 0.05 switch threshold.
-- Headline finding: champions averaged `31.95` Elite SOS versus `19.99` for Round-of-64 exits.
+- Champions averaged `31.95` Elite SOS versus `19.99` for Round-of-64 exits.
 - Baseline: the field-wide average was `23.96` Elite SOS.
 - Interpretation: stronger schedules mapped to deeper runs overall, but much of this pooled signal is seed structure.
 

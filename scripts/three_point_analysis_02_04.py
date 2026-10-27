@@ -17,6 +17,7 @@ from three_point_analysis_common import (
     SECONDARY,
     SEED_GROUP_ORDER,
     TEXT_DARK,
+    TRANSFER_PORTAL_YEAR,
     apply_report_background,
     build_overperformance_data,
     choose_primary_metric,
@@ -280,7 +281,7 @@ def plot_analysis_03(table: pd.DataFrame, out_path: Path) -> None:
     axes[-1].set_xticklabels([str(int(year)) for year in years], fontsize=10.0)
     axes[-1].set_xlabel("Season", fontsize=11.0, fontweight="semibold")
     fig.suptitle("Do three-point edges travel year to year?", fontsize=22, fontweight="bold", y=0.97)
-    fig.text(0.5, 0.915, "Each series is measured relative to exact-seed baselines so the chart shows actual bracket usefulness, not just team strength.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
+    fig.text(0.5, 0.915, "Each series is measured relative to exact-seed baselines, so seed strength is taken out of the comparison.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=220, bbox_inches="tight")
     plt.close(fig)
@@ -385,11 +386,23 @@ def write_summary_02(table: pd.DataFrame, out_path: Path) -> None:
 
 
 def write_summary_03(table: pd.DataFrame, out_path: Path) -> None:
+    columns = [
+        ("3PRATE", "three_prate_seed_adjusted_rho"),
+        ("3P%", "three_pct_seed_adjusted_rho"),
+        ("3P%D", "three_pct_d_seed_adjusted_rho"),
+    ]
+    early = table[table["year"] < TRANSFER_PORTAL_YEAR]
+    recent = table[table["year"] >= TRANSFER_PORTAL_YEAR]
+    positive_text = ", ".join([f"`{label}` `{int((table[column] > 0).sum())}` of `{len(table)}`" for label, column in columns])
+    era_text = ", ".join([f"`{label}` `{early[column].mean():+.3f}` vs `{recent[column].mean():+.3f}`" for label, column in columns])
+    team_counts = sorted({int(value) for value in table["team_count"]})
+    team_count_text = f"`{team_counts[0]}`" if len(team_counts) == 1 else f"`{team_counts[0]}`-`{team_counts[-1]}`"
     lines = [
         "# Three-Point Analysis 3: Stability By Year",
         "",
-        "- Looking at the trend directly shows variation and an inconsistent story over time.",
-        "- While it seems 3pt % helps on O and D a little more in the modern era, the trend still varies year to year.",
+        f"- Seasons with a positive seed-adjusted rho: {positive_text}.",
+        f"- Mean seed-adjusted rho, `{int(early['year'].min())}-{TRANSFER_PORTAL_YEAR - 1}` vs `{TRANSFER_PORTAL_YEAR}-{int(recent['year'].max())}`: {era_text}.",
+        f"- Interpretation: each season's rho rests on one tournament ({team_count_text} teams) and the sign changes from year to year; the era means are descriptive and the difference between eras is not tested.",
         "",
         "## Table",
         "",
@@ -405,7 +418,7 @@ def write_summary_04(table: pd.DataFrame, out_path: Path) -> None:
         "3P%D": table.sort_values("three_pct_d_seed_band_rho", ascending=False, kind="stable").iloc[0],
     }
     lines = [
-        "# Three-Point Analysis 4: Where It Matters By Seed Band",
+        "# Three-Point Analysis 4: Three-Point Metrics vs Finish by Seed Band",
         "",
         f"- Strongest `3PRATE` seed band: `{strongest['3PRATE']['seed_group']}` at `{strongest['3PRATE']['three_prate_seed_band_rho']:+.3f}`.",
         f"- Strongest `3P%` seed band: `{strongest['3P%']['seed_group']}` at `{strongest['3P%']['three_pct_seed_band_rho']:+.3f}`.",

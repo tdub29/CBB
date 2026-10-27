@@ -24,14 +24,18 @@ Thumbs.db
 
 # Project-specific
 *.log
-.claude/
 
 # Raw data staging (recompile fallbacks, merge temps)
 data/raw/_staging/
 
+# Browser-download duplicates; rename exports to the season they hold
+# (e.g. trank_postseason/trank_postseason_YYYY.csv) before committing.
+data/raw/**/* ([0-9]*).csv
+data/external/**/* ([0-9]*).csv
+
 # Local workspace state is not public project source.
 /.agents/
-/.claude/
+.claude/
 /.codex/
 /.cursor/
 /.impeccable/

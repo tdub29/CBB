@@ -1,2 +1,2 @@
 metric,raw_spearman,seed_adjusted_spearman,field_avg_exp,champ_avg_exp,r64_avg_exp,champ_minus_r64_exp,field_avg_exp_rank,champ_avg_exp_rank,r64_avg_exp_rank,champ_minus_r64_exp_rank
-exp_rank_season,0.015475,0.018809,1.838269,1.687053,1.88906,-0.202007,157.000919,188.823529,145.667279,43.15625
+exp_rank_season,-0.122112,0.030163,1.838269,1.687053,1.88906,-0.202007,157.000919,188.823529,145.667279,43.15625

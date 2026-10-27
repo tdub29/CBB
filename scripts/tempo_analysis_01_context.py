@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import pandas as pd
 
+from size_analysis_common import break_at_missing_years
 from tempo_analysis_common import (
     ACCENT,
     PROJECT_PALETTE,
@@ -51,7 +52,7 @@ def plot_context(table: pd.DataFrame, out_path: Path) -> None:
     fig.subplots_adjust(top=0.84, bottom=0.12, left=0.08, right=0.97)
 
     years = table["year"].to_numpy(dtype=int)
-    ax.plot(years, table["AdjT"], color=ACCENT, linewidth=2.8, marker="o", markersize=4.8)
+    ax.plot(*break_at_missing_years(years, table["AdjT"]), color=ACCENT, linewidth=2.8, marker="o", markersize=4.8)
     ax.axvline(2022, color=SECONDARY, linestyle=":", linewidth=1.2)
     ax.set_title("Adjusted tempo", fontsize=13.0, fontweight="bold", color=TEXT_DARK, pad=10)
     ax.set_xlabel("Season", fontsize=11.0, fontweight="semibold")
@@ -67,7 +68,7 @@ def plot_context(table: pd.DataFrame, out_path: Path) -> None:
     fig.text(
         0.5,
         0.89,
-        "Field-level tournament averages from 2008-2026 with 2020 excluded. This context chart now focuses only on adjusted tempo.",
+        f"Field-level tournament averages, {int(years.min())}-{int(years.max())} (2020 excluded). Adjusted tempo only.",
         ha="center",
         va="center",
         fontsize=10.0,

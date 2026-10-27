@@ -3,9 +3,10 @@
 - Player metric: `exp_raw` (`Exp.`).
 - Lead coach metric: `coach_tourn_games_5y` (`Coach tourney games (5y)`), using `2013+` seasons only.
 - Coach metric rule: coach_tourn_games_5y led by only 0.015, below the 0.05 switch threshold, so coach_tourn_games_5y remains the default.
-- Field-average `Exp.` moved from `1.68` in `2008` to `1.91` in `2026`.
-- Field-average `Coach tourney games (5y)` moved from `1.43` in `2013` to `1.34` in `2026`.
-- Interpretation: this page is setup only. It shows how experienced the field and the average head coach looked by season before testing whether either signal actually matters in March.
+- Averages are over all D1 teams in each season (`field_team_count`: `341`-`365`), not just tournament teams.
+- All-D1 average `Exp.` moved from `1.68` in `2008` to `1.91` in `2026`.
+- All-D1 average `Coach tourney games (5y)` moved from `1.43` in `2013` to `1.34` in `2026`.
+- Interpretation: this is context only. It shows how experienced the average D1 roster and head coach were by season; the tournament tests are in the later experience reports.
 
 ## Table
 

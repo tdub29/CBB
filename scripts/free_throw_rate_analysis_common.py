@@ -162,7 +162,6 @@ def get_free_throw_rate_base_paths() -> dict[str, Path]:
         "input_sample": project_root / "data" / "processed" / "free_throw_rate_sample.csv",
         "metric_selection": project_root / "reports" / "free_throw_rate_metric_selection.csv",
         "seeds_2026": project_root / "data" / "raw" / "2026_expected_seeds_update.csv",
-        "thread_dir": project_root / "reports" / "figures" / "free_throw_rate_thread",
     }
 
 
@@ -292,6 +291,6 @@ def choose_primary_metric(over_df: pd.DataFrame) -> pd.DataFrame:
     lead_margin = float(metric_df.iloc[0]["seed_adjusted_spearman"] - metric_df.iloc[1]["seed_adjusted_spearman"])
     metric_df["primary_metric"] = "FTR" if lead_margin < 0.05 else str(metric_df.iloc[0]["metric"])
     metric_df["selection_note"] = (
-        f"FTR remains the default Day 10 lead metric unless another metric leads by >= 0.05; observed lead margin = {lead_margin:.3f}."
+        f"FTR is the default primary metric unless another metric leads by >= 0.05; observed lead margin = {lead_margin:.3f}."
     )
     return metric_df

@@ -8,12 +8,6 @@ Predicts how far each NCAA Men's tournament team advances (round 0 to 6) from [B
 - **Where a stat matters depends on the seed band.** Effective height correlates with finish by +0.108 for seeds 1-2 and -0.077 for seeds 7-8 ([report](reports/size_vs_finish_by_seed_group_summary.md)). The same seed-band split is run for experience, three-point shooting, turnovers, rebounding, tempo and free-throw rate (see `reports/`).
 - **Conference context beats raw SOS for finding seed-relative overperformers.** Mean overperformance against seed expectation runs from +0.420 (Horz) to -0.342 (MWC) ([report](reports/sos_conf_vs_overperformance_summary.md)).
 
-## Analysis examples
-
-![NCAA tournament statistics compared before and after accounting for seed](docs/images/sports-modeling-02.webp)
-
-Descriptive analysis of tournament results, showing how statistical relationships change within seed lines. The model-validation status is documented below.
-
 ## Validation
 
 The modeling table is 5,971 team-seasons by 122 columns, of which 1,088 are tournament teams with a seed and a result. `scripts/run_analysis.py` compares feature sets and algorithms with cross-validation and leave-one-out, then scores a blind 2025 holdout (64 teams).
@@ -75,5 +69,3 @@ scripts/      pipeline entry points, per-topic analyses, run_analysis.py
 src/          pipelines/madness.py (and .R), models/ (bracket, win probability, simulation)
 tests/        pytest suite
 ```
-
-Illustrated topic analyses: [analysis briefs](reports/briefs/README.md).

@@ -18,7 +18,7 @@ Outputs from the main modeling pipeline ([run_pipeline.py](../../scripts/run_pip
 
 ## Flow
 
-- Pipeline reads `data/raw/all_trank_team_tables.csv` and `data/raw/team_history_cache.csv` (and optional `data/external/coach_tournament_experience*.csv`).
+- Pipeline reads `data/raw/assembled/all_trank_team_tables.csv` and `data/raw/team_history_cache.csv`. It reads nothing from `data/external/`. Only the legacy `scripts/rebuild_from_raw.py` path reads that folder: top-level `data/external/trank_team_table_data*.csv`, and `data/external/**/coach_tournament_experience*.csv` when coach columns are missing (see `docs/data_sources.md`).
 - Writes `cbbtrainingdata_YYYYMMDD.csv` and `cbb_training_clean.csv` here.
 - To regenerate clean from an existing export:  
   `python scripts/build_clean_training_data.py [path/to/cbbtrainingdata_YYYYMMDD.csv]`  

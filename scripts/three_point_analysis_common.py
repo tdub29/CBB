@@ -160,7 +160,6 @@ def get_three_point_base_paths() -> dict[str, Path]:
         "input_sample": project_root / "data" / "processed" / "three_point_sample.csv",
         "metric_selection": project_root / "reports" / "three_point_metric_selection.csv",
         "seeds_2026": project_root / "data" / "raw" / "2026_expected_seeds_update.csv",
-        "thread_dir": project_root / "reports" / "figures" / "three_point_thread",
     }
 
 
@@ -297,6 +296,6 @@ def choose_primary_metric(over_df: pd.DataFrame) -> pd.DataFrame:
     metric_df["selection_note"] = np.where(
         metric_df["metric"].isin(["3P%", "3PRATE"]),
         f"3P% remains the default lead offense metric unless another metric leads by >= 0.05; observed lead margin = {lead_margin:.3f}.",
-        "3P%D is the defensive companion metric for this day.",
+        "3P%D is the defensive companion metric.",
     )
     return metric_df

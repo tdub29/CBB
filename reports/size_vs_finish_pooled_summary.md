@@ -3,7 +3,7 @@
 - Metric used here: `EFFHGT` (`Effective height`).
 - Raw pooled relationship for `EFFHGT`: `+0.235`.
 - Exact-seed-controlled relationship for `EFFHGT`: `-0.008`.
-- Interpretation: the unadjusted gradient is descriptive, but the exact-seed-controlled panel is the usable bracket read.
+- Interpretation: the raw rho is `+0.235` but `-0.008` within exact seed line, so most of the raw gradient runs through seed.
 
 ## Table
 

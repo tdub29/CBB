@@ -2,7 +2,8 @@
 
 - Primary metric: `Elite SOS`
 - Method: each team is centered against its exact seed-line average finish depth and average SOS.
-- Headline finding: after controlling for seed, the within-seed Spearman relationship is `0.061`.
+- Result: after controlling for seed, the within-seed Spearman relationship is `0.061`.
+- Uncertainty (bootstrap CI, within-seed permutation test): `reports/robustness_summary.md`, claim (a).
 - Interpretation: the broad pooled gradient is mostly seed structure; the residual SOS relationship inside seed lines is weak.
 
 ## Seed Baselines

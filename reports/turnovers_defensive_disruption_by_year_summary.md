@@ -2,7 +2,8 @@
 
 - Average seed-adjusted turnover-force rho: `+0.051`.
 - Average seed-adjusted block-pressure rho: `+0.007`.
-- Interpretation: turnover forcing stays the lead defensive pressure lens, while blocks only matter if they reinforce the broader disruption read.
+- Seasons with a positive seed-adjusted rho: `10` of `17` for turnover forcing, `10` of `17` for block pressure.
+- Interpretation: single-season estimates rest on one tournament each and are not tested for significance here; read the averages, not any one year.
 
 ## Table
 

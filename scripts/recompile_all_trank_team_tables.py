@@ -4,7 +4,8 @@ Official raw-data assembly: build all_trank_team_tables.csv from per-year team-t
 CSVs, postseason records, and the enriched team-history cache.
 
 Steps:
-  1. Concatenate data/raw/trank_team_table_data08..25.csv (skip 20) → base table
+  1. Concatenate data/raw/sources/trank_team_table_data08..25.csv (skip 20) and
+     data/raw/trank_team_table_data2026.csv → base table
   2. LEFT JOIN Postseason rec from data/raw/trank_postseason_final.csv on (Team, Year)
   3. LEFT JOIN coach/seed/finish/conf + coach experience from
      data/raw/team_history_cache_enriched.csv on (Team, Year)
@@ -14,8 +15,9 @@ Steps:
 Prerequisite scripts (run first if data is stale):
   python scripts/populate_team_history_cache.py   → data/raw/team_history_cache.csv
   python scripts/enrich_team_history_cache.py     → data/raw/team_history_cache_enriched.csv
+  python scripts/append_postseason_final.py       → data/raw/trank_postseason_final.csv
 
-Years 2008-2025 excluding 2020.
+Years 2008-2026 excluding 2020 (2026 has no postseason or tournament rows yet).
 """
 from __future__ import annotations
 
