@@ -1,0 +1,776 @@
+{
+  "frozen_at": "2026-09-29T16:22:27+00:00",
+  "charter": {
+    "question": "Do pre-tournament win probabilities beat historical seed-pair win rates on NCAA men's tournament games, and by how much, with enough power to answer either way?",
+    "grain": "one row per tournament game from the Round of 64 on, oriented to the better seed (equal seeds: alphabetical); First Four excluded; 2021 Oregon-VCU no-contest excluded",
+    "decision_time": "the published bracket on Selection Sunday, before any tournament game",
+    "target": "a_won = 1 if the better-seeded team won",
+    "inputs": "Torvik regular-season team table (type R) and bracket seed only; outcome columns (PASE, PAKE, round, finish, postseason record) are excluded by the prediction-time contract",
+    "baselines": "null coin flip 0.5; constant = training-fold better-seed win rate; chalk at 0.70 and 0.99; historical seed-pair rates 1985 to Y-1 (the baseline that matters); external: T-Rank archived pregame line",
+    "primary_metric": "Brier score (0-1 scale), lower is better; secondary: log loss",
+    "selection": "walk-forward 2010-2019 only; lowest pooled Brier among model candidates (seed-pair logged as reference, never frozen), log loss breaks ties; every variant logged",
+    "test": "walk-forward 2021-2026, scored once for the single frozen candidate",
+    "uncertainty": "paired per-game loss difference; year-block bootstrap 95% CI (10,000 resamples, seed 123); Diebold-Mariano t with year-clustered variance; n_eff cross-check",
+    "acceptance": "the frozen model beats seed-pair rates if the 2021-2026 year-block 95% CI on Brier(frozen) - Brier(seed-pair) lies entirely below 0; otherwise report no detectable edge with the MDE",
+    "meaningful_edge": {
+      "brier": 0.005,
+      "logloss": 0.015
+    },
+    "allowed_reruns": "none of the selection after the frozen file exists; the score stage is deterministic"
+  },
+  "charter_locked_at": "2026-09-29T16:11:27+00:00",
+  "rule": "lowest pooled Brier (log loss breaks ties) among model candidates (seed-pair itself is logged for reference but cannot be frozen) over walk-forward tournaments 2010-2019; frozen before any 2021-2026 score of these candidates was computed; 2021-2026 is scored once by `run_powered_comparison.py score`",
+  "selection_years": [
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019
+  ],
+  "test_years": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+  ],
+  "chosen": {
+    "base": "log5"
+  },
+  "chosen_name": "log5",
+  "chosen_description": "Barthag log5, no fitted parameter",
+  "team_inputs": [
+    "seed",
+    "AdjOE",
+    "AdjDE",
+    "Barthag",
+    "Adj T."
+  ],
+  "pair_features": [
+    "em_diff",
+    "tempo_margin",
+    "log5_logit",
+    "seed_diff"
+  ],
+  "seed_pair_history": "every tournament 1985 to Y-1 (Sports Reference 1985-2007, Torvik 2008 on)",
+  "search_correction": {
+    "variants_tried": 28,
+    "raw_p_chosen_vs_seed_pair_2010_2019": 0.05290271513639894,
+    "sidak_p_adj": 0.7817025994570399,
+    "white_reality_check_p": 0.0992,
+    "reality_check": "H0: no candidate beats seed-pair on Brier; year-block bootstrap of the best candidate's centred mean gain, 10000 resamples, seed 123"
+  },
+  "variants": [
+    {
+      "candidate": "log5",
+      "spec": {
+        "base": "log5"
+      },
+      "hypothesis": "Barthag log5, no fitted parameter",
+      "n_games": 630,
+      "brier": 0.18411430924384947,
+      "logloss": 0.5428150738958377,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.18965689244190373,
+        "2011": 0.2224251799502918,
+        "2012": 0.17752373678985908,
+        "2013": 0.19942909386381263,
+        "2014": 0.19882215691618435,
+        "2015": 0.1519345351559289,
+        "2016": 0.17894050093835498,
+        "2017": 0.16784679939546898,
+        "2018": 0.19908580113172983,
+        "2019": 0.1554783958549606
+      }
+    },
+    {
+      "candidate": "tempo_margin",
+      "spec": {
+        "base": "tempo_margin"
+      },
+      "hypothesis": "logistic on tempo-adjusted expected margin: EM difference x (tempo_a x tempo_b / D1 mean tempo) / 100",
+      "n_games": 630,
+      "brier": 0.1843249204581421,
+      "logloss": 0.543491272051917,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.19069349128208854,
+        "2011": 0.22538543951007536,
+        "2012": 0.17974190620223623,
+        "2013": 0.19739571457888963,
+        "2014": 0.19773594908355702,
+        "2015": 0.14806867697174939,
+        "2016": 0.17712397675701888,
+        "2017": 0.1691205706544545,
+        "2018": 0.2030165876811227,
+        "2019": 0.15496689186022883
+      }
+    },
+    {
+      "candidate": "log5_scaled",
+      "spec": {
+        "base": "log5_scaled"
+      },
+      "hypothesis": "Barthag log5 with a fitted temperature: logistic on logit(Barthag_a) - logit(Barthag_b)",
+      "n_games": 630,
+      "brier": 0.18481903732295013,
+      "logloss": 0.5453535698147514,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.19080339203685037,
+        "2011": 0.2273173343410182,
+        "2012": 0.1775123446561826,
+        "2013": 0.19973558917815795,
+        "2014": 0.19861708113638504,
+        "2015": 0.15253375645832923,
+        "2016": 0.1788707678935239,
+        "2017": 0.16781081460901598,
+        "2018": 0.19956075743210783,
+        "2019": 0.15542853548793018
+      }
+    },
+    {
+      "candidate": "em_logistic",
+      "spec": {
+        "base": "em_logistic"
+      },
+      "hypothesis": "logistic on efficiency-margin difference (AdjOE - AdjDE, team a minus team b)",
+      "n_games": 630,
+      "brier": 0.18490324916947212,
+      "logloss": 0.5457178669916389,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.1918470892892567,
+        "2011": 0.22697281060476276,
+        "2012": 0.17988260571682824,
+        "2013": 0.19801584136006303,
+        "2014": 0.19810859806649964,
+        "2015": 0.14811771354626327,
+        "2016": 0.17862775574678147,
+        "2017": 0.17011939630784487,
+        "2018": 0.2021924227785144,
+        "2019": 0.15514825827790701
+      }
+    },
+    {
+      "candidate": "logit_diffs C=0.1",
+      "spec": {
+        "base": "logit_diffs",
+        "C": 0.1
+      },
+      "hypothesis": "L2 logistic, no intercept, on EM difference, tempo-adjusted margin, Barthag logit difference, seed difference",
+      "n_games": 630,
+      "brier": 0.18498719183270015,
+      "logloss": 0.5450650263543447,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.1915525458610112,
+        "2011": 0.21941729184524514,
+        "2012": 0.180664195407855,
+        "2013": 0.20116316784511323,
+        "2014": 0.20022691616358815,
+        "2015": 0.15144030934951896,
+        "2016": 0.1794804608882172,
+        "2017": 0.16868414367711274,
+        "2018": 0.20110383833980514,
+        "2019": 0.1561390489495348
+      }
+    },
+    {
+      "candidate": "logit_diffs C=1",
+      "spec": {
+        "base": "logit_diffs",
+        "C": 1.0
+      },
+      "hypothesis": "L2 logistic, no intercept, on EM difference, tempo-adjusted margin, Barthag logit difference, seed difference",
+      "n_games": 630,
+      "brier": 0.18513955040077026,
+      "logloss": 0.5456258616815584,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.19198361056152932,
+        "2011": 0.22345417742847298,
+        "2012": 0.18012262547722802,
+        "2013": 0.201436781236423,
+        "2014": 0.19980483382500538,
+        "2015": 0.1505572415072991,
+        "2016": 0.17819887785211672,
+        "2017": 0.1688101735380504,
+        "2018": 0.2017783920592578,
+        "2019": 0.15524879052232013
+      }
+    },
+    {
+      "candidate": "logit_diffs C=10",
+      "spec": {
+        "base": "logit_diffs",
+        "C": 10.0
+      },
+      "hypothesis": "L2 logistic, no intercept, on EM difference, tempo-adjusted margin, Barthag logit difference, seed difference",
+      "n_games": 630,
+      "brier": 0.18517221822041088,
+      "logloss": 0.5453531975848598,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.1918173404868546,
+        "2011": 0.2234101278639148,
+        "2012": 0.18023196530978827,
+        "2013": 0.20168236482144156,
+        "2014": 0.1995407569543225,
+        "2015": 0.15216108386101368,
+        "2016": 0.17717468434715983,
+        "2017": 0.1680671069767144,
+        "2018": 0.20212853693733582,
+        "2019": 0.15550821464556325
+      }
+    },
+    {
+      "candidate": "log5 + seed-pair blend",
+      "spec": {
+        "base": "log5",
+        "blend": true
+      },
+      "hypothesis": "Barthag log5, no fitted parameter",
+      "n_games": 630,
+      "brier": 0.18558309101569556,
+      "logloss": 0.5461931144310722,
+      "mean_blend_w": 0.7074718646436998,
+      "brier_by_year": {
+        "2010": 0.19078831594115114,
+        "2011": 0.21068284548996585,
+        "2012": 0.19084193909252004,
+        "2013": 0.2058439515246577,
+        "2014": 0.19622425292571427,
+        "2015": 0.1582615266118608,
+        "2016": 0.18078321023043986,
+        "2017": 0.168092475231778,
+        "2018": 0.19844071821803272,
+        "2019": 0.15587167489083537
+      }
+    },
+    {
+      "candidate": "tempo_margin + seed-pair blend",
+      "spec": {
+        "base": "tempo_margin",
+        "blend": true
+      },
+      "hypothesis": "logistic on tempo-adjusted expected margin: EM difference x (tempo_a x tempo_b / D1 mean tempo) / 100",
+      "n_games": 630,
+      "brier": 0.18582826611947864,
+      "logloss": 0.5461628054112736,
+      "mean_blend_w": 0.6902919658523811,
+      "brier_by_year": {
+        "2010": 0.1908688918562927,
+        "2011": 0.21211652328153377,
+        "2012": 0.19236899045498174,
+        "2013": 0.20554496471448505,
+        "2014": 0.19535008402109214,
+        "2015": 0.15644095920690346,
+        "2016": 0.17952478644441683,
+        "2017": 0.16906810520179427,
+        "2018": 0.20150120567950755,
+        "2019": 0.1554981503337789
+      }
+    },
+    {
+      "candidate": "logit_diffs C=0.01",
+      "spec": {
+        "base": "logit_diffs",
+        "C": 0.01
+      },
+      "hypothesis": "L2 logistic, no intercept, on EM difference, tempo-adjusted margin, Barthag logit difference, seed difference",
+      "n_games": 630,
+      "brier": 0.18618233123187097,
+      "logloss": 0.5493666866194892,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.19297820071684332,
+        "2011": 0.21122553555165743,
+        "2012": 0.18596712011618943,
+        "2013": 0.1997083253909321,
+        "2014": 0.20015149953202255,
+        "2015": 0.15824792745017965,
+        "2016": 0.18382279897362197,
+        "2017": 0.16993255794694748,
+        "2018": 0.19946242239172193,
+        "2019": 0.1603269242485939
+      }
+    },
+    {
+      "candidate": "log5_scaled + seed-pair blend",
+      "spec": {
+        "base": "log5_scaled",
+        "blend": true
+      },
+      "hypothesis": "Barthag log5 with a fitted temperature: logistic on logit(Barthag_a) - logit(Barthag_b)",
+      "n_games": 630,
+      "brier": 0.1862754715300371,
+      "logloss": 0.5480132794536505,
+      "mean_blend_w": 0.6764666538291633,
+      "brier_by_year": {
+        "2010": 0.1910013007609114,
+        "2011": 0.21266440471927178,
+        "2012": 0.1929101685250567,
+        "2013": 0.20695595880680676,
+        "2014": 0.19604591033196045,
+        "2015": 0.15935304739283293,
+        "2016": 0.18108538396406174,
+        "2017": 0.16814288332016306,
+        "2018": 0.19866768697969092,
+        "2019": 0.15592797049961524
+      }
+    },
+    {
+      "candidate": "em_logistic + seed-pair blend",
+      "spec": {
+        "base": "em_logistic",
+        "blend": true
+      },
+      "hypothesis": "logistic on efficiency-margin difference (AdjOE - AdjDE, team a minus team b)",
+      "n_games": 630,
+      "brier": 0.18633713414352263,
+      "logloss": 0.5481193066521992,
+      "mean_blend_w": 0.6683174263309648,
+      "brier_by_year": {
+        "2010": 0.1915258046346656,
+        "2011": 0.21177016467423182,
+        "2012": 0.19347443676893927,
+        "2013": 0.20653767335458065,
+        "2014": 0.195641572310442,
+        "2015": 0.15704529328330888,
+        "2016": 0.18092762829482614,
+        "2017": 0.16998826941546952,
+        "2018": 0.2007034858203399,
+        "2019": 0.15575701287842234
+      }
+    },
+    {
+      "candidate": "logit_topics C=0.01",
+      "spec": {
+        "base": "logit_topics",
+        "C": 0.01
+      },
+      "hypothesis": "L2 logistic, no intercept, on the four core differences plus the nine topic-analysis headline metrics (SOS, coach, size, experience, turnovers, 3P%, DRB, tempo, FTR) as differences",
+      "n_games": 630,
+      "brier": 0.18699838037053512,
+      "logloss": 0.549908192455255,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.19142335985952144,
+        "2011": 0.21374664551385156,
+        "2012": 0.18423894086206782,
+        "2013": 0.20160620364744594,
+        "2014": 0.20445401551424733,
+        "2015": 0.15150025134509582,
+        "2016": 0.18951701022808942,
+        "2017": 0.16571001909916014,
+        "2018": 0.20387949262299512,
+        "2019": 0.1639078650128765
+      }
+    },
+    {
+      "candidate": "logit_diffs C=0.1 + seed-pair blend",
+      "spec": {
+        "base": "logit_diffs",
+        "C": 0.1,
+        "blend": true
+      },
+      "hypothesis": "L2 logistic, no intercept, on EM difference, tempo-adjusted margin, Barthag logit difference, seed difference",
+      "n_games": 630,
+      "brier": 0.18717852580080901,
+      "logloss": 0.5497750381625881,
+      "mean_blend_w": 0.6706125521831496,
+      "brier_by_year": {
+        "2010": 0.1935166043253377,
+        "2011": 0.20809150191075237,
+        "2012": 0.1970319227162282,
+        "2013": 0.2083999161987633,
+        "2014": 0.19804737968343097,
+        "2015": 0.15930528090142312,
+        "2016": 0.18175046253981084,
+        "2017": 0.16898072096078443,
+        "2018": 0.20014045827080942,
+        "2019": 0.15652101050074946
+      }
+    },
+    {
+      "candidate": "logit_diffs C=1 + seed-pair blend",
+      "spec": {
+        "base": "logit_diffs",
+        "C": 1.0,
+        "blend": true
+      },
+      "hypothesis": "L2 logistic, no intercept, on EM difference, tempo-adjusted margin, Barthag logit difference, seed difference",
+      "n_games": 630,
+      "brier": 0.18720020304486737,
+      "logloss": 0.5496939021506434,
+      "mean_blend_w": 0.6139264296124616,
+      "brier_by_year": {
+        "2010": 0.19580025165145792,
+        "2011": 0.20658919960309088,
+        "2012": 0.1975898792305326,
+        "2013": 0.20915232505059514,
+        "2014": 0.1974472227955322,
+        "2015": 0.15916763969313774,
+        "2016": 0.1810418870968255,
+        "2017": 0.16898495848332157,
+        "2018": 0.2003750539734516,
+        "2019": 0.15585361287072821
+      }
+    },
+    {
+      "candidate": "logit_diffs C=10 + seed-pair blend",
+      "spec": {
+        "base": "logit_diffs",
+        "C": 10.0,
+        "blend": true
+      },
+      "hypothesis": "L2 logistic, no intercept, on EM difference, tempo-adjusted margin, Barthag logit difference, seed difference",
+      "n_games": 630,
+      "brier": 0.1874971646822258,
+      "logloss": 0.5500308735458329,
+      "mean_blend_w": 0.5732825899404049,
+      "brier_by_year": {
+        "2010": 0.19936433493144237,
+        "2011": 0.20388804726984253,
+        "2012": 0.19886457989420547,
+        "2013": 0.20986241735736932,
+        "2014": 0.19716839809559897,
+        "2015": 0.1602865950170108,
+        "2016": 0.18049709426948093,
+        "2017": 0.16836943675745034,
+        "2018": 0.20057051823398744,
+        "2019": 0.1561002249958697
+      }
+    },
+    {
+      "candidate": "logit_diffs C=0.01 + seed-pair blend",
+      "spec": {
+        "base": "logit_diffs",
+        "C": 0.01,
+        "blend": true
+      },
+      "hypothesis": "L2 logistic, no intercept, on EM difference, tempo-adjusted margin, Barthag logit difference, seed difference",
+      "n_games": 630,
+      "brier": 0.1889257627869358,
+      "logloss": 0.5549898786795833,
+      "mean_blend_w": 0.5270619621909912,
+      "brier_by_year": {
+        "2010": 0.20169729831193461,
+        "2011": 0.19330471706305377,
+        "2012": 0.2028379480196728,
+        "2013": 0.21158763646178963,
+        "2014": 0.19849030047283944,
+        "2015": 0.16561154479895762,
+        "2016": 0.18569858515053392,
+        "2017": 0.1705253787372097,
+        "2018": 0.19915641504098022,
+        "2019": 0.1603478038123862
+      }
+    },
+    {
+      "candidate": "logit_topics C=0.01 + seed-pair blend",
+      "spec": {
+        "base": "logit_topics",
+        "C": 0.01,
+        "blend": true
+      },
+      "hypothesis": "L2 logistic, no intercept, on the four core differences plus the nine topic-analysis headline metrics (SOS, coach, size, experience, turnovers, 3P%, DRB, tempo, FTR) as differences",
+      "n_games": 630,
+      "brier": 0.19010376084806108,
+      "logloss": 0.5571320643036579,
+      "mean_blend_w": 0.4668909775158333,
+      "brier_by_year": {
+        "2010": 0.20169728115462213,
+        "2011": 0.19400885858261965,
+        "2012": 0.20298551202183,
+        "2013": 0.21296163866209192,
+        "2014": 0.20066408481473874,
+        "2015": 0.16433203957477988,
+        "2016": 0.19036757713504535,
+        "2017": 0.16831262509296913,
+        "2018": 0.2022349108313874,
+        "2019": 0.16347308061052654
+      }
+    },
+    {
+      "candidate": "logit_topics C=0.1 + seed-pair blend",
+      "spec": {
+        "base": "logit_topics",
+        "C": 0.1,
+        "blend": true
+      },
+      "hypothesis": "L2 logistic, no intercept, on the four core differences plus the nine topic-analysis headline metrics (SOS, coach, size, experience, turnovers, 3P%, DRB, tempo, FTR) as differences",
+      "n_games": 630,
+      "brier": 0.19109878508092884,
+      "logloss": 0.558589267648922,
+      "mean_blend_w": 0.4434418892114265,
+      "brier_by_year": {
+        "2010": 0.19856257907746575,
+        "2011": 0.2078837231947064,
+        "2012": 0.20210976154434296,
+        "2013": 0.21515587021394278,
+        "2014": 0.20461330346150677,
+        "2015": 0.1638973227724382,
+        "2016": 0.1884818692691297,
+        "2017": 0.16673180768498502,
+        "2018": 0.20157196856905737,
+        "2019": 0.16197964502171372
+      }
+    },
+    {
+      "candidate": "logit_topics C=0.1",
+      "spec": {
+        "base": "logit_topics",
+        "C": 0.1
+      },
+      "hypothesis": "L2 logistic, no intercept, on the four core differences plus the nine topic-analysis headline metrics (SOS, coach, size, experience, turnovers, 3P%, DRB, tempo, FTR) as differences",
+      "n_games": 630,
+      "brier": 0.19141083537714032,
+      "logloss": 0.5603937814933865,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.19852173219510197,
+        "2011": 0.24326578263603987,
+        "2012": 0.18662878705007419,
+        "2013": 0.2072887613971562,
+        "2014": 0.21455636271046324,
+        "2015": 0.1468561892680159,
+        "2016": 0.18688067979560716,
+        "2017": 0.16282854700646224,
+        "2018": 0.20472719905477363,
+        "2019": 0.16255431265770884
+      }
+    },
+    {
+      "candidate": "logit_topics C=10 + seed-pair blend",
+      "spec": {
+        "base": "logit_topics",
+        "C": 10.0,
+        "blend": true
+      },
+      "hypothesis": "L2 logistic, no intercept, on the four core differences plus the nine topic-analysis headline metrics (SOS, coach, size, experience, turnovers, 3P%, DRB, tempo, FTR) as differences",
+      "n_games": 630,
+      "brier": 0.19151477906494152,
+      "logloss": 0.5594501465486098,
+      "mean_blend_w": 0.3687675245715552,
+      "brier_by_year": {
+        "2010": 0.20169722062408352,
+        "2011": 0.205012815912012,
+        "2012": 0.20333385826088785,
+        "2013": 0.21766641414005858,
+        "2014": 0.20463046005160165,
+        "2015": 0.1649542206078604,
+        "2016": 0.18733705076965465,
+        "2017": 0.16665680252159135,
+        "2018": 0.2018324579755373,
+        "2019": 0.162026489786128
+      }
+    },
+    {
+      "candidate": "logit_topics C=1 + seed-pair blend",
+      "spec": {
+        "base": "logit_topics",
+        "C": 1.0,
+        "blend": true
+      },
+      "hypothesis": "L2 logistic, no intercept, on the four core differences plus the nine topic-analysis headline metrics (SOS, coach, size, experience, turnovers, 3P%, DRB, tempo, FTR) as differences",
+      "n_games": 630,
+      "brier": 0.19161727470895368,
+      "logloss": 0.5599789789215018,
+      "mean_blend_w": 0.38231263225231077,
+      "brier_by_year": {
+        "2010": 0.20169722211721638,
+        "2011": 0.2068145714179819,
+        "2012": 0.20333384964754828,
+        "2013": 0.21708336376095644,
+        "2014": 0.20481956123365713,
+        "2015": 0.16486394863009488,
+        "2016": 0.18773537224582557,
+        "2017": 0.16679627181172066,
+        "2018": 0.20139120807632313,
+        "2019": 0.16163737814821244
+      }
+    },
+    {
+      "candidate": "madness_bt + seed-pair blend",
+      "spec": {
+        "base": "madness_bt",
+        "blend": true
+      },
+      "hypothesis": "Trevor's prior family (src/pipelines/madness.py, port of madness.R): general ridge plus 14 seed-stratified ridge models on tournament wins, intercept restored, Bradley-Terry on the difference",
+      "n_games": 630,
+      "brier": 0.19165671733484643,
+      "logloss": 0.562771931190894,
+      "mean_blend_w": 0.2665419462483933,
+      "brier_by_year": {
+        "2010": 0.20169736478710826,
+        "2011": 0.19492617449781835,
+        "2012": 0.20318781112528633,
+        "2013": 0.22109916331021873,
+        "2014": 0.20527281226586125,
+        "2015": 0.17479648425290023,
+        "2016": 0.19683694946190264,
+        "2017": 0.15924419852872987,
+        "2018": 0.19868308464506415,
+        "2019": 0.1608231304735744
+      }
+    },
+    {
+      "candidate": "ridge_bt + seed-pair blend",
+      "spec": {
+        "base": "ridge_bt",
+        "blend": true
+      },
+      "hypothesis": "existing ridge on tournament wins, Bradley-Terry on predicted-wins difference",
+      "n_games": 630,
+      "brier": 0.19274817329231458,
+      "logloss": 0.564293458366128,
+      "mean_blend_w": 0.5822701401076051,
+      "brier_by_year": {
+        "2010": 0.20403124516385604,
+        "2011": 0.21183197897402384,
+        "2012": 0.19378261477815728,
+        "2013": 0.21171469418939723,
+        "2014": 0.2111849107072967,
+        "2015": 0.16632030025614902,
+        "2016": 0.19418103913666326,
+        "2017": 0.17032483648797322,
+        "2018": 0.20236830852104482,
+        "2019": 0.16174180470858446
+      }
+    },
+    {
+      "candidate": "logit_topics C=1",
+      "spec": {
+        "base": "logit_topics",
+        "C": 1.0
+      },
+      "hypothesis": "L2 logistic, no intercept, on the four core differences plus the nine topic-analysis headline metrics (SOS, coach, size, experience, turnovers, 3P%, DRB, tempo, FTR) as differences",
+      "n_games": 630,
+      "brier": 0.1948622902906557,
+      "logloss": 0.5722303051089418,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.20787789714629765,
+        "2011": 0.26184872298433076,
+        "2012": 0.1903201840509854,
+        "2013": 0.20907987944816847,
+        "2014": 0.21733641381928304,
+        "2015": 0.1460380453977916,
+        "2016": 0.18579582643141088,
+        "2017": 0.1626439662933305,
+        "2018": 0.2052887674827032,
+        "2019": 0.1623931998522555
+      }
+    },
+    {
+      "candidate": "ridge_bt",
+      "spec": {
+        "base": "ridge_bt"
+      },
+      "hypothesis": "existing ridge on tournament wins, Bradley-Terry on predicted-wins difference",
+      "n_games": 630,
+      "brier": 0.1954815481977534,
+      "logloss": 0.5743373581264264,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.21725346724705696,
+        "2011": 0.23125044266330622,
+        "2012": 0.18217021337272035,
+        "2013": 0.2091611082612752,
+        "2014": 0.22297536795731082,
+        "2015": 0.15908753566052267,
+        "2016": 0.19519624668898436,
+        "2017": 0.16861184834923434,
+        "2018": 0.20495583203919485,
+        "2019": 0.1641534197379284
+      }
+    },
+    {
+      "candidate": "logit_topics C=10",
+      "spec": {
+        "base": "logit_topics",
+        "C": 10.0
+      },
+      "hypothesis": "L2 logistic, no intercept, on the four core differences plus the nine topic-analysis headline metrics (SOS, coach, size, experience, turnovers, 3P%, DRB, tempo, FTR) as differences",
+      "n_games": 630,
+      "brier": 0.19561144695907626,
+      "logloss": 0.5750815211939131,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.21037407541234515,
+        "2011": 0.26410120675628657,
+        "2012": 0.19247619657056553,
+        "2013": 0.2088047709652373,
+        "2014": 0.2177887656858872,
+        "2015": 0.14514843324165005,
+        "2016": 0.18529244905983103,
+        "2017": 0.16249436675636483,
+        "2018": 0.2064638392665053,
+        "2019": 0.1631703658760894
+      }
+    },
+    {
+      "candidate": "seed_pair",
+      "spec": {
+        "base": "seed_pair"
+      },
+      "hypothesis": "historical seed-pair win rates (the baseline itself)",
+      "n_games": 630,
+      "brier": 0.1961076780267368,
+      "logloss": 0.5734106626880537,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.2016974318855589,
+        "2011": 0.19160288622146568,
+        "2012": 0.20333403916664236,
+        "2013": 0.22322003727196227,
+        "2014": 0.20499913091746846,
+        "2015": 0.18141788661536226,
+        "2016": 0.19936211107628718,
+        "2017": 0.18197790696739247,
+        "2018": 0.20559597349725572,
+        "2019": 0.16786937664797244
+      }
+    },
+    {
+      "candidate": "madness_bt",
+      "spec": {
+        "base": "madness_bt"
+      },
+      "hypothesis": "Trevor's prior family (src/pipelines/madness.py, port of madness.R): general ridge plus 14 seed-stratified ridge models on tournament wins, intercept restored, Bradley-Terry on the difference",
+      "n_games": 630,
+      "brier": 0.20023612437783997,
+      "logloss": 0.5874886905401963,
+      "mean_blend_w": null,
+      "brier_by_year": {
+        "2010": 0.22061888061241852,
+        "2011": 0.24217607564620075,
+        "2012": 0.21227904108437773,
+        "2013": 0.20953904124003722,
+        "2014": 0.23099553680695017,
+        "2015": 0.1742670904847164,
+        "2016": 0.2044818479874895,
+        "2017": 0.1405096126093878,
+        "2018": 0.20178232301167356,
+        "2019": 0.16571179429514818
+      }
+    }
+  ],
+  "inputs": {
+    "training_csv": "a35137c1619032e6",
+    "games_csv": "170ba15342239c73",
+    "history_csv": "a210e08449f48875"
+  },
+  "code_revision": "2ce8199 + uncommitted changes",
+  "random_state": 42,
+  "bootstrap_seed": 123
+}

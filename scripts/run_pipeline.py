@@ -85,6 +85,17 @@ def parse_args() -> argparse.Namespace:
         help="Single year to compile (e.g. 2025); overrides config year range.",
     )
     parser.add_argument(
+        "--holdout",
+        type=int,
+        default=None,
+        metavar="YEAR",
+        help=(
+            "Honest holdout evaluation: refit on seasons before YEAR from the existing "
+            "data/processed/cbb_training_clean.csv (no data rebuild), score YEAR against the "
+            "historical seed lookup, and write reports/model_optimization_YYYYMMDD.md."
+        ),
+    )
+    parser.add_argument(
         "--trank-only",
         action="store_true",
         help=argparse.SUPPRESS,
@@ -127,6 +138,13 @@ def run_raw_data_prep() -> None:
 
 if __name__ == "__main__":
     args = parse_args()
+
+    if args.holdout is not None:
+        from scripts.run_analysis import main as run_holdout_analysis
+
+        raise SystemExit(run_holdout_analysis(
+            ["--holdout-year", str(args.holdout), "--report-prefix", "model_optimization"]
+        ))
 
     if args.prep_raw:
         run_raw_data_prep()

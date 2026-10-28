@@ -160,10 +160,104 @@ def test_compute_coach_stats_skips_2020_and_counts_tournament_only() -> None:
     out = madness.compute_coach_stats_from_history(team_year, history, exclude_years=(2020,))
     row = out.iloc[0]
     assert row["coach"] == "Coach A"
-    assert row["coach_tourn_appearances_5y"] == 4
-    assert row["coach_tourn_wins_5y"] == 4
-    assert row["coach_tourn_losses_5y"] == 4
+    # Window is 2019-2023 minus 2020; the current 2024 R32 must NOT count (it is the outcome being
+    # predicted). Counted: 2023 R64 (0-1), 2021 R64 (0-1), 2019 Elite Eight (3-1). 2020 Final Four
+    # is excluded and the blank 2022 finish is not a tournament appearance.
+    assert row["coach_tourn_appearances_5y"] == 3
+    assert row["coach_tourn_wins_5y"] == 3
+    assert row["coach_tourn_losses_5y"] == 3
     assert row["coach_years_with_program"] == 2
+
+
+def test_years_last_5_tournaments_excludes_current_and_2020() -> None:
+    assert madness._years_last_5_tournaments(2024, (2020,)) == [2019, 2021, 2022, 2023]
+    assert madness._years_last_5_tournaments(2021, (2020,)) == [2016, 2017, 2018, 2019]
+    assert madness._years_last_5_tournaments(2026, (2020,)) == [2021, 2022, 2023, 2024, 2025]
+
+
+def test_compute_coach_stats_ignores_current_season_finish() -> None:
+    # Coach features feed models that predict the current season's round, so the
+    # current finish must not move them (a deep run would otherwise leak the target).
+    def _stats(current_finish: str) -> pd.Series:
+        history = pd.DataFrame(
+            [
+                {"team": "Alpha", "year": 2024, "coach": "Coach A", "finish": current_finish},
+                {"team": "Alpha", "year": 2023, "coach": "Coach A", "finish": "Sweet Sixteen"},
+                {"team": "Alpha", "year": 2018, "coach": "Coach A", "finish": "CHAMPS"},
+            ]
+        )
+        team_year = pd.DataFrame([{"Team": "Alpha", "year": 2024}])
+        return madness.compute_coach_stats_from_history(team_year, history, exclude_years=(2020,)).iloc[0]
+
+    lost_early = _stats("R64")
+    champion = _stats("CHAMPS")
+    for c in ["coach_tourn_appearances_5y", "coach_tourn_wins_5y", "coach_tourn_losses_5y", "coach_years_with_program"]:
+        assert lost_early[c] == champion[c]
+    # Only 2023 is inside the window; 2018 is six seasons back.
+    assert champion["coach_tourn_appearances_5y"] == 1
+    assert champion["coach_tourn_wins_5y"] == 2
+    assert champion["coach_tourn_losses_5y"] == 1
+
+
+def test_compute_coach_stats_tenure_spans_excluded_2020() -> None:
+    # 2020 lost only its tournament; the season was played, so it counts toward tenure.
+    def _tenure(rows: list[tuple[int, str]]) -> int:
+        history = pd.DataFrame([{"team": "Alpha", "year": y, "coach": c, "finish": ""} for y, c in rows])
+        team_year = pd.DataFrame([{"Team": "Alpha", "year": 2021}])
+        out = madness.compute_coach_stats_from_history(team_year, history, exclude_years=(2020,))
+        return int(out.iloc[0]["coach_years_with_program"])
+
+    # Same coach 2018-2021: 4 seasons whether or not history has a 2020 row.
+    assert _tenure([(2018, "Coach A"), (2019, "Coach A"), (2020, "Coach A"), (2021, "Coach A")]) == 4
+    assert _tenure([(2018, "Coach A"), (2019, "Coach A"), (2021, "Coach A")]) == 4
+    # A missing 2020 row is only bridged when the same coach is on both sides.
+    assert _tenure([(2019, "Coach Z"), (2021, "Coach A")]) == 1
+    assert _tenure([(2019, "Coach Z"), (2020, "Coach A"), (2021, "Coach A")]) == 2
+
+
+def test_build_training_from_all_tables_keeps_2020_for_coach_tenure(monkeypatch, tmp_path: Path) -> None:
+    all_tables = tmp_path / "all_trank_team_tables.csv"
+    _make_all_tables_csv(all_tables, [{"TEAM": "Alpha", "YEAR": 2021}, {"TEAM": "Beta", "YEAR": 2021}])
+
+    def _mock_history(**kwargs):
+        hist = pd.DataFrame(
+            [
+                {"team": "Alpha", "year": 2021, "coach": "Coach A", "seed": 3, "finish": "R64", "conf": "ACC"},
+                {"team": "Alpha", "year": 2020, "coach": "Coach A", "finish": "", "conf": "ACC"},
+                {"team": "Alpha", "year": 2019, "coach": "Coach A", "seed": 5, "finish": "R32", "conf": "ACC"},
+                {"team": "Beta", "year": 2021, "coach": "Coach B", "seed": 9, "finish": "R64", "conf": "SEC"},
+                {"team": "Beta", "year": 2020, "coach": "Coach B", "finish": "", "conf": "SEC"},
+                {"team": "Beta", "year": 2019, "coach": "Coach Z", "finish": "", "conf": "SEC"},
+            ]
+        )
+        for c in madness.TEAM_HISTORY_CANONICAL_COLS:
+            if c not in hist.columns:
+                hist[c] = ""
+        return hist[madness.TEAM_HISTORY_CANONICAL_COLS], []
+
+    monkeypatch.setattr(madness, "build_team_history_all", _mock_history)
+    _, full = madness.build_training_from_all_tables(
+        all_tables_path=all_tables,
+        team_history_cache_path=tmp_path / "team_history_cache.csv",
+        ext_data_dir=tmp_path,
+        data_raw_dir=tmp_path,
+        run_tag="20260101",
+        year_start=2021,
+        year_end=2021,
+        exclude_years=(2020,),
+        refresh_team_history=False,
+        team_history_delay_sec=0.0,
+        team_history_force_playwright=False,
+    )
+
+    # Training rows stay 2021-only, but tenure sees the 2019-2020 history (Beta's coach was hired for 2020).
+    assert set(full["year"]) == {2021}
+    tenure = full.set_index("Team")["coach_years_with_program"]
+    assert tenure["Alpha"] == 3
+    assert tenure["Beta"] == 2
+    appearances = full.set_index("Team")["coach_tourn_appearances_5y"]
+    assert appearances["Alpha"] == 1
+    assert appearances["Beta"] == 0
 
 
 def test_build_training_from_all_tables_integration(monkeypatch, tmp_path: Path) -> None:
@@ -274,10 +368,15 @@ def test_run_pipeline_data_only_avoids_trank_scrape(monkeypatch, tmp_path: Path)
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("scrape path should not be used")),
     )
 
+    # Stand-in for the frozen file: the default run must leave it byte-identical and write a
+    # run-tagged clean CSV beside it (it used to overwrite it with the configured years only).
+    frozen = data_processed / "cbb_training_clean.csv"
+    frozen.write_bytes(b"Team,year,frozen-2026")
     madness.run_pipeline(data_only=True)
-    out = data_processed / "cbb_training_clean.csv"
-    assert out.exists()
-    clean = pd.read_csv(out)
+    assert frozen.read_bytes() == b"Team,year,frozen-2026"
+    tagged = sorted(data_processed.glob("cbb_training_clean_*.csv"))
+    assert len(tagged) == 1
+    clean = pd.read_csv(tagged[0])
     assert clean.duplicated(["Team", "year"]).sum() == 0
 
 

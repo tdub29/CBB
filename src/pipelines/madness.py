@@ -23,6 +23,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression, Ridge
 
+from src.frozen_inputs import write_csv
 from src.models.bracket import load_bracket
 from src.models.simulate import simulate_bracket
 from src.models.win_probability import build_strength_lookup, compute_strength
@@ -968,7 +969,10 @@ def _finish_to_wl(finish: Any) -> tuple[int, int]:
 
 
 def _years_last_5_tournaments(season_year: int, exclude_years: tuple[int, ...]) -> list[int]:
-    """Five tournament years prior to season_year, excluding the current year (e.g., for 2024: 2019,2021,2022,2023)."""
+    """Seasons in the 5-year look-back before season_year, minus exclude_years (not backfilled).
+
+    The current season is never included: its finish is the prediction target. E.g. 2024 -> 2019,2021,2022,2023.
+    """
     skip = set(exclude_years)
     return [y for y in range(season_year - 5, season_year) if y not in skip]
 
@@ -978,7 +982,13 @@ def compute_coach_stats_from_history(
     history: pd.DataFrame,
     exclude_years: tuple[int, ...] = (2020,),
 ) -> pd.DataFrame:
-    """Compute coach tournament experience features from team history."""
+    """Compute coach tournament experience features from team history.
+
+    Appearances and W-L count the season's head coach at any program over _years_last_5_tournaments(year),
+    so only pre-tournament information is used. coach_years_with_program counts consecutive seasons with this
+    coach at this team, current included. Excluded years (2020) lost only the tournament, so they still count
+    toward tenure; if history has no row for one, the streak bridges it when the same coach is on both sides.
+    """
     if team_year.empty:
         return pd.DataFrame(
             columns=[
@@ -1013,6 +1023,7 @@ def compute_coach_stats_from_history(
     hist["is_tournament"] = (hist["tourn_w"] + hist["tourn_l"]) > 0
 
     rows = []
+    skip = set(exclude_years)
     min_year = int(hist["year"].min()) if not hist.empty else 2008
     for _, r in team_year.iterrows():
         team = str(r["Team"]).strip()
@@ -1041,11 +1052,16 @@ def compute_coach_stats_from_history(
         losses = int(coach_prior["tourn_l"].sum())
 
         years_with = 0
+        bridged = 0
         for y in range(year, min_year - 1, -1):
             one = hist[(hist["team"] == team) & (hist["year"] == y)]
+            if one.empty and y in skip:
+                bridged += 1
+                continue
             if one.empty or str(one.iloc[0]["coach"]).strip() != coach:
                 break
-            years_with += 1
+            years_with += 1 + bridged
+            bridged = 0
 
         rows.append(
             {
@@ -1105,10 +1121,14 @@ def build_training_from_all_tables(
 
     skip = set(exclude_years)
     history_all = history_all.copy()
+    # Coach stats only look back from each season, so they get the untrimmed history: excluded seasons (2020)
+    # still count toward tenure, and _years_last_5_tournaments drops them from the tournament window.
+    coach_history = history_all
     if not history_all.empty:
         history_all["year"] = pd.to_numeric(history_all["year"], errors="coerce")
         history_all = history_all.dropna(subset=["year"])
         history_all["year"] = history_all["year"].astype(int)
+        coach_history = history_all
         history_all = history_all[
             (history_all["year"] >= year_start)
             & (history_all["year"] <= year_end)
@@ -1130,7 +1150,7 @@ def build_training_from_all_tables(
 
     coach_stats = compute_coach_stats_from_history(
         merged[["Team", "year"]].drop_duplicates(),
-        history_all,
+        coach_history,
         exclude_years=exclude_years,
     )
     merged = merged.merge(
@@ -1911,12 +1931,17 @@ def jackknife_loo(
     return final_model, mse_total, preds_arr, actuals_arr
 
 
-def _build_regression_model(ridge_alpha: float) -> Pipeline:
-    """Build a scaled linear model (Ridge when alpha>0, else OLS)."""
+def _build_regression_model(ridge_alpha: float, fit_intercept: bool = True) -> Pipeline:
+    """Build a scaled linear model (Ridge when alpha>0, else OLS).
+
+    The intercept stays on: inputs are standardised, so without it every prediction centres
+    on 0 wins inside each seed band and clips to 0 (53% of the 2025 field). fit_intercept=False
+    exists only to reproduce that old behaviour in scripts/run_powered_comparison.py.
+    """
     if ridge_alpha > 0:
-        estimator = Ridge(alpha=ridge_alpha, fit_intercept=False, random_state=42)
+        estimator = Ridge(alpha=ridge_alpha, fit_intercept=fit_intercept, random_state=42)
     else:
-        estimator = LinearRegression(fit_intercept=False)
+        estimator = LinearRegression(fit_intercept=fit_intercept)
     return Pipeline([("scaler", StandardScaler()), ("model", estimator)])
 
 
@@ -2380,18 +2405,19 @@ def run_pipeline(
         team_history_force_playwright=team_history_force_playwright,
     )
 
-    out_path = Path(f"{out_prefix}_{run_tag}.csv")
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    training_data_full.to_csv(out_path, index=False)
+    out_path = write_csv(training_data_full, f"{out_prefix}_{run_tag}.csv")
     print(f"Training data written to {out_path}")
 
-    # One clean, prepped dataset: no duplicate vars, no duplicate rows, all outcomes
+    # One clean, prepped dataset: no duplicate vars, no duplicate rows, all outcomes. Run-tagged:
+    # data/processed/cbb_training_clean.csv is a frozen input of the log5 test (src/frozen_inputs.py),
+    # cannot be rebuilt from live Torvik, and a default run covers only the configured year range.
     clean_prefix = _get_cfg_path(cfg, "output_training_clean", "data/processed/cbb_training_clean")
-    clean_path = Path(f"{clean_prefix}.csv")
-    clean_path.parent.mkdir(parents=True, exist_ok=True)
     clean_df = build_clean_training_dataset(training_data_full)
-    clean_df.to_csv(clean_path, index=False)
-    print(f"Clean training dataset written to {clean_path} ({len(clean_df)} rows, {len(clean_df.columns)} columns)")
+    clean_path = write_csv(clean_df, f"{clean_prefix}_{run_tag}.csv")
+    print(
+        f"Clean training dataset written to {clean_path} ({len(clean_df)} rows, {len(clean_df.columns)} columns, "
+        f"years {year_start}-{year_end}); the frozen cbb_training_clean.csv is untouched"
+    )
 
     # Research/feature-engineering cut: last N seasons only
     research_seasons = cfg.get("research_last_n_seasons", 2)
@@ -2403,8 +2429,7 @@ def run_pipeline(
         research_full = training_data_full.loc[mask]
         if not research_full.empty:
             research_prefix = _get_cfg_path(cfg, "output_training_research", "data/processed/cbbtrainingdata_last2seasons")
-            research_path = Path(f"{research_prefix}_{run_tag}.csv")
-            research_full.to_csv(research_path, index=False)
+            research_path = write_csv(research_full, f"{research_prefix}_{run_tag}.csv")
             print(f"Research cut (last {research_seasons} seasons) written to {research_path} ({len(research_full)} rows)")
 
     if data_only:

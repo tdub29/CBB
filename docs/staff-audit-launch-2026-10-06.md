@@ -1,0 +1,11 @@
+# Staff audit launch checkpoint
+
+## Engineering continuation
+
+Trevor's follow-up asks why engineering fixes did not start. On October 6 the existing exact aafe185e session received the engineering continuation and resumed commands, keeping saved Opus/high options. Scope is docs/engineering-completion-brief-2026-10-06.md: start must-fix2 frozen-input protection and3 log5 prediction command, then CLI/docs, reviewed dependency closure/local commit and clean-checkout reproduction. This is new implementation authorization, superseding completed audit-only scope; scientific null result unchanged. No second coordinator, mass staging, frozen select rerun or push/deploy. Independent review and tests before engineering DONE.
+
+Exact Claude session: aafe185e-2380-4a46-a6c8-ea91dbf24f08 (short aafe185e), name cbb staff completion audit. Launched October 6 after the 02:51 Pacific window reset, inside existing cbb project. Native acknowledgment backgrounded aafe185e; inventory confirms same full ID and saved high effort, auto permission mode, Opus, 200k compaction. Initial project trust prompt was accepted normally for Trevor's explicitly requested own project after inspecting AGENTS and reports; no permission mode was bypassed. Temporary empty interactive trust session closed.
+
+Launch budget: 296 minutes to 07:51 reset, 1,422,438 weighted of estimated 11,706,521 ceiling, safe new workers 1. One coordinator launched, no parallel new CBB coordinator. Full scope is docs/staff-ds-completion-audit-2026-10-06.md, with separate evidence lanes and independent high-effort judge. Concurrency and subsequent specialist starts must respect fresh measured capacity; preserve full depth across phase checkpoints. Working label is not a completed assessment.
+
+Coordinator writes new evidence under reports/completion-audit-2026-10-06. Never rerun frozen selection, overwrite frozen historical artifacts, stage/reset existing dirty files, push/deploy, bypass approvals, switch accounts, buy credits or send external messages. Football ea66a469 remains separate and its held-message permission gate must not be bypassed. Monitor exact CBB job; do not launch a duplicate when its inventory or checkpoint exists. Preserve output at actual usage limit and respect marker policy for any subsequent recovery.

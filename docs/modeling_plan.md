@@ -2,6 +2,12 @@
 
 Strategic plan for NCAA Men's March Madness prediction models. This covers the current architecture, what's working, what to try next, and how we evaluate progress.
 
+> **Status (2026-10-27).** This is the legacy ridge plan. For prediction it is superseded by the frozen
+> log5 test in [reports/model_vs_seeds_powered.md](../reports/model_vs_seeds_powered.md), whose edge over
+> seed-pair rates is not established. Walk-forward by year (item 5) is built: `scripts/run_bracket_evaluation.py`
+> walks the ridge model forward from 2021 and `scripts/run_powered_comparison.py score` tests on 2021-2026.
+> The roadmap below is kept as written.
+
 ## Objective
 
 Predict how far each tournament team advances (round 0–6) and convert those predictions into game-level win probabilities for bracket simulation.

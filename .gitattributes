@@ -1,2 +1,24 @@
 # Saved third-party HTML captured by scripts/inspect_trank_page.py.
 data/raw/samples/trank_page_sample.html linguist-vendored=true
+
+# Hashed evidence: stored byte for byte so a clone reproduces the sha256 recorded in
+# src/frozen_inputs.py, the game manifests and data/raw/torvik_2026/MANIFEST.md.
+data/processed/cbb_training_clean.csv -text
+data/processed/powered_game_predictions_2010_2026.csv -text
+data/processed/powered_round_probabilities_2010_2026.csv -text
+data/raw/tournament_games.csv -text
+data/raw/tournament_games_manifest.json -text
+data/raw/seed_history_games.csv -text
+data/raw/seed_history_games_manifest.json -text
+data/raw/torvik_2026/** -text
+data/raw/team_history_cache.csv -text
+data/raw/2026_expected_seeds_update.csv -text
+data/raw/assembled/all_trank_team_tables.csv -text
+data/raw/assembled/all_trank_team_tables_tournament.csv -text
+data/raw/trank_team_table_data2026.csv -text
+data/raw/player_stats/player_advanced_2026.csv -text
+data/external/torvik_2026_selection_sunday/** -text
+data/external/trevor_2024_predictions_* -text
+data/external/trevor_2025_predictions_* -text
+reports/model_selection_frozen.json -text
+reports/model_vs_seeds_powered.md -text

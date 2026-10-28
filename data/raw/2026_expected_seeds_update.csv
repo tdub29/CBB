@@ -1,69 +1,69 @@
-Seed,Team,Conf,NET,Elo,Res,WAB,PWR,In %,Bid%
-1,Duke,ACC,1,2,1,2,1.0,100.0,100.0
-1,Michigan,B10,2,1,2,1,2.0,100.0,100.0
-1,Arizona,B12,3,3,3,3,3.3,100.0,100.0
-1,Florida,SEC,4,4,4,6,3.7,100.0,99.9
-2,Connecticut,BE,9,7,11,4,9.3,100.0,99.9
-2,Houston,B12,7,8,6,5,5.3,100.0,99.9
-2,Illinois,B10,5,13,10,12,5.7,100.0,99.9
-2,Iowa St.,B12,8,11,8,9,7.0,100.0,99.9
-3,Purdue,B10,11,21,7,13,8.7,100.0,99.8
-3,Gonzaga,WCC,6,5,27,11,10.0,100.0,99.8
-3,Michigan St.,B10,12,10,15,7,10.7,100.0,99.8
-3,Virginia,ACC,10,6,16,10,20.7,100.0,99.7
-4,Nebraska,B10,13,15,14,8,15.3,100.0,99.6
-4,Alabama,SEC,15,14,12,14,14.7,100.0,99.6
-4,Vanderbilt,SEC,16,22,9,17,14.3,100.0,99.6
-4,Kansas,B12,19,16,5,15,18.7,100.0,99.5
-5,Tennessee,SEC,17,36,13,22,13.7,100.0,99.5
-5,Texas Tech,B12,20,27,18,20,15.0,100.0,99.3
-5,Arkansas,SEC,18,17,19,18,19.3,100.0,99.2
-5,Wisconsin,B10,25,24,17,21,23.3,100.0,98.9
-6,Louisville,ACC,14,31,28,26,14.0,100.0,98.7
-6,St. John's,BE,21,9,31,16,19.3,100.0,98.6
-6,North Carolina,ACC,24,25,22,19,28.7,100.0,98.6
-6,Kentucky,SEC,29,42,23,28,27.3,100.0,97.6
-7,BYU,B12,23,39,24,23,27.0,100.0,97.6
-7,Miami FL,ACC,31,18,20,24,34.3,100.0,96.6
-7,UCLA,B10,30,34,30,31,26.7,100.0,95.7
-7,Georgia,SEC,33,47,25,33,33.7,100.0,94.7
-8,Clemson,ACC,35,33,26,29,32.3,100.0,93.1
-8,Ohio St.,B10,32,37,36,32,26.0,100.0,92.8
-8,Saint Mary's,WCC,22,12,56,25,24.7,100.0,92.3
-8,TCU,B12,40,38,21,35,46.0,100.0,91.3
-9,Iowa,B10,26,53,43,39,27.7,100.0,91.3
-9,Villanova,BE,34,29,52,27,31.7,100.0,89.9
-9,Utah St.,MWC,27,19,48,30,35.3,99.9,86.7
-9,Texas A&M,SEC,44,50,29,40,31.0,99.7,85.4
-10,Saint Louis,A10,28,30,66,36,38.3,99.5,83.8
-10,N.C. State,ACC,37,62,32,44,36.7,98.4,81.6
-10,Miami OH,MAC,57,20,105,34,89.0,99.0,79.1
-10,Oklahoma,SEC,48,51,34,50,44.0,31.1,73.3
-11,Santa Clara,WCC,39,23,57,37,37.7,95.9,68.9
-11,SMU,ACC,36,69,42,47,41.3,81.4,64.6
-11,UCF,B12,53,54,38,38,54.3,84.5,58.6
-11,Missouri,SEC,58,63,33,41,46.0,76.6,54.9
-11,VCU,A10,42,28,78,42,48.0,74.6,53.4
-11,South Florida,Amer,46,35,68,57,51.7,46.9,32.3
-12,McNeese St.,Slnd,55,26,109,43,65.3,100.0,2.9
-12,Akron,MAC,52,32,118,54,64.3,45.5,0.6
-12,Yale,Ivy,66,48,119,59,88.7,37.4,0.2
-12,High Point,BSth,75,45,121,65,83.7,100.0,0.1
-13,Northern Iowa,MVC,70,76,102,103,73.7,100.0,0.1
-13,Utah Valley,WAC,81,46,146,73,95.0,47.2,0.0
-13,Hofstra,CAA,86,57,143,95,93.0,100.0,0.0
-13,Sam Houston St.,CUSA,99,79,147,96,107.0,46.2,0.0
-14,UC Irvine,BW,117,73,122,110,109.7,33.7,0.0
-14,North Dakota St.,Sum,113,61,155,83,120.0,100.0,0.0
-14,Troy,SB,126,92,124,123,138.7,100.0,0.0
-14,Wright St.,Horz,128,82,164,129,136.3,100.0,0.0
-15,Idaho,BSky,146,119,183,176,150.7,100.0,0.0
-15,Tennessee St.,OVC,173,111,205,115,203.7,100.0,0.0
-15,Furman,SC,185,161,191,172,179.7,100.0,0.0
-15,Siena,MAAC,182,110,225,152,189.7,100.0,0.0
-16,Queens,ASun,190,130,181,135,190.7,100.0,0.0
-16,UMBC,AE,202,123,163,106,188.7,75.9,0.0
-16,LIU,NEC,199,142,167,118,222.0,100.0,0.0
-16,Howard,MEAC,198,171,200,136,202.7,75.9,0.0
-16,Lehigh,Pat,275,227,282,244,284.7,100.0,0.0
-16,Southern,SWAC,278,229,272,217,259.3,23.0,0.0
+Seed,Team,Conf,Region,Finish,Source
+1,Arizona,B12,West,Final Four,official 2026 bracket
+1,Duke,ACC,East,Elite Eight,official 2026 bracket
+1,Florida,SEC,South,R32,official 2026 bracket
+1,Michigan,B10,Midwest,CHAMPS,official 2026 bracket
+2,Connecticut,BE,East,Finals,official 2026 bracket
+2,Houston,B12,South,Sweet Sixteen,official 2026 bracket
+2,Iowa St.,B12,Midwest,Sweet Sixteen,official 2026 bracket
+2,Purdue,B10,West,Elite Eight,official 2026 bracket
+3,Gonzaga,WCC,West,R32,official 2026 bracket
+3,Illinois,B10,South,Final Four,official 2026 bracket
+3,Michigan St.,B10,East,Sweet Sixteen,official 2026 bracket
+3,Virginia,ACC,Midwest,R32,official 2026 bracket
+4,Alabama,SEC,Midwest,Sweet Sixteen,official 2026 bracket
+4,Arkansas,SEC,West,Sweet Sixteen,official 2026 bracket
+4,Kansas,B12,East,R32,official 2026 bracket
+4,Nebraska,B10,South,Sweet Sixteen,official 2026 bracket
+5,St. John's,BE,East,Sweet Sixteen,official 2026 bracket
+5,Texas Tech,B12,Midwest,R32,official 2026 bracket
+5,Vanderbilt,SEC,South,R32,official 2026 bracket
+5,Wisconsin,B10,West,R64,official 2026 bracket
+6,BYU,B12,West,R64,official 2026 bracket
+6,Louisville,ACC,East,R32,official 2026 bracket
+6,North Carolina,ACC,South,R64,official 2026 bracket
+6,Tennessee,SEC,Midwest,Elite Eight,official 2026 bracket
+7,Kentucky,SEC,Midwest,R32,official 2026 bracket
+7,Miami FL,ACC,West,R32,official 2026 bracket
+7,Saint Mary's,WCC,South,R64,official 2026 bracket
+7,UCLA,B10,East,R32,official 2026 bracket
+8,Clemson,ACC,South,R64,official 2026 bracket
+8,Georgia,SEC,Midwest,R64,official 2026 bracket
+8,Ohio St.,B10,East,R64,official 2026 bracket
+8,Villanova,BE,West,R64,official 2026 bracket
+9,Iowa,B10,South,Elite Eight,official 2026 bracket
+9,Saint Louis,A10,Midwest,R32,official 2026 bracket
+9,TCU,B12,East,R32,official 2026 bracket
+9,Utah St.,MWC,West,R32,official 2026 bracket
+10,Missouri,SEC,West,R64,official 2026 bracket
+10,Santa Clara,WCC,Midwest,R64,official 2026 bracket
+10,Texas A&M,SEC,South,R32,official 2026 bracket
+10,UCF,B12,East,R64,official 2026 bracket
+11,Miami OH,MAC,Midwest,R64,official 2026 bracket
+11,N.C. State,ACC,West,R68,official 2026 bracket
+11,SMU,ACC,Midwest,R68,official 2026 bracket
+11,South Florida,Amer,East,R64,official 2026 bracket
+11,Texas,SEC,West,Sweet Sixteen,official 2026 bracket
+11,VCU,A10,South,R32,official 2026 bracket
+12,Akron,MAC,Midwest,R64,official 2026 bracket
+12,High Point,BSth,West,R32,official 2026 bracket
+12,McNeese St.,Slnd,South,R64,official 2026 bracket
+12,Northern Iowa,MVC,East,R64,official 2026 bracket
+13,Cal Baptist,WAC,East,R64,official 2026 bracket
+13,Hawaii,BW,West,R64,official 2026 bracket
+13,Hofstra,CAA,Midwest,R64,official 2026 bracket
+13,Troy,SB,South,R64,official 2026 bracket
+14,Kennesaw St.,CUSA,West,R64,official 2026 bracket
+14,North Dakota St.,Sum,East,R64,official 2026 bracket
+14,Penn,Ivy,South,R64,official 2026 bracket
+14,Wright St.,Horz,Midwest,R64,official 2026 bracket
+15,Furman,SC,East,R64,official 2026 bracket
+15,Idaho,BSky,South,R64,official 2026 bracket
+15,Queens,ASun,West,R64,official 2026 bracket
+15,Tennessee St.,OVC,Midwest,R64,official 2026 bracket
+16,Howard,MEAC,Midwest,R64,official 2026 bracket
+16,LIU,NEC,West,R64,official 2026 bracket
+16,Lehigh,Pat,South,R68,official 2026 bracket
+16,Prairie View A&M,SWAC,South,R64,official 2026 bracket
+16,Siena,MAAC,East,R64,official 2026 bracket
+16,UMBC,AE,Midwest,R68,official 2026 bracket
