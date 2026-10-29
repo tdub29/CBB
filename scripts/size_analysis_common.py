@@ -76,6 +76,16 @@ CURRENT_FIELD_YEAR = 2026
 PRIMARY_CANDIDATES = ["EFFHGT", "AVGHGT"]
 SUPPORT_METRICS = ["BLK%", "BLKED%"]
 POSITION_GROUP_SUPPORT_METRICS = ["max_c_porpag"]
+# max_c_porpag comes from Torvik's season player tables (data/raw/player_stats), which include every NCAA
+# tournament game a team played: a player's game count exceeds his team's pre-tournament table by exactly the
+# number of tournament games. A 2008-2025 split of tournament results on it is therefore partly measured on the
+# games it is compared with. The 2026 player export predates the tournament, so 2026 values are not comparable.
+BIG_MAN_OUTCOME_NOTE = (
+    "`max_c_porpag` comes from season player stats that include the team's NCAA tournament games, so any "
+    "2008-2025 split of tournament results on it is partly measured on the outcome it is compared with. Read it "
+    "as outcome-contaminated description, not as a pre-tournament signal."
+)
+BIG_MAN_FIGURE_NOTE = "max_c_porpag includes NCAA tournament games, so these splits are outcome-contaminated"
 PROJECTED_FIELD_ALIASES = {
     "Connecticut": "UConn",
     "Miami FL": "Miami",

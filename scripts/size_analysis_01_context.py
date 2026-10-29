@@ -10,6 +10,7 @@ from matplotlib.ticker import FuncFormatter
 
 from size_analysis_common import (
     ACCENT,
+    BIG_MAN_OUTCOME_NOTE,
     CURRENT_FIELD_YEAR,
     HIGHLIGHT,
     LABEL_TEXT,
@@ -177,7 +178,8 @@ def plot_context(context_table: pd.DataFrame, primary_metric: str, out_path: Pat
     bottom_ax.text(
         0.5,
         0.985,
-        f"Count of tournament teams whose top C posted max_c_porpag >= {DOMINANT_BIG_MAN_THRESHOLD:.1f}; 2026 uses the projected field and no positional data exists in 2008-2009",
+        f"Count of tournament teams whose top C posted max_c_porpag >= {DOMINANT_BIG_MAN_THRESHOLD:.1f}; 2010-2025 values include NCAA tournament games, "
+        "2026 uses the projected field's pre-tournament values, and no positional data exists in 2008-2009",
         transform=bottom_ax.transAxes,
         ha="center",
         va="top",
@@ -267,6 +269,7 @@ def write_summary(
         f"- Locked metric for the size thread: `{primary_metric}` (`{metric_label(primary_metric)}`).",
         f"- Full-field `EFFHGT` moved from `{earliest_row['field_avg_effhgt']:.2f}` in `{int(earliest_row['year'])}` to `{latest_row['field_avg_effhgt']:.2f}` in `{int(latest_row['year'])}` (`{field_eff_change:+.2f}`), and the chart now includes `{CURRENT_FIELD_YEAR}`.",
         f"- Dominant-big-man count starts in `{int(dominant_big_earliest['year'])}` because there is no positional data for `2008-2009`; it moved from `{int(dominant_big_earliest['dominant_big_man_count'])}` in `{int(dominant_big_earliest['year'])}` to `{int(dominant_big_latest['dominant_big_man_count'])}` in `{int(dominant_big_latest['year'])}` (`{dominant_big_change:+d}`), using `max_c_porpag >= {DOMINANT_BIG_MAN_THRESHOLD:.1f}`. The `{CURRENT_FIELD_YEAR}` point uses the projected field.",
+        f"- Outcome contamination: {BIG_MAN_OUTCOME_NOTE} The `{CURRENT_FIELD_YEAR}` count uses a pre-tournament player export, so it is not like-for-like with the earlier seasons.",
         "- Interpretation: this chart is field-level context only. Size Day does not use conference or power-conference framing.",
         "",
         "## Table",
