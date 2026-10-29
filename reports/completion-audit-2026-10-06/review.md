@@ -1,6 +1,6 @@
 # Independent review of the cbb completion audit (2026-10-06)
 
-Reviewer: subagent a99fde60b33e11452 (Opus, read-only). Its hand-back is reproduced verbatim below, extracted from the session transcript.
+Reviewer: independent, read-only. The review is reproduced verbatim below.
 
 ---
 

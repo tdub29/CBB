@@ -1,9 +1,9 @@
-Clean-clone score reproduction (task boassf2ta). Fresh clone of the shared repo, HEAD 284d1ff; started 2026-10-07 01:04 PDT.
+Clean-clone score reproduction. Fresh clone of the shared repo, HEAD 284d1ff; started 2026-10-07 01:04 PDT.
 Command: .venv python -u scripts/run_powered_comparison.py score
 --- log: first and last lines
 [strength fits] 2010
 [strength fits] 2011
-Report written: C:\Users\TrevorWhite\.claude\jobs\aafe185e\tmp\clean_clone\reports\model_vs_seeds_powered.md
+Report written: <clean clone>\reports\model_vs_seeds_powered.md
 model-seed Brier -0.0020 [-0.0087, +0.0059]; frozen-seed 2021-2026 Brier -0.0059 [-0.0123, +0.0004]
 score exit 0
 --- git status --short --untracked-files=all (minus __pycache__)
