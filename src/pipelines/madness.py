@@ -1754,7 +1754,9 @@ def _finalize_training_frame(
         if c in training_data.columns:
             training_data[c] = training_data[c].fillna(0)
 
-    training_data = training_data.dropna()
+    # Torvik's spacer column `blank` holds no values, so a row-wise dropna() with it left in
+    # removes every row and no model can be fit. It is not a feature.
+    training_data = training_data.drop(columns=["blank"], errors="ignore").dropna()
 
     for c in ["G", "3PR", "3PRD", "Rec"]:
         if c in training_data.columns:

@@ -308,6 +308,50 @@ def test_build_training_from_all_tables_integration(monkeypatch, tmp_path: Path)
     assert len(train) > 0
 
 
+def test_training_rows_survive_the_empty_blank_column(monkeypatch, tmp_path: Path) -> None:
+    # In data/raw/assembled/all_trank_team_tables.csv Torvik's spacer column `blank` is empty in
+    # every row; the row-wise dropna() then removed every training row and run_pipeline could not fit.
+    all_tables = tmp_path / "all_trank_team_tables.csv"
+    _make_all_tables_csv(
+        all_tables,
+        [{"TEAM": "Alpha", "YEAR": 2024}, {"TEAM": "Beta", "YEAR": 2024}, {"TEAM": "Gamma", "YEAR": 2024}],
+    )
+    raw = pd.read_csv(all_tables, header=None)
+    raw[madness.TEAM_TABLE_COL_NAMES.index("blank")] = np.nan
+    raw.to_csv(all_tables, index=False, header=False)
+
+    def _mock_history(**kwargs):
+        hist = pd.DataFrame(
+            [
+                {"team": "Alpha", "year": 2024, "coach": "Coach A", "seed": 1, "finish": "Elite Eight", "conf": "ACC"},
+                {"team": "Beta", "year": 2024, "coach": "Coach B", "seed": 7, "finish": "R32", "conf": "SEC"},
+                {"team": "Gamma", "year": 2024, "coach": "Coach C", "finish": "", "conf": "B10"},
+            ]
+        )
+        for c in madness.TEAM_HISTORY_CANONICAL_COLS:
+            if c not in hist.columns:
+                hist[c] = ""
+        hist["ov_rec"] = "25-8"
+        hist["conf_rec"] = "14-4"
+        return hist[madness.TEAM_HISTORY_CANONICAL_COLS], []
+
+    monkeypatch.setattr(madness, "build_team_history_all", _mock_history)
+    train, full = madness.build_training_from_all_tables(
+        all_tables_path=all_tables,
+        team_history_cache_path=tmp_path / "team_history_cache.csv",
+        ext_data_dir=tmp_path,
+        data_raw_dir=tmp_path,
+        run_tag="20260101",
+        year_start=2024,
+        year_end=2024,
+        exclude_years=(2020,),
+    )
+
+    assert full["blank"].isna().all()
+    assert len(train) == 2  # the two seeded teams; Gamma missed the tournament
+    assert sorted(train["seed"].tolist()) == [1.0, 7.0]
+
+
 def test_run_pipeline_data_only_avoids_trank_scrape(monkeypatch, tmp_path: Path) -> None:
     data_raw = tmp_path / "raw"
     data_processed = tmp_path / "processed"
