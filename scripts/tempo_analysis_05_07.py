@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import shutil
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -10,7 +9,7 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 import numpy as np
 import pandas as pd
 
-from size_analysis_common import cache_logo_images, load_logo_image
+from size_analysis_common import cache_logo_images, load_logo_image, with_repo_relative_logo_paths
 from tempo_analysis_common import (
     ACCENT,
     CURRENT_FIELD_YEAR,
@@ -52,7 +51,6 @@ def get_paths() -> dict[str, Path]:
         "input": base["input_sample"],
         "seeds_2026": base["seeds_2026"],
         "logo_cache": root / "data" / "external" / "team_logos" / "espn_ncaam",
-        "thread_dir": base["thread_dir"],
         "fig_05": root / "reports" / "figures" / "tempo_relationships.png",
         "fig_06": root / "reports" / "figures" / "tempo_era_comparison.png",
         "fig_07_barthag": root / "reports" / "figures" / "tempo_2026_profile_map_barthag.png",
@@ -122,7 +120,7 @@ def plot_analysis_05(table: pd.DataFrame, tournament_df: pd.DataFrame, out_path:
     fig.text(
         0.5,
         0.905,
-        "AdjT is the lead Day 8 lens here, but these panels check whether faster or slower teams are just proxies for efficiency and overall strength.",
+        "AdjT is the lead metric; these panels check whether faster or slower teams are just proxies for efficiency and overall strength.",
         ha="center",
         va="center",
         fontsize=10.0,
@@ -178,7 +176,7 @@ def plot_analysis_06(table: pd.DataFrame, out_path: Path) -> None:
         ax.tick_params(axis="x", length=0, pad=7)
         ax.tick_params(axis="y", length=0, pad=7)
 
-    fig.suptitle("Did the modern era change the tempo read?", fontsize=22, fontweight="bold", y=0.97)
+    fig.suptitle("Tempo metrics by era", fontsize=22, fontweight="bold", y=0.97)
     fig.text(
         0.5,
         0.91,
@@ -712,7 +710,7 @@ def write_summary_07(table: pd.DataFrame, out_path: Path) -> None:
     lines = [
         "# Tempo Analysis 7: 2026 Profile Map",
         "",
-        "- The 2026 tempo package now includes four logo maps: AdjT x seed, AdjT x Barthag, AdjT x AdjOE, and AdjT x AdjDE.",
+        "- Four logo maps of the March 2026 projection: AdjT x seed, AdjT x Barthag, AdjT x AdjOE, and AdjT x AdjDE.",
         f"- Gold-backed logos mark former NCAA champions in the projected `{CURRENT_FIELD_YEAR}` field: {former_champion_text}.",
         "- Rose-backed circles mark historical 1-3 seeds that lost in the first round.",
         "",
@@ -725,12 +723,6 @@ def write_summary_07(table: pd.DataFrame, out_path: Path) -> None:
         weakest.round(3).to_markdown(index=False),
     ]
     out_path.write_text("\n".join(lines), encoding="utf-8")
-
-
-def create_thread_assets(paths: dict[str, Path]) -> None:
-    thread_dir = paths["thread_dir"]
-    thread_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(paths["fig_05"], thread_dir / "1_tempo_hook.png")
 
 
 def main() -> int:
@@ -746,7 +738,7 @@ def main() -> int:
 
     table05.round(6).to_csv(paths["csv_05"], index=False)
     table06.round(6).to_csv(paths["csv_06"], index=False)
-    table07.round(6).to_csv(paths["csv_07"], index=False)
+    with_repo_relative_logo_paths(table07).round(6).to_csv(paths["csv_07"], index=False)
 
     plot_analysis_05(table05, tournament_df, paths["fig_05"])
     plot_analysis_06(table06, paths["fig_06"])
@@ -788,7 +780,6 @@ def main() -> int:
     write_summary_05(table05, paths["md_05"])
     write_summary_06(table06, paths["md_06"])
     write_summary_07(table07, paths["md_07"])
-    create_thread_assets(paths)
     return 0
 
 

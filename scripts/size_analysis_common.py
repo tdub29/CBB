@@ -76,6 +76,16 @@ CURRENT_FIELD_YEAR = 2026
 PRIMARY_CANDIDATES = ["EFFHGT", "AVGHGT"]
 SUPPORT_METRICS = ["BLK%", "BLKED%"]
 POSITION_GROUP_SUPPORT_METRICS = ["max_c_porpag"]
+# max_c_porpag comes from Torvik's season player tables (data/raw/player_stats), which include every NCAA
+# tournament game a team played: a player's game count exceeds his team's pre-tournament table by exactly the
+# number of tournament games. A 2008-2025 split of tournament results on it is therefore partly measured on the
+# games it is compared with. The 2026 player export predates the tournament, so 2026 values are not comparable.
+BIG_MAN_OUTCOME_NOTE = (
+    "`max_c_porpag` comes from season player stats that include the team's NCAA tournament games, so any "
+    "2008-2025 split of tournament results on it is partly measured on the outcome it is compared with. Read it "
+    "as outcome-contaminated description, not as a pre-tournament signal."
+)
+BIG_MAN_FIGURE_NOTE = "max_c_porpag includes NCAA tournament games, so these splits are outcome-contaminated"
 PROJECTED_FIELD_ALIASES = {
     "Connecticut": "UConn",
     "Miami FL": "Miami",
@@ -98,7 +108,9 @@ def get_size_base_paths() -> dict[str, Path]:
         "input_raw": project_root / "data" / "raw" / "assembled" / "all_trank_team_tables.csv",
         "input_sample": project_root / "data" / "processed" / "size_sample.csv",
         "metric_selection": project_root / "reports" / "size_metric_selection.csv",
-        "seeds_2026": project_root / "data" / "raw" / "2026_expected_seeds_update.csv",
+        # The March 2026 bracketology projection the 2026-field reports describe. ingest_2026.py replaced
+        # data/raw/2026_expected_seeds_update.csv with the official bracket and archived the projection here.
+        "seeds_2026": project_root / "data" / "raw" / "torvik_2026" / "bracketology_archive" / "2026_expected_seeds_update.csv",
         "logo_cache": project_root / "data" / "external" / "team_logos" / "espn_ncaam",
         "player_stats_advanced": project_root / "data" / "raw" / "player_stats" / "player_advanced_all.csv",
     }
@@ -315,7 +327,7 @@ def build_seed_reference_tables(
     return full_reference, recent_reference
 
 
-def build_seed_group_carryover_table(tournament_df: pd.DataFrame, metric: str) -> pd.DataFrame:
+def build_seed_group_rho_table(tournament_df: pd.DataFrame, metric: str) -> pd.DataFrame:
     def summarize(df: pd.DataFrame, prefix: str) -> pd.DataFrame:
         work = df.copy()
         work["seed_group"] = work["seed_int"].map(SEED_GROUP_MAP)
@@ -337,19 +349,7 @@ def build_seed_group_carryover_table(tournament_df: pd.DataFrame, metric: str) -
         tournament_df[tournament_df["year"].between(TRANSFER_PORTAL_YEAR, 2025)].copy(),
         "recent",
     )
-    group_table = full_group.merge(recent_group, on="seed_group", how="outer")
-
-    def classify_action_tier(row: pd.Series) -> str:
-        full_rho = float(row.get("full_group_rho", np.nan))
-        recent_rho = float(row.get("recent_group_rho", np.nan))
-        if pd.notna(full_rho) and full_rho >= 0.25 and pd.notna(recent_rho) and recent_rho > 0:
-            return "High-use pocket"
-        if (pd.notna(full_rho) and full_rho >= 0.10) or (pd.notna(recent_rho) and recent_rho >= 0.15):
-            return "Secondary-use pocket"
-        return "Low-use pocket"
-
-    group_table["seed_action_tier"] = group_table.apply(classify_action_tier, axis=1)
-    return group_table
+    return full_group.merge(recent_group, on="seed_group", how="outer")
 
 
 def assign_era(year: int) -> str:
@@ -467,6 +467,26 @@ def cache_logo_images(field_table: pd.DataFrame, cache_dir: Path) -> pd.DataFram
         cache_paths.append(str(logo_path))
     merged["logo_path"] = cache_paths
     return merged
+
+
+def repo_relative_path(value: object) -> object:
+    """A path inside the repo as a POSIX string relative to the repo root; other values pass through."""
+    if not isinstance(value, (str, Path)) or not str(value):
+        return value
+    path = Path(value)
+    try:
+        return path.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def with_repo_relative_logo_paths(table: pd.DataFrame) -> pd.DataFrame:
+    """Copy of `table` for export, with `logo_path` independent of the machine that ran the script."""
+    if "logo_path" not in table.columns:
+        return table
+    exported = table.copy()
+    exported["logo_path"] = exported["logo_path"].map(repo_relative_path)
+    return exported
 
 
 def load_logo_image(logo_path: str | Path) -> Image.Image:

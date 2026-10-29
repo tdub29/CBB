@@ -4,7 +4,7 @@
 - Strongest raw year: `2017` at `+0.541`.
 - Strongest exact-seed-adjusted year: `2010` at `+0.188`.
 - Weakest exact-seed-adjusted year: `2013` at `-0.205`.
-- Interpretation: the year view shows whether size behaves consistently over time; any modern bump should still be treated as a qualifier, not a replacement for the full sample.
+- Interpretation: per-season rank correlations on each season's tournament field; no significance test is applied.
 
 ## Table
 

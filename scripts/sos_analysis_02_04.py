@@ -384,7 +384,7 @@ def plot_metric_selection(correlation_df: pd.DataFrame, out_path: Path) -> None:
     ax.text(
         0.5,
         1.04,
-        "This stays outside the thread; it only decides which SOS metric leads the story",
+        "Selection check only: compares the candidate SOS metrics to choose the primary one",
         transform=ax.transAxes,
         ha="center",
         va="bottom",

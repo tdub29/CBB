@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import shutil
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
@@ -11,7 +10,7 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 import numpy as np
 import pandas as pd
 
-from size_analysis_common import cache_logo_images, load_logo_image
+from size_analysis_common import cache_logo_images, load_logo_image, with_repo_relative_logo_paths
 from rebounding_analysis_common import (
     ACCENT,
     CURRENT_FIELD_YEAR,
@@ -48,7 +47,6 @@ def get_paths() -> dict[str, Path]:
         "input": base["input_sample"],
         "seeds_2026": base["seeds_2026"],
         "logo_cache": root / "data" / "external" / "team_logos" / "espn_ncaam",
-        "thread_dir": base["thread_dir"],
         "fig_05": root / "reports" / "figures" / "rebounding_archetypes_vs_overperformance.png",
         "fig_06": root / "reports" / "figures" / "rebounding_era_comparison.png",
         "fig_07": root / "reports" / "figures" / "rebounding_2026_profile_map.png",
@@ -275,7 +273,7 @@ def plot_analysis_06(table: pd.DataFrame, out_path: Path) -> None:
         ax.tick_params(axis="x", length=0, pad=7)
         ax.tick_params(axis="y", length=0, pad=7)
 
-    fig.suptitle("Did the modern era change the rebounding read?", fontsize=22, fontweight="bold", y=0.97)
+    fig.suptitle("Rebounding metrics by era", fontsize=22, fontweight="bold", y=0.97)
     fig.text(
         0.5,
         0.905,
@@ -575,7 +573,7 @@ def write_summary_05(table: pd.DataFrame, out_path: Path) -> None:
         "# Rebounding Analysis 5: Glass Archetypes",
         "",
         f"- Best archetype: `{best['archetype']}` at `{best['mean_overperformance']:+.3f}` overperformance points.",
-        "- Day 6 should treat offensive and defensive rebounding as separate inputs first, then combine them in the archetype read.",
+        "- Offensive and defensive rebounding are treated as separate inputs first, then combined in the archetypes.",
         "",
         "## Table",
         "",
@@ -612,7 +610,7 @@ def write_summary_07(table: pd.DataFrame, out_path: Path) -> None:
     lines = [
         "# Rebounding Analysis 7: 2026 Profile Map",
         "",
-        "- This chart uses raw offensive and defensive rebounding rates on the axes so the 2026 field can be read in one glance.",
+        "- This chart plots raw offensive and defensive rebounding rates for the March 2026 projection.",
         "- Dotted guide lines mark the full-sample tournament averages for ORB and DRB.",
         "- Best and weak cases below are still ranked by the combined seed-relative glass-control score, but the table shows the actual rebounding rates used on the chart.",
         f"- Gold-backed logos mark former NCAA champions in the projected `{CURRENT_FIELD_YEAR}` field: {former_champion_text}.",
@@ -626,12 +624,6 @@ def write_summary_07(table: pd.DataFrame, out_path: Path) -> None:
         worst.round(3).to_markdown(index=False),
     ]
     out_path.write_text("\n".join(lines), encoding="utf-8")
-
-
-def create_thread_assets(paths: dict[str, Path]) -> None:
-    thread_dir = paths["thread_dir"]
-    thread_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(paths["fig_05"], thread_dir / "1_rebounding_hook.png")
 
 
 def main() -> int:
@@ -648,7 +640,7 @@ def main() -> int:
 
     table05.round(6).to_csv(paths["csv_05"], index=False)
     table06.round(6).to_csv(paths["csv_06"], index=False)
-    table07.round(6).to_csv(paths["csv_07"], index=False)
+    with_repo_relative_logo_paths(table07).round(6).to_csv(paths["csv_07"], index=False)
 
     plot_analysis_05(table05, over_df, paths["fig_05"])
     plot_analysis_06(table06, paths["fig_06"])
@@ -657,7 +649,6 @@ def main() -> int:
     write_summary_05(table05, paths["md_05"])
     write_summary_06(table06, paths["md_06"])
     write_summary_07(table07, paths["md_07"])
-    create_thread_assets(paths)
     return 0
 
 

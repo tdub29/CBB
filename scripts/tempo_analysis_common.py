@@ -161,8 +161,9 @@ def get_tempo_base_paths() -> dict[str, Path]:
     return {
         "input_sample": project_root / "data" / "processed" / "tempo_sample.csv",
         "metric_selection": project_root / "reports" / "tempo_metric_selection.csv",
-        "seeds_2026": project_root / "data" / "raw" / "2026_expected_seeds_update.csv",
-        "thread_dir": project_root / "reports" / "figures" / "tempo_thread",
+        # The March 2026 bracketology projection the 2026-field reports describe. ingest_2026.py replaced
+        # data/raw/2026_expected_seeds_update.csv with the official bracket and archived the projection here.
+        "seeds_2026": project_root / "data" / "raw" / "torvik_2026" / "bracketology_archive" / "2026_expected_seeds_update.csv",
     }
 
 
@@ -292,6 +293,6 @@ def choose_primary_metric(over_df: pd.DataFrame) -> pd.DataFrame:
     metric_df = pd.DataFrame(rows).sort_values("seed_adjusted_spearman", ascending=False, kind="stable").reset_index(drop=True)
     metric_df["primary_metric"] = "AdjT"
     metric_df["selection_note"] = (
-        "AdjT is locked as the Day 8 lead metric. AdjOE, AdjDE, and Barthag are support lenses for explaining where tempo helps or fails."
+        "AdjT is the lead metric. AdjOE, AdjDE, and Barthag are context metrics for checking whether tempo is a proxy for team quality."
     )
     return metric_df

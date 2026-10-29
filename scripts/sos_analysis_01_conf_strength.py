@@ -109,6 +109,14 @@ def get_paths() -> dict[str, Path]:
     }
 
 
+def display_path(path: Path) -> str:
+    """Path relative to the repo root, so the report does not depend on where the repo was cloned."""
+    try:
+        return path.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
 def load_data(path: Path) -> pd.DataFrame:
     df = pd.read_csv(path)
     if "year" not in df.columns and "Year" in df.columns:
@@ -575,8 +583,8 @@ def write_outputs(
     lines = [
         "# SOS Analysis 1: Conference Strength by Year",
         "",
-        f"- Input: `{paths['input']}`",
-        f"- Figure: `{paths['figure']}`",
+        f"- Input: `{display_path(paths['input'])}`",
+        f"- Figure: `{display_path(paths['figure'])}`",
         f"- Rows analyzed: `{len(conf_year):,}` conference-year rows from `{years[0]}-{years[-1]}` (2020 excluded).",
         f"- Conference avg validation: max absolute diff between recomputed and stored `conf_avg_barthag` = `{max_diff:.10f}`.",
         "",

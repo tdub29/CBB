@@ -2,9 +2,9 @@
 
 - Field-average offensive turnover rate moved from `21.23` in 2008 to `16.82` in 2026.
 - Field-average defensive turnover pressure moved from `21.16` to `16.81` over the same span.
-- The field-level gap between those two turnover series is tiny on average (`0.05`), so they should be shown as one shared environment story rather than two separate headline panels.
+- The field-level gap between those two turnover series is small on average (`0.05`), so the chart shows them together.
 - Block pressure context: `BLK%` moved from `9.03` to `9.47`, while `BLKED%` moved from `9.22` to `9.53`.
-- Interpretation: the field environment changed enough that turnover edges should be interpreted against modern baselines, not early-sample assumptions.
+- Interpretation: field-level context only; turnover rates changed over the sample, while the seed-line baselines in the later analyses pool 2008-2025.
 
 ## Table
 
