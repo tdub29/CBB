@@ -40,6 +40,7 @@ from experience_analysis_common import (
     normalize_team_key,
     set_project_theme,
     styled_box,
+    with_repo_relative_logo_paths,
 )
 
 PLAYER_VISUAL_METRIC = PLAYER_SUPPORT_METRIC
@@ -913,7 +914,7 @@ def main() -> int:
 
     table_05.round(6).to_csv(paths["csv_05"], index=False)
     table_06.round(6).to_csv(paths["csv_06"], index=False)
-    table_07.round(6).to_csv(paths["csv_07"], index=False)
+    with_repo_relative_logo_paths(table_07).round(6).to_csv(paths["csv_07"], index=False)
 
     plot_analysis_05(table_05, paths["fig_05"])
     plot_analysis_06(table_06, coach_primary_metric, paths["fig_06"])

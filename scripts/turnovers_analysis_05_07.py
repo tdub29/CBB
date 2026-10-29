@@ -10,7 +10,7 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 import numpy as np
 import pandas as pd
 
-from size_analysis_common import cache_logo_images, load_logo_image
+from size_analysis_common import cache_logo_images, load_logo_image, with_repo_relative_logo_paths
 from turnovers_analysis_common import (
     ACCENT,
     CURRENT_FIELD_YEAR,
@@ -785,7 +785,7 @@ def main() -> int:
 
     table05.round(6).to_csv(paths["csv_05"], index=False)
     table06.round(6).to_csv(paths["csv_06"], index=False)
-    table07.round(6).to_csv(paths["csv_07"], index=False)
+    with_repo_relative_logo_paths(table07).round(6).to_csv(paths["csv_07"], index=False)
 
     plot_analysis_05(table05, paths["fig_05"])
     plot_analysis_07_pair(

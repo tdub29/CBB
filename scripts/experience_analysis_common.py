@@ -30,6 +30,7 @@ from size_analysis_common import (
     normalize_team_key,
     set_project_theme,
     styled_box,
+    with_repo_relative_logo_paths,
 )
 
 FINISH_ORDER = [
@@ -435,4 +436,5 @@ __all__ = [
     "normalize_team_key",
     "set_project_theme",
     "styled_box",
+    "with_repo_relative_logo_paths",
 ]

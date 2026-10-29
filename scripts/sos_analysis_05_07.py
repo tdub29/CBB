@@ -20,6 +20,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from src.visualization.palette import PROJECT_PALETTE, apply_report_background, set_project_theme
+from size_analysis_common import with_repo_relative_logo_paths
 
 FINISH_DEPTH = {
     "R64": 1,
@@ -1354,7 +1355,7 @@ def main() -> int:
         paths["logo_cache"],
     )
     plot_analysis_07(field_table, paths["fig_07"])
-    field_table.round(6).to_csv(paths["csv_07"], index=False)
+    with_repo_relative_logo_paths(field_table).round(6).to_csv(paths["csv_07"], index=False)
     write_analysis_07_md(paths["md_07"], field_table, tournament_df, over_df)
 
     print(f"Primary metric: {primary_metric}")
