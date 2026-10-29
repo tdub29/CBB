@@ -23,7 +23,6 @@ from experience_analysis_common import (
     TEXT_LIGHT,
     apply_report_background,
     build_overperformance_data,
-    cache_logo_images,
     get_experience_base_paths,
     filter_coach_analysis,
     load_experience_data,
@@ -31,7 +30,6 @@ from experience_analysis_common import (
     load_tournament_data,
     metric_label,
     metric_slug,
-    normalize_team_key,
     set_project_theme,
     styled_box,
 )
@@ -60,7 +58,6 @@ def get_paths() -> dict[str, Path]:
     return {
         "input": base["input_sample"],
         "metric_selection": base["metric_selection"],
-        "logo_cache": base["logo_cache"],
         "fig_02": root / "reports" / "figures" / "player_exp_vs_finish_pooled.png",
         "fig_03": root / "reports" / "figures" / "player_exp_late_rounds.png",
         "fig_04": root / "reports" / "figures" / "coach_experience_vs_march.png",
@@ -549,27 +546,10 @@ def _over_with_seed_group(over_df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def build_champion_logo_table(tournament_df: pd.DataFrame, logo_cache_dir: Path) -> pd.DataFrame:
-    """One row per unique champion team with logo_lookup_key; cache logos and return Team, logo_path."""
-    champs = (
-        tournament_df.loc[tournament_df["finish"] == "CHAMPS", "Team"]
-        .astype(str)
-        .str.strip()
-        .unique()
-    )
-    if len(champs) == 0:
-        return pd.DataFrame(columns=["Team", "logo_lookup_key", "logo_path"])
-    champ_table = pd.DataFrame(
-        {"Team": champs, "logo_lookup_key": [normalize_team_key(t) for t in champs]}
-    )
-    return cache_logo_images(champ_table, logo_cache_dir)
-
-
 def plot_seed_group_player(
     seed_table: pd.DataFrame,
     over_df: pd.DataFrame,
     out_path: Path,
-    champ_logos: pd.DataFrame | None = None,
 ) -> None:
     exp_slug = metric_slug(PLAYER_SUPPORT_METRIC)
     over_with_group = _over_with_seed_group(over_df)
@@ -664,7 +644,6 @@ def plot_seed_group_coach(
     over_df: pd.DataFrame,
     coach_primary_metric: str,
     out_path: Path,
-    champ_logos: pd.DataFrame | None = None,
 ) -> None:
     coach_slug = metric_slug(coach_primary_metric)
     over_with_group = _over_with_seed_group(over_df)
@@ -811,16 +790,12 @@ def main() -> int:
     plot_analysis_02(tournament_df, over_df, table_02, paths["fig_02"])
     plot_analysis_03(table_03, paths["fig_03"])
     plot_analysis_04(coach_tournament_df, coach_over_df, coach_primary_metric, paths["fig_04"])
-    champ_logos = build_champion_logo_table(tournament_df, paths["logo_cache"])
-    plot_seed_group_player(
-        table_sg, over_df, paths["fig_seed_group_player"], champ_logos=champ_logos
-    )
+    plot_seed_group_player(table_sg, over_df, paths["fig_seed_group_player"])
     plot_seed_group_coach(
         table_sg,
         coach_over_df,
         coach_primary_metric,
         paths["fig_seed_group_coach"],
-        champ_logos=champ_logos,
     )
 
     write_analysis_02_summary(paths["md_02"], table_02)
