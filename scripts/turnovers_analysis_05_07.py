@@ -14,13 +14,10 @@ from turnovers_analysis_common import (
     ACCENT,
     CURRENT_FIELD_YEAR,
     ERAS,
-    HIGHLIGHT,
     LABEL_TEXT,
-    NEGATIVE,
     POSITIVE,
     PROJECT_PALETTE,
     SECONDARY,
-    TEXT_DARK,
     apply_report_background,
     build_overperformance_data,
     build_seed_reference_tables,
@@ -29,9 +26,7 @@ from turnovers_analysis_common import (
     load_tournament_data,
     load_turnovers_data,
     metric_slug,
-    metric_label,
     normalize_team_key,
-    LOWER_BETTER,
     set_project_theme,
     styled_box,
 )
@@ -119,57 +114,7 @@ def plot_analysis_05(table: pd.DataFrame, out_path: Path) -> None:
     ax.tick_params(axis="x", length=0, pad=6)
     ax.tick_params(axis="y", length=0, pad=8)
     fig.suptitle("Turnover archetypes versus overperformance", fontsize=22, fontweight="bold", y=0.97)
-    fig.text(0.5, 0.90, "Blocks and tempo stay support layers inside the archetype read; Day 4 still starts with ball security.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_path, dpi=220, bbox_inches="tight")
-    plt.close(fig)
-
-
-def build_tempo_table(over_df: pd.DataFrame) -> pd.DataFrame:
-    plot_df = over_df.copy()
-    plot_df["ball_security_bucket"] = np.where(plot_df["tor_edge"] >= 0, "clean offense", "loose offense")
-    rows = []
-    for (ball_security_bucket, tempo_bucket), group in plot_df.groupby(["ball_security_bucket", "tempo_bucket"], as_index=False):
-        rows.append(
-            {
-                "ball_security_bucket": ball_security_bucket,
-                "tempo_bucket": tempo_bucket,
-                "team_count": int(len(group)),
-                "mean_overperformance": float(group["overperformance"].mean()),
-                "avg_disruption_edge": float(group["defensive_disruption_edge"].mean()),
-            }
-        )
-    return pd.DataFrame(rows)
-
-
-def plot_tempo(table: pd.DataFrame, out_path: Path) -> None:
-    order = [
-        ("clean offense", "slower than seed baseline"),
-        ("clean offense", "faster than seed baseline"),
-        ("loose offense", "slower than seed baseline"),
-        ("loose offense", "faster than seed baseline"),
-    ]
-    plot_df = table.set_index(["ball_security_bucket", "tempo_bucket"]).reindex(order).reset_index()
-    labels = ["clean + slow", "clean + fast", "loose + slow", "loose + fast"]
-    colors = [POSITIVE, ACCENT, PROJECT_PALETTE["steel"], NEGATIVE]
-
-    set_project_theme()
-    fig, ax = plt.subplots(figsize=(13.2, 7.4), constrained_layout=False)
-    apply_report_background(fig, [ax])
-    fig.subplots_adjust(top=0.82, bottom=0.14, left=0.08, right=0.94)
-    ax.bar(np.arange(len(plot_df)), plot_df["mean_overperformance"], color=colors, width=0.62)
-    ax.axhline(0, color=SECONDARY, linestyle=":", linewidth=1.3)
-    ax.set_xticks(np.arange(len(plot_df)))
-    ax.set_xticklabels(labels, fontsize=10.2, fontweight="semibold")
-    ax.set_ylabel("Mean overperformance vs exact seed", fontsize=11.0, fontweight="semibold")
-    ax.set_title("Tempo interaction inside the turnover story", fontsize=13.0, fontweight="bold", color=TEXT_DARK, pad=12)
-    ax.grid(False)
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.tick_params(axis="x", length=0, pad=7)
-    ax.tick_params(axis="y", length=0, pad=6)
-    fig.suptitle("When pace changes the turnover read", fontsize=22, fontweight="bold", y=0.97)
-    fig.text(0.5, 0.90, "Tempo is only a Day 4 support signal. This chart exists to test whether it sharpens the turnover read at all.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
+    fig.text(0.5, 0.90, "Teams split at their exact seed line's average on TOR edge and defensive disruption edge (TORD edge + 0.35 x BLK% edge).", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=220, bbox_inches="tight")
     plt.close(fig)
@@ -185,30 +130,6 @@ def build_analysis_06_table(over_df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def plot_analysis_06(table: pd.DataFrame, out_path: Path) -> None:
-    colors = [ACCENT] + [HIGHLIGHT if "2022" in era else PROJECT_PALETTE["steel"] for era in table["era"].iloc[1:]]
-    set_project_theme()
-    fig, ax = plt.subplots(figsize=(13.4, 7.2), constrained_layout=False)
-    apply_report_background(fig, [ax])
-    fig.subplots_adjust(top=0.82, bottom=0.14, left=0.08, right=0.94)
-    ax.bar(np.arange(len(table)), table["tor_seed_adjusted_rho"], color=colors, width=0.62)
-    ax.axhline(0, color=SECONDARY, linestyle=":", linewidth=1.3)
-    ax.set_xticks(np.arange(len(table)))
-    ax.set_xticklabels(table["era"].tolist(), fontsize=10.0, fontweight="semibold")
-    ax.set_ylabel("Seed-adjusted Spearman rho", fontsize=11.0, fontweight="semibold")
-    ax.set_title("Era comparison for ball security", fontsize=13.0, fontweight="bold", color=TEXT_DARK, pad=12)
-    ax.grid(False)
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.tick_params(axis="x", length=0, pad=7)
-    ax.tick_params(axis="y", length=0, pad=6)
-    fig.suptitle("Does the turnover edge survive into the modern era?", fontsize=22, fontweight="bold", y=0.97)
-    fig.text(0.5, 0.90, "The full-sample read stays useful only if the modern-era bar does not collapse.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_path, dpi=220, bbox_inches="tight")
-    plt.close(fig)
-
-
 def build_analysis_07_table(full_df: pd.DataFrame, tournament_df: pd.DataFrame, seeds_path: Path, logo_cache_dir: Path) -> pd.DataFrame:
     field = load_projected_field(seeds_path, full_df)
     full_ref, recent_ref = build_seed_reference_tables(tournament_df, ["TOR", "TORD", "BLK%", "BLKED%", "AdjT"])
@@ -219,7 +140,8 @@ def build_analysis_07_table(full_df: pd.DataFrame, tournament_df: pd.DataFrame, 
         merged[f"full_{slug}_edge"] = -merged[f"full_{slug}_delta_raw"] if metric in {"TOR", "BLKED%"} else merged[f"full_{slug}_delta_raw"]
     merged["defensive_disruption_edge"] = merged["full_tord_edge"] + 0.35 * merged["full_blk_pct_edge"]
     merged["tempo_bucket"] = np.where(merged["full_adjt_edge"] >= 0, "faster than seed baseline", "slower than seed baseline")
-    merged["day4_score"] = merged["full_tor_edge"] + 0.55 * merged["defensive_disruption_edge"]
+    # Ad hoc weights, not fitted: used only to order teams within a seed line in the exported table.
+    merged["turnover_profile_score"] = merged["full_tor_edge"] + 0.55 * merged["defensive_disruption_edge"]
     merged["disruption_context"] = np.where(
         merged["defensive_disruption_edge"] >= 0.75,
         "positive",
@@ -274,7 +196,7 @@ def build_analysis_07_table(full_df: pd.DataFrame, tournament_df: pd.DataFrame, 
     merged["is_former_champion"] = merged["championship_count"] > 0
     merged = cache_logo_images(merged, logo_cache_dir)
     merged["logo_fallback"] = merged["logo_path"].isna()
-    merged = merged.sort_values(["projected_seed", "day4_score"], ascending=[True, False], kind="stable").reset_index(drop=True)
+    merged = merged.sort_values(["projected_seed", "turnover_profile_score"], ascending=[True, False], kind="stable").reset_index(drop=True)
     return merged
 
 
@@ -329,192 +251,6 @@ def validate_analysis_07_table(table: pd.DataFrame) -> None:
                 )
             if any(pd.isna(value) for value in values):
                 raise ValueError(f"Former champion {row.team_display} has missing values in {column}")
-
-
-def plot_analysis_07(table: pd.DataFrame, out_path: Path, primary_metric: str) -> None:
-    plot_df = table.copy()
-    plot_df["plot_y"] = plot_df["projected_seed"].astype(float)
-    for seed, idx in plot_df.groupby("projected_seed", sort=True).groups.items():
-        indices = list(idx)
-        offsets = np.linspace(-0.24, 0.24, len(indices)) if len(indices) > 1 else np.array([0.0])
-        for position, offset in zip(indices, offsets):
-            plot_df.loc[position, "plot_y"] = float(seed) + float(offset)
-
-    primary_slug = metric_slug(primary_metric)
-    support_metric = "TORD" if primary_metric == "TOR" else "TOR"
-    support_label = "disruption support" if primary_metric == "TOR" else "ball-security support"
-    support_color_map = {"positive": POSITIVE, "neutral": PROJECT_PALETTE["steel"], "negative": NEGATIVE}
-    if primary_metric == "TOR":
-        plot_df["support_context"] = plot_df["disruption_context"]
-    else:
-        plot_df["support_context"] = np.where(
-            plot_df["full_tor_edge"] >= 0.75,
-            "positive",
-            np.where(plot_df["full_tor_edge"] <= -0.75, "negative", "neutral"),
-        )
-
-    seed_reference = (
-        plot_df.groupby("projected_seed", as_index=False)[[f"full_seed_avg_{primary_slug}", f"recent_seed_avg_{primary_slug}"]]
-        .first()
-        .sort_values("projected_seed", kind="stable")
-    )
-
-    set_project_theme()
-    fig, ax = plt.subplots(figsize=(22.8, 12.4), constrained_layout=False)
-    apply_report_background(fig, [ax])
-    fig.subplots_adjust(top=0.84, bottom=0.10, left=0.08, right=0.97)
-
-    for seed in range(1, 17):
-        ax.axhline(seed, color=SECONDARY, linewidth=0.7, alpha=0.16, zorder=0)
-
-    for row in seed_reference.itertuples(index=False):
-        seed = float(row.projected_seed)
-        ax.plot(
-            [float(getattr(row, f"full_seed_avg_{primary_slug}")), float(getattr(row, f"full_seed_avg_{primary_slug}"))],
-            [seed - 0.26, seed + 0.26],
-            color=ACCENT,
-            linewidth=3.0,
-            solid_capstyle="round",
-            zorder=1,
-        )
-        ax.plot(
-            [float(getattr(row, f"recent_seed_avg_{primary_slug}")), float(getattr(row, f"recent_seed_avg_{primary_slug}"))],
-            [seed - 0.18, seed + 0.18],
-            color=SECONDARY,
-            linewidth=2.1,
-            alpha=0.78,
-            solid_capstyle="round",
-            zorder=1,
-        )
-
-    for row in plot_df.itertuples(index=False):
-        x_value = float(getattr(row, primary_metric))
-        y_value = float(row.plot_y)
-        halo_color = support_color_map.get(str(getattr(row, "support_context", "neutral")), PROJECT_PALETTE["steel"])
-        logo_path = getattr(row, "logo_path", None)
-        is_former_champion = bool(getattr(row, "is_former_champion", False))
-        if isinstance(logo_path, (str, Path)) and Path(logo_path).exists():
-            logo_image = np.asarray(load_logo_image(logo_path))
-            if is_former_champion:
-                title_seeds = list(getattr(row, "title_seeds", []))
-                title_values = list(getattr(row, f"title_{primary_metric.lower()}_values", []))
-                seed_counts: dict[int, int] = {}
-                for title_seed, title_value in zip(title_seeds, title_values):
-                    seed_value = int(title_seed)
-                    seed_counts[seed_value] = seed_counts.get(seed_value, 0) + 1
-                    x_offset = -18 - ((seed_counts[seed_value] - 1) * 14)
-                    champ_artist = AnnotationBbox(
-                        OffsetImage(logo_image, zoom=0.075),
-                        (float(title_value), float(seed_value)),
-                        xybox=(x_offset, 0),
-                        boxcoords="offset points",
-                        frameon=True,
-                        bboxprops={
-                            "boxstyle": "round,pad=0.22",
-                            "facecolor": "#F5E7A1",
-                            "edgecolor": "#D4A72C",
-                            "linewidth": 1.35,
-                            "alpha": 0.96,
-                        },
-                        zorder=2,
-                    )
-                    ax.add_artist(champ_artist)
-            artist = AnnotationBbox(
-                OffsetImage(logo_image, zoom=0.11),
-                (x_value, y_value),
-                frameon=False,
-                zorder=3,
-            )
-            ax.add_artist(artist)
-        else:
-            ax.text(
-                x_value,
-                y_value,
-                str(row.team_display),
-                ha="center",
-                va="center",
-                fontsize=7.2,
-                fontweight="bold",
-                color=PROJECT_PALETTE["deep_ocean"],
-                bbox=styled_box(facecolor="white", edgecolor=halo_color),
-                zorder=4,
-            )
-            if is_former_champion:
-                title_seeds = list(getattr(row, "title_seeds", []))
-                title_values = list(getattr(row, f"title_{primary_metric.lower()}_values", []))
-                seed_counts: dict[int, int] = {}
-                for title_seed, title_value in zip(title_seeds, title_values):
-                    seed_value = int(title_seed)
-                    seed_counts[seed_value] = seed_counts.get(seed_value, 0) + 1
-                    ax.text(
-                        float(title_value) - 0.26 - ((seed_counts[seed_value] - 1) * 0.18),
-                        float(seed_value),
-                        "Champ",
-                        ha="center",
-                        va="center",
-                        fontsize=6.2,
-                        fontweight="bold",
-                        color=PROJECT_PALETTE["deep_ocean"],
-                        bbox=styled_box(facecolor="#F5E7A1", edgecolor="#D4A72C"),
-                        zorder=3,
-                    )
-
-    x_values = np.concatenate(
-        [
-            plot_df[primary_metric].to_numpy(dtype=float),
-            seed_reference[f"full_seed_avg_{primary_slug}"].to_numpy(dtype=float),
-            seed_reference[f"recent_seed_avg_{primary_slug}"].to_numpy(dtype=float),
-        ]
-    )
-    x_min = float(np.nanmin(x_values))
-    x_max = float(np.nanmax(x_values))
-    x_padding_left = max((x_max - x_min) * 0.06, 0.20)
-    x_padding_right = max((x_max - x_min) * 0.22, 0.55)
-    ax.set_xlim(x_min - x_padding_left, x_max + x_padding_right)
-    ax.set_ylim(16.55, 0.45)
-    ax.set_yticks(np.arange(1, 17))
-    ax.set_yticklabels([str(seed) for seed in range(1, 17)], fontsize=11, fontweight="semibold")
-    ax.set_xlabel(metric_label(primary_metric), fontsize=12, fontweight="semibold")
-    ax.set_ylabel("Projected seed", fontsize=12, fontweight="semibold")
-    if primary_metric in LOWER_BETTER:
-        ax.invert_xaxis()
-    ax.grid(False)
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.tick_params(axis="x", labelsize=11, length=0, pad=7)
-    ax.tick_params(axis="y", length=0, pad=7)
-
-    support_legend_prefix = "disruption" if primary_metric == "TOR" else "ball-security"
-    legend_handles = [
-        Line2D([], [], color=ACCENT, marker="|", linestyle="None", markersize=16, markeredgewidth=3, label="Full-sample seed avg"),
-        Line2D([], [], color=SECONDARY, marker="|", linestyle="None", markersize=14, markeredgewidth=2.2, label="Recent seed avg"),
-        Line2D([], [], marker="o", linestyle="None", markerfacecolor="white", markeredgecolor=POSITIVE, markeredgewidth=2.0, markersize=10, label=f"Positive {support_legend_prefix} support"),
-        Line2D([], [], marker="o", linestyle="None", markerfacecolor="white", markeredgecolor=PROJECT_PALETTE["steel"], markeredgewidth=2.0, markersize=10, label=f"Neutral {support_legend_prefix} support"),
-        Line2D([], [], marker="o", linestyle="None", markerfacecolor="white", markeredgecolor=NEGATIVE, markeredgewidth=2.0, markersize=10, label=f"Negative {support_legend_prefix} support"),
-        Line2D([], [], marker="o", linestyle="None", markerfacecolor="#F5E7A1", markeredgecolor="#D4A72C", markeredgewidth=1.3, markersize=10, label="Former champ badge (title seed)"),
-    ]
-    legend = ax.legend(
-        handles=legend_handles,
-        loc="upper right" if primary_metric == "TORD" else "upper left",
-        bbox_to_anchor=(0.985, 0.985) if primary_metric == "TORD" else (0.015, 0.985),
-        frameon=True,
-        facecolor=PROJECT_PALETTE["midnight"],
-        edgecolor=ACCENT,
-        fontsize=9.5,
-        title="Seed reference",
-        title_fontsize=10,
-    )
-    legend.get_frame().set_linewidth(1.1)
-    legend_text_color = PROJECT_PALETTE["paper"]
-    legend.get_title().set_color(legend_text_color)
-    for text in legend.get_texts():
-        text.set_color(legend_text_color)
-
-    fig.suptitle(f"Projected 2026 seeds and {metric_label(primary_metric).lower()}", fontsize=22, fontweight="bold", y=0.965)
-    fig.text(0.5, 0.92, f"Logos to the right of their seed markers are stronger on {metric_label(primary_metric).lower()} than that seed line usually is; halo shows {support_label} and gold-backed badges mark former champs at title seed lines", ha="center", va="center", fontsize=10.2, color=PROJECT_PALETTE["steel"])
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_path, dpi=220, bbox_inches="tight")
-    plt.close(fig)
 
 
 def plot_analysis_07_pair(
@@ -575,7 +311,7 @@ def plot_analysis_07_pair(
     for row in plot_df.itertuples(index=False):
         x_value = float(getattr(row, x_col))
         y_value = float(getattr(row, y_col))
-        halo_color = POSITIVE if getattr(row, "is_former_champion", False) else PROJECT_PALETTE["steel"]
+        frame_color = POSITIVE if getattr(row, "is_former_champion", False) else PROJECT_PALETTE["steel"]
         logo_path = getattr(row, "logo_path", None)
         is_former_champion = bool(getattr(row, "is_former_champion", False))
         if isinstance(logo_path, (str, Path)) and Path(logo_path).exists():
@@ -622,7 +358,7 @@ def plot_analysis_07_pair(
                 fontsize=7.2,
                 fontweight="bold",
                 color=PROJECT_PALETTE["deep_ocean"],
-                bbox=styled_box(facecolor="white", edgecolor=halo_color),
+                bbox=styled_box(facecolor="white", edgecolor=frame_color),
                 zorder=4,
             )
 
@@ -682,7 +418,8 @@ def write_summary_05(archetypes: pd.DataFrame, out_path: Path) -> None:
         "# Turnovers Analysis 5: Archetypes",
         "",
         f"- Best archetype: `{best['archetype']}` at `{best['mean_overperformance']:+.3f}` overperformance points.",
-        "- Interpretation: the best Day 4 teams pair clean possessions with enough disruption support to avoid empty-calorie turnover numbers.",
+        "- Archetypes split teams at their exact seed line's average on TOR edge and defensive disruption edge (TORD edge + 0.35 x BLK% edge; the 0.35 weight is ad hoc).",
+        "- These are descriptive group means of finish minus exact-seed expectation; no significance test is applied.",
         "",
         "## Archetypes",
         "",
@@ -692,14 +429,14 @@ def write_summary_05(archetypes: pd.DataFrame, out_path: Path) -> None:
 
 
 def write_summary_06(table: pd.DataFrame, out_path: Path) -> None:
-    modern = table.loc[table["era"] == "2022-2025", "tor_seed_adjusted_rho"].iloc[0]
-    full = table.loc[table["era"] == "2008-2025", "tor_seed_adjusted_rho"].iloc[0]
+    modern_row = table.loc[table["era"] == "2022-2025"].iloc[0]
+    full_row = table.loc[table["era"] == "2008-2025"].iloc[0]
     lines = [
         "# Turnovers Analysis 6: Era Comparison",
         "",
-        f"- Full-sample seed-adjusted TOR rho: `{full:+.3f}`.",
-        f"- Modern-era seed-adjusted TOR rho: `{modern:+.3f}`.",
-        "- Interpretation: the close should lean on the modern-era result whenever it materially differs from the full sample.",
+        f"- Full-sample (`2008-2025`) seed-adjusted TOR rho: `{full_row['tor_seed_adjusted_rho']:+.3f}` on `{int(full_row['team_count'])}` teams.",
+        f"- `2022-2025` seed-adjusted TOR rho: `{modern_row['tor_seed_adjusted_rho']:+.3f}` on `{int(modern_row['team_count'])}` teams.",
+        "- Interpretation: the eras are subsets of the full sample with no significance test; report the era estimates alongside the full-sample one rather than in place of it.",
         "",
         "## Table",
         "",
@@ -721,14 +458,15 @@ def write_summary_07(table: pd.DataFrame, out_path: Path) -> None:
     lines = [
         "# Turnovers Analysis 7: 2026 TOR x TORD Pair View",
         "",
-        "- This chart reads the projected 2026 field on one plane: right is cleaner TOR relative to seed baseline, up is stronger TORD relative to seed baseline.",
+        "- The March 2026 bracketology projection on one plane: right is a lower turnover rate (TOR) than the seed line's 2008-2025 average, up is a higher forced-turnover rate (TORD).",
+        "- `turnover_profile_score` in the table CSV is TOR edge + 0.55 x defensive disruption edge (TORD edge + 0.35 x BLK% edge). The weights are ad hoc, not fitted; the score only orders teams within a seed line.",
         f"- Gold-backed logos in the chart mark former NCAA champions in the projected `{CURRENT_FIELD_YEAR}` field: {former_champion_text}.",
         "",
-        "## Best current-field cases",
+        "## Highest TOR edge + TORD edge",
         "",
         best.round(3).to_markdown(index=False),
         "",
-        "## Weak current-field cases",
+        "## Lowest TOR edge + TORD edge",
         "",
         worst.round(3).to_markdown(index=False),
     ]
@@ -748,14 +486,14 @@ def write_summary_07_blocks(table: pd.DataFrame, out_path: Path) -> None:
     lines = [
         "# Turnovers Analysis 7B: 2026 BLKED% x BLK% Pair View",
         "",
-        "- This companion chart reads the projected 2026 field on one plane: right is better BLKED% relative to seed baseline, up is better BLK% relative to seed baseline.",
+        "- The March 2026 bracketology projection on one plane: right is a lower blocked-shot rate (BLKED%) than the seed line's 2008-2025 average, up is a higher block rate (BLK%).",
         f"- Gold-backed logos in the chart mark former NCAA champions in the projected `{CURRENT_FIELD_YEAR}` field: {former_champion_text}.",
         "",
-        "## Best current-field cases",
+        "## Highest BLKED% edge + BLK% edge",
         "",
         best.round(3).to_markdown(index=False),
         "",
-        "## Weak current-field cases",
+        "## Lowest BLKED% edge + BLK% edge",
         "",
         worst.round(3).to_markdown(index=False),
     ]
