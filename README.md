@@ -27,6 +27,34 @@ These are topic analyses, not model validation; the validation result is the log
 
 Illustrated topic analyses: [analysis briefs](reports/briefs/README.md).
 
+## Descriptive findings: what survives a multiple-comparison check
+
+[reports/robustness_summary.md](reports/robustness_summary.md) rebuilds each published topic number, then gives it a
+bootstrap 95% CI, a permutation p-value that shuffles within seed line, and a Benjamini-Hochberg (BH) q-value
+(10,000 resamples, 2008-2025 tournaments; `python scripts/robustness_checks.py`).
+
+- **Strength of schedule within seed line:** rho +0.061 (n = 1088), CI [-0.001, +0.123], p = 0.041. Borderline:
+  the interval reaches zero, and within one seed line and season the association is not detectable (p = 0.290).
+- **Seed-band correlations did not survive.** None of the 131 band cells across nine topics has pooled BH q < 0.05;
+  9 have nominal p < 0.05, about the 6.6 expected by chance. The largest, Elite SOS in seeds 11-13 (rho +0.313,
+  n = 204, CI [+0.181, +0.437]), has q = 0.367; it passes only when each published table is its own BH family
+  (q = 0.034), and the within-seed null alone averages +0.155. The size bands (EFFHGT +0.108 in seeds 1-2,
+  -0.077 in seeds 7-8) have q = 0.891.
+- **Conference over- and underperformance did not survive.** Horizon's +0.420 mean (n = 18, CI [-0.105, +1.111],
+  p = 0.026) is Butler: its 4 appearances sum to +7.588, more than the conference's +7.559 total, and without
+  Butler the mean is -0.002. MWC's -0.342 (n = 45, CI [-0.572, -0.062], p = 0.018) also fails BH across 32
+  conferences (q = 0.422 for both). Cochran's Q permutation p = 0.271: no detectable conference effect beyond seed.
+- **Player experience:** a row-alignment bug paired teams with the wrong rows, so the published band correlations
+  ran from -0.344 to +0.554. Aligned they run from -0.048 to +0.108; seeds 1-2 is +0.092 (n = 136,
+  CI [-0.071, +0.254], q = 0.886).
+- **Dominant big men are outcome-contaminated.** `max_c_porpag` comes from season player stats that include the
+  NCAA tournament games, so the size analysis's big-man splits partly measure the result they are compared with
+  ([reports/size_big_man_signal_summary.md](reports/size_big_man_signal_summary.md)). They are description, not a
+  pre-tournament signal, and were not tested here.
+
+The briefs date from March 2026, before these checks, and present claims that do not survive them: the
+seeds 11-13 SOS band, conference comparisons, size seed-band effects and the dominant-big-man splits.
+
 ## Reproduce from a clean clone
 
 Python 3.12, from the project root:
