@@ -26,7 +26,7 @@ from sklearn.linear_model import LinearRegression, Ridge
 from src.frozen_inputs import write_csv
 from src.models.bracket import load_bracket
 from src.models.simulate import simulate_bracket
-from src.models.win_probability import build_strength_lookup, compute_strength
+from src.models.win_probability import bracket_season_rows, compute_strength
 
 # -----------------------------------------------------------------------------
 # Config
@@ -1754,7 +1754,9 @@ def _finalize_training_frame(
         if c in training_data.columns:
             training_data[c] = training_data[c].fillna(0)
 
-    training_data = training_data.dropna()
+    # Torvik's spacer column `blank` holds no values, so a row-wise dropna() with it left in
+    # removes every row and no model can be fit. It is not a feature.
+    training_data = training_data.drop(columns=["blank"], errors="ignore").dropna()
 
     for c in ["G", "3PR", "3PRD", "Rec"]:
         if c in training_data.columns:
@@ -2114,6 +2116,37 @@ def _predict_with_seed_models(
     return out
 
 
+def score_bracket_rows(
+    rows: pd.DataFrame,
+    gen_model: Pipeline,
+    gen_feats: list[str],
+    seed_models: dict[int, tuple[Pipeline, list[str]]],
+) -> pd.DataFrame:
+    """
+    predround for bracket rows from bracket_season_rows(): the general model, then the
+    seed-stratified models for their seed groups, the same two steps the training rows go through.
+    """
+    out = rows.copy()
+    out["predround"] = compute_strength(out, gen_model, gen_feats)
+    return _predict_with_seed_models(out, seed_models)
+
+
+def _warn_bracket_seed_mismatch(rows: pd.DataFrame, season: int) -> None:
+    """Print bracket teams whose seed differs from the seed their own `season` row carries."""
+    data_seed = pd.to_numeric(rows["data_seed"], errors="coerce")
+    differs = data_seed.notna() & (data_seed != rows["seed"])
+    if not differs.any():
+        return
+    examples = ", ".join(
+        f"{t} ({int(d)} in data, {int(b)} here)"
+        for t, d, b in zip(rows.loc[differs, "Team"], data_seed[differs], rows.loc[differs, "seed"])
+    )
+    print(
+        f"WARNING: {int(differs.sum())} of {len(rows)} bracket teams have another seed in the {season} data: "
+        f"{examples[:300]}. The bracket seed is used; check that the bracket is from {season}."
+    )
+
+
 def _save_model_artifacts(
     gen_model: Pipeline,
     seed_models: dict[int, tuple[Pipeline, list[str]]],
@@ -2336,8 +2369,16 @@ def run_pipeline(
     year_end: int | None = None,
     refresh_team_history: bool = False,
     use_trank_only: bool = False,
+    bracket_season: int | None = None,
 ) -> None:
-    """Run full March Madness pipeline. If data_only=True, stop after compiling and validating training data (no models)."""
+    """
+    Run full March Madness pipeline. If data_only=True, stop after compiling and validating training data (no models).
+
+    A bracket needs bracket_season: every bracket team is scored on its own row for that season,
+    with its bracket seed. A season outside the training years is built from the same raw tables
+    and never trained on. A bracket team with no row for the season stops the run before any
+    model is fit.
+    """
     cfg = load_config()
     if year_start is not None or year_end is not None:
         cfg.setdefault("ingestion", {})
@@ -2390,6 +2431,17 @@ def run_pipeline(
     if use_trank_only:
         print("Note: --trank-only is deprecated and ignored. Using all_trank_team_tables + team-history mode.")
 
+    bracket_df: pd.DataFrame | None = None
+    if bracket_path and not data_only:
+        if bracket_season is None:
+            raise ValueError(
+                "A bracket needs its season (--season YEAR): each team is scored on its own row for that season."
+            )
+        bracket_season = int(bracket_season)
+        if bracket_season in exclude_years:
+            raise ValueError(f"Season {bracket_season} is in ingestion.exclude_years (no tournament).")
+        bracket_df = load_bracket(bracket_path)
+
     print("Building training data from all_trank_team_tables.csv + team-history.php...")
     training_data, training_data_full = build_training_from_all_tables(
         all_tables_path=all_tables_path,
@@ -2437,6 +2489,34 @@ def run_pipeline(
         print("Data-only run complete. No models trained.")
         return
 
+    # Each bracket team's own row for the bracket season, found (or the run stopped) before any fit.
+    bracket_rows: pd.DataFrame | None = None
+    if bracket_df is not None:
+        if year_start <= bracket_season <= year_end:
+            season_full = training_data_full
+            if (pd.to_numeric(training_data["year"], errors="coerce") == bracket_season).any():
+                print(
+                    f"Note: the {bracket_season} tournament is in the training data, so these bracket "
+                    "strengths are in-sample."
+                )
+        else:
+            print(f"Building {bracket_season} team rows for the bracket (scored, never trained on)...")
+            _, season_full = build_training_from_all_tables(
+                all_tables_path=all_tables_path,
+                team_history_cache_path=team_history_cache_path,
+                ext_data_dir=ext_dir,
+                data_raw_dir=data_raw_dir,
+                run_tag=f"{run_tag}_season{bracket_season}",
+                year_start=bracket_season,
+                year_end=bracket_season,
+                exclude_years=exclude_years,
+                refresh_team_history=refresh_team_history,
+                team_history_delay_sec=team_history_delay_sec,
+                team_history_force_playwright=team_history_force_playwright,
+            )
+        bracket_rows = bracket_season_rows(bracket_df, season_full, bracket_season)
+        _warn_bracket_seed_mismatch(bracket_rows, bracket_season)
+
     print("Training general model...")
     gen_model, gen_feats, gen_meta = train_general_model(
         training_data,
@@ -2455,11 +2535,6 @@ def run_pipeline(
     )
     training_data = _predict_with_seed_models(training_data, seed_models)
 
-    # Create latest-team strength table used for bracket simulation.
-    full_predictions = training_data_full.copy()
-    full_predictions["predround"] = compute_strength(full_predictions, gen_model, gen_feats)
-    full_predictions = _predict_with_seed_models(full_predictions, seed_models)
-    strength_lookup = build_strength_lookup(full_predictions)
     _save_model_artifacts(
         gen_model,
         seed_models,
@@ -2479,62 +2554,51 @@ def run_pipeline(
         print("Skipping 2023 holdout (no 2023 data or seed models).")
 
     round_out_path: Path | None = None
-    if bracket_path:
-        try:
-            bracket_df = load_bracket(bracket_path)
-            progress_every = runtime_cfg["n_sims"] // 10 if runtime_cfg["n_sims"] >= 2000 else 0
-            round_probs = simulate_bracket(
-                bracket_df=bracket_df,
-                strength_lookup=strength_lookup,
-                n_sims=runtime_cfg["n_sims"],
-                k=runtime_cfg["k_bradley_terry"],
-                progress_every=progress_every,
-            )
+    if bracket_rows is not None:
+        bracket_rows = score_bracket_rows(bracket_rows, gen_model, gen_feats, seed_models)
+        strength_lookup = dict(zip(bracket_rows["Team"], bracket_rows["predround"], strict=True))
+        progress_every = runtime_cfg["n_sims"] // 10 if runtime_cfg["n_sims"] >= 2000 else 0
+        round_probs = simulate_bracket(
+            bracket_df=bracket_df,
+            strength_lookup=strength_lookup,
+            n_sims=runtime_cfg["n_sims"],
+            k=runtime_cfg["k_bradley_terry"],
+            progress_every=progress_every,
+        )
 
-            latest_predround = (
-                full_predictions[["Team", "year", "predround"]]
-                .copy()
-                .assign(year=lambda d: pd.to_numeric(d["year"], errors="coerce").fillna(-1))
-                .sort_values(["Team", "year"])
-                .groupby("Team", as_index=False)
-                .tail(1)[["Team", "predround"]]
+        round_output = (
+            bracket_df.merge(round_probs, on="Team", how="left")
+            .merge(bracket_rows[["Team", "predround"]], on="Team", how="left")
+            .loc[
+                :,
+                [
+                    "Team",
+                    "Seed",
+                    "Region",
+                    "p_R64",
+                    "p_R32",
+                    "p_S16",
+                    "p_E8",
+                    "p_F4",
+                    "p_Finals",
+                    "p_Champ",
+                    "expected_round",
+                    "predround",
+                ],
+            ]
+        )
+        data_processed_dir.mkdir(parents=True, exist_ok=True)
+        round_out_path = data_processed_dir / f"round_predictions_{run_tag}.csv"
+        round_output.to_csv(round_out_path, index=False)
+        print(f"Round-probability predictions written to {round_out_path}")
+        print(
+            _build_narrative_summary(
+                round_output,
+                n_sims=runtime_cfg["n_sims"],
+                k_bradley_terry=runtime_cfg["k_bradley_terry"],
+                bracket_path=f"{bracket_path} (season {bracket_season})",
             )
-            round_output = (
-                bracket_df.merge(round_probs, on="Team", how="left")
-                .merge(latest_predround, on="Team", how="left")
-                .loc[
-                    :,
-                    [
-                        "Team",
-                        "Seed",
-                        "Region",
-                        "p_R64",
-                        "p_R32",
-                        "p_S16",
-                        "p_E8",
-                        "p_F4",
-                        "p_Finals",
-                        "p_Champ",
-                        "expected_round",
-                        "predround",
-                    ],
-                ]
-            )
-            data_processed_dir.mkdir(parents=True, exist_ok=True)
-            round_out_path = data_processed_dir / f"round_predictions_{run_tag}.csv"
-            round_output.to_csv(round_out_path, index=False)
-            print(f"Round-probability predictions written to {round_out_path}")
-            print(
-                _build_narrative_summary(
-                    round_output,
-                    n_sims=runtime_cfg["n_sims"],
-                    k_bradley_terry=runtime_cfg["k_bradley_terry"],
-                    bracket_path=bracket_path,
-                )
-            )
-        except Exception as exc:
-            LOGGER.warning({"event": "simulation_skipped", "reason": str(exc)})
-            print(f"Bracket simulation skipped: {exc}")
+        )
     else:
         print("No bracket CSV configured; skipping round-probability simulation.")
 

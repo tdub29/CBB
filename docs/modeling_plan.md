@@ -180,9 +180,13 @@ python scripts/run_pipeline.py
 # Data only (no modeling)
 python scripts/run_pipeline.py --data-only
 
-# With bracket simulation
-python scripts/run_pipeline.py --bracket data/external/templates/bracket_template.csv --n-sims 20000 --k 1.0
+# With bracket simulation: a Team,Seed,Region CSV with Torvik team names, and the season it belongs to
+python scripts/run_pipeline.py --bracket path/to/bracket.csv --season 2025 --n-sims 20000 --k 1.0
 ```
+
+Each bracket team is scored on its own row for `--season`, with its bracket seed; a team with no row
+for that season stops the run. `data/external/templates/bracket_template.csv` shows the format only:
+its placeholder names match no team.
 
 Model artifacts saved to `models/` (joblib). Reports to `reports/`.
 

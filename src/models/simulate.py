@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from .bracket import FIRST_ROUND_PAIRINGS, advance_round, validate_bracket
-from .win_probability import p_win, seed_fallback_strength
+from .win_probability import p_win
 
 ROUND_COLUMNS = ("p_R64", "p_R32", "p_S16", "p_E8", "p_F4", "p_Finals", "p_Champ")
 
@@ -22,10 +22,8 @@ def _region_pairings(regions: list[str]) -> list[tuple[str, str]]:
 
 
 def _team_strength(team: str, seed: int, strength_lookup: dict[str, float]) -> float:
-    """Get team strength with seed fallback for missing teams."""
-    if team in strength_lookup:
-        return float(strength_lookup[team])
-    return seed_fallback_strength(seed)
+    """Team strength from the lookup; simulate_bracket checks every team is in it first."""
+    return float(strength_lookup[team])
 
 
 def _simulate_game(
@@ -111,6 +109,14 @@ def simulate_bracket(
     work["Team"] = work["Team"].astype(str).str.strip()
     work["Region"] = work["Region"].astype(str).str.strip()
     work["Seed"] = pd.to_numeric(work["Seed"], errors="coerce").astype(int)
+    # No fallback strength: one on another scale (the old 6 - log2(seed)) would distort every game
+    # the team plays, and a bracket of unknown names would silently run on seeds alone.
+    missing = [team for team in work["Team"] if team not in strength_lookup]
+    if missing:
+        more = f" and {len(missing) - 5} more" if len(missing) > 5 else ""
+        raise ValueError(
+            f"{len(missing)} of {len(work)} bracket teams have no strength: {', '.join(missing[:5])}{more}"
+        )
 
     regions = sorted(work["Region"].unique().tolist())
     semifinal_regions = _region_pairings(regions)
