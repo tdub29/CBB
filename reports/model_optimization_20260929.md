@@ -40,6 +40,12 @@
 | seed | 8.7698 | 4.6715 | 1.0000 | 5.0000 | 9.0000 | 13.0000 | 16.0000 |
 | round | 0.9844 | 1.3410 | 0.0000 | 0.0000 | 0.5000 | 1.2500 | 6.0000 |
 
+> **Figures (note added 2026-10-29).** None of the five images in this report was drawn by this run. They
+> are shared files in `reports/figures/` that every run overwrites, and the copies in the repository were
+> committed on 2026-09-20, before this run. The model comparison, holdout and importance images match
+> `predictive_analysis_20260304.md` and `predictive_analysis_20260306.md` (11 configurations, a gbr winner,
+> PASE first in importance: runs voided by the PASE/PAKE leak), not the tables here.
+
 ![Missingness Heatmap](figures/missingness_heatmap.png)
 
 ![Correlation Matrix](figures/correlation_matrix.png)
@@ -342,6 +348,12 @@ Prediction moment: the published bracket on Selection Sunday, before any NCAA to
 
 ### Winner Feature Importance
 ![Feature Importance](figures/feature_importance.png)
+
+> **Note (added 2026-10-29; values below unchanged).** For this linear winner the table is the absolute
+> standardized ridge coefficients, the same fit as the Section 3 coefficient table, not an importance ranking.
+> The seed terms and the coach counts are collinear (VIF table) and offset one another: signed, seed_2 is
+> +3.81, seed -2.20 and seed_3 -1.92; coach_tourn_games_5y is +1.64 and coach_tourn_wins_5y -1.13.
+> `scripts/run_analysis.py` now reports signed coefficients for a linear winner and draws no importance chart.
 
 | feature | importance |
 | --- | --- |

@@ -34,7 +34,6 @@ from src.pipelines.madness import GEN_FEATURES, GEN_POLY  # noqa: E402
 from src.visualization.palette import (  # noqa: E402
     ALGORITHM_COLORS,
     CBB_DIVERGING_CMAP,
-    CBB_SEQUENTIAL_CMAP,
     PROJECT_PALETTE,
     apply_report_background,
     set_project_theme,
@@ -678,17 +677,44 @@ def markdown_table(df: pd.DataFrame, max_rows: int | None = None, float_digits: 
     return "\n".join(lines)
 
 
-def save_missingness_heatmap(df: pd.DataFrame, cols: list[str], path: Path) -> None:
-    if not cols:
+def missing_share_table(df: pd.DataFrame, cols: list[str], modeled_mask: pd.Series) -> pd.DataFrame:
+    """Percent of rows missing per column: every row, and the modeled (tournament, non-2020) rows."""
+    values = df[cols].apply(pd.to_numeric, errors="coerce")
+    return pd.DataFrame(
+        {
+            "feature": cols,
+            "missing_all_rows_pct": 100.0 * values.isna().mean().to_numpy(),
+            "missing_modeled_rows_pct": 100.0 * values[modeled_mask].isna().mean().to_numpy(),
+        }
+    )
+
+
+def save_missingness_chart(table: pd.DataFrame, path: Path, n_all: int, n_modeled: int) -> None:
+    """Horizontal bars of percent missing per column, all rows beside modeled rows."""
+    if table.empty:
         return
-    fig, ax = plt.subplots(figsize=(14, 6))
+    view = table.iloc[::-1].reset_index(drop=True)
+    pos = np.arange(len(view))
+    height = 0.38
+    fig, ax = plt.subplots(figsize=(10, max(4.0, 0.34 * len(view) + 1.6)))
     apply_report_background(fig)
-    values = df[cols].isna().astype(int).to_numpy()
-    ax.imshow(values, aspect="auto", interpolation="nearest", cmap=CBB_SEQUENTIAL_CMAP)
-    ax.set_xticks(range(len(cols)), labels=cols, rotation=90)
-    ax.set_title("Missingness Heatmap (Model Candidate Features)")
-    ax.set_xlabel("Feature")
-    ax.set_ylabel("Row")
+    series = [
+        ("missing_all_rows_pct", f"All rows (n={n_all:,})", PROJECT_PALETTE["lake_blue"], height / 2),
+        ("missing_modeled_rows_pct", f"Modeled rows (n={n_modeled:,})", PROJECT_PALETTE["sage"], -height / 2),
+    ]
+    # Label both bars of any column with a gap, so a 0.0% on the modeled rows reads as a value.
+    has_gap = (view["missing_all_rows_pct"] > 0) | (view["missing_modeled_rows_pct"] > 0)
+    for col, label, color, offset in series:
+        bars = ax.barh(pos + offset, view[col], height=height, color=color, label=label)
+        for bar, value, show in zip(bars, view[col], has_gap):
+            if show:
+                ax.text(bar.get_width() + 1.0, bar.get_y() + bar.get_height() / 2, f"{value:.1f}%",
+                        va="center", fontsize=8, color=PROJECT_PALETTE["fog"])
+    ax.set_yticks(pos, labels=view["feature"])
+    ax.set_xlim(0, 110)
+    ax.set_xlabel("Rows missing (%)")
+    ax.set_title("Missing Values by Candidate Feature")
+    ax.legend(loc="center right")
     fig.tight_layout()
     fig.savefig(path, dpi=160)
     plt.close(fig)
@@ -754,15 +780,18 @@ def save_holdout_scatter(df: pd.DataFrame, path: Path, holdout_year: int) -> Non
     plt.close(fig)
 
 
-def save_feature_importance_plot(df: pd.DataFrame, path: Path, title: str) -> None:
+def save_permutation_importance_plot(df: pd.DataFrame, path: Path, title: str) -> None:
+    """Permutation importance (mean MSE increase, +/- one sd over repeats), top 25."""
     if df.empty:
         return
-    view = df.sort_values("importance", ascending=False).head(25).iloc[::-1].copy()
+    view = df.sort_values("mse_increase", ascending=False).head(25).iloc[::-1].copy()
     fig, ax = plt.subplots(figsize=(12, 8))
     apply_report_background(fig)
-    ax.barh(view["feature"], view["importance"], color=PROJECT_PALETTE["signal_blue"])
+    ax.barh(view["feature"], view["mse_increase"], xerr=view["mse_increase_std"],
+            color=PROJECT_PALETTE["signal_blue"], ecolor=PROJECT_PALETTE["fog"])
+    ax.axvline(0.0, color=PROJECT_PALETTE["steel"], linewidth=1.0)
     ax.set_title(title)
-    ax.set_xlabel("Importance")
+    ax.set_xlabel("MSE increase when the feature is shuffled (training rows)")
     ax.set_ylabel("Feature")
     fig.tight_layout()
     fig.savefig(path, dpi=160)
@@ -869,18 +898,31 @@ def get_linear_coefficients(
     return out.sort_values("abs_coef", ascending=False).reset_index(drop=True)
 
 
-def get_winner_importance(
+LINEAR_ALGORITHMS = {"ridge", "lasso", "elasticnet"}
+
+
+def describe_winner(
     winner_algorithm: str,
     winner_params: dict[str, Any],
     X_train: pd.DataFrame,
     y_train: pd.Series,
     random_state: int,
 ) -> tuple[pd.DataFrame, Pipeline]:
+    """
+    Fit the winner on the training rows and describe it.
+
+    Linear winners get their signed coefficients on standardized features (`coef`, sorted by size).
+    These are not an importance ranking: seed and its powers, Barthag and AdjDE with their squares,
+    and the coach counts are collinear and offset one another. Other winners get permutation
+    importance on the training rows (`mse_increase`, mean and sd over 20 shuffles, signed: a value
+    at or below 0 means shuffling the feature did not hurt the fit).
+    """
     est = build_estimator(winner_algorithm, winner_params, random_state=random_state)
     est.fit(X_train, y_train)
-    if winner_algorithm in {"ridge", "lasso", "elasticnet"}:
-        coefs = np.abs(est.named_steps["model"].coef_)
-        imp = pd.DataFrame({"feature": X_train.columns, "importance": coefs})
+    if winner_algorithm in LINEAR_ALGORITHMS:
+        coefs = est.named_steps["model"].coef_
+        out = pd.DataFrame({"feature": X_train.columns, "coef": coefs})
+        out = out.reindex(out["coef"].abs().sort_values(ascending=False).index).reset_index(drop=True)
     else:
         perm = permutation_importance(
             est,
@@ -891,9 +933,10 @@ def get_winner_importance(
             scoring="neg_mean_squared_error",
             n_jobs=1,
         )
-        imp = pd.DataFrame({"feature": X_train.columns, "importance": np.abs(perm.importances_mean)})
-    imp = imp.sort_values("importance", ascending=False).reset_index(drop=True)
-    return imp, est
+        out = pd.DataFrame({"feature": X_train.columns, "mse_increase": perm.importances_mean,
+                            "mse_increase_std": perm.importances_std})
+        out = out.sort_values("mse_increase", ascending=False).reset_index(drop=True)
+    return out, est
 
 
 def run_provenance(csv_path: Path) -> dict[str, str]:
@@ -944,10 +987,10 @@ def main(argv: list[str] | None = None) -> int:
 
     report_path = report_dir / f"{args.report_prefix}_{run_date}.md"
     correlation_path = figures_dir / "correlation_matrix.png"
-    feature_importance_path = figures_dir / "feature_importance.png"
+    permutation_importance_path = figures_dir / "permutation_importance.png"
     model_comparison_path = figures_dir / "model_comparison.png"
     holdout_scatter_path = figures_dir / f"holdout_{args.holdout_year}_actual_vs_pred.png"
-    missingness_path = figures_dir / "missingness_heatmap.png"
+    missingness_path = figures_dir / "missingness_by_feature.png"
     model_artifact_path = models_dir / f"analysis_best_model_{run_date}.joblib"
 
     print("[Run] Starting predictive analysis", flush=True)
@@ -974,7 +1017,9 @@ def main(argv: list[str] | None = None) -> int:
     candidate_profile_cols = unique_keep_order(
         [c for c in list(GEN_FEATURES) + UNUSED_CANDIDATES + ENGINEERED_FEATURES if c in df.columns]
     )
-    save_missingness_heatmap(df, candidate_profile_cols, missingness_path)
+    modeled_mask = tournament_mask & (years != 2020)
+    missing_df = missing_share_table(df, candidate_profile_cols, modeled_mask)
+    save_missingness_chart(missing_df, missingness_path, n_all=len(df), n_modeled=int(modeled_mask.sum()))
     save_correlation_matrix(df, candidate_profile_cols, correlation_path)
 
     stat_cols = [c for c in ["AdjOE", "AdjDE", "Barthag", "seed", "round"] if c in df.columns]
@@ -985,7 +1030,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     # Modeling scope.
-    model_df = df[tournament_mask & (years != 2020)].copy()
+    model_df = df[modeled_mask].copy()
     model_years = pd.to_numeric(model_df["year"], errors="coerce")
     pre_holdout_df = model_df[model_years < args.holdout_year].copy()
     holdout_df = model_df[model_years == args.holdout_year].copy()
@@ -1055,12 +1100,14 @@ def main(argv: list[str] | None = None) -> int:
     print("[Run] Section 5: Holdout + Final Retrain", flush=True)
     X_train_best, y_train_best, _ = prepare_design(pre_holdout_df, best_feature_spec, fixed_features=best_feature_list)
     X_holdout, y_holdout, _ = prepare_design(holdout_df, best_feature_spec, fixed_features=best_feature_list)
-    winner_importance_df, winner_estimator = get_winner_importance(
+    winner_description_df, winner_estimator = describe_winner(
         winner_algorithm=winner_algorithm, winner_params=winner_params,
         X_train=X_train_best, y_train=y_train_best, random_state=args.random_state,
     )
-    save_feature_importance_plot(winner_importance_df, feature_importance_path,
-                                 title=f"Feature Importance ({winner_algorithm})")
+    winner_is_linear = winner_algorithm in LINEAR_ALGORITHMS
+    if not winner_is_linear:
+        save_permutation_importance_plot(winner_description_df, permutation_importance_path,
+                                         title=f"Permutation Importance on Training Rows ({winner_algorithm})")
 
     holdout_pred = winner_estimator.predict(X_holdout)
     holdout_mse = float(mean_squared_error(y_holdout, holdout_pred))
@@ -1191,7 +1238,18 @@ def main(argv: list[str] | None = None) -> int:
     lines.append("### Distribution Summary")
     lines.append(markdown_table(distribution_summary, max_rows=None, float_digits=4))
     lines.append("")
-    lines.append(f"![Missingness Heatmap](figures/{missingness_path.name})")
+    lines.append("### Missing values (candidate feature columns)")
+    missing_any = missing_df[missing_df["missing_all_rows_pct"] > 0]
+    complete_cols = len(missing_df) - len(missing_any)
+    if missing_any.empty:
+        lines.append(f"- No missing values in any of the {len(missing_df)} candidate columns.")
+    else:
+        lines.append(markdown_table(missing_any, max_rows=None, float_digits=1))
+        lines.append("")
+        lines.append(f"- The other {complete_cols} of {len(missing_df)} candidate columns have no missing values. "
+                     "Modeled rows are tournament teams outside 2020.")
+    lines.append("")
+    lines.append(f"![Missing values by candidate feature](figures/{missingness_path.name})")
     lines.append("")
     lines.append(f"![Correlation Matrix](figures/{correlation_path.name})")
     lines.append("")
@@ -1259,7 +1317,12 @@ def main(argv: list[str] | None = None) -> int:
     lines.append("### VIF (Top 20)")
     lines.append(markdown_table(vif_df.head(20), max_rows=None, float_digits=4))
     lines.append("")
-    lines.append("### Scaled Ridge Coefficients (Top 25)")
+    lines.append("### Standardized Ridge Coefficients (Top 25 by size)")
+    lines.append("Signed coefficients on standardized features from one ridge fit. They are not an importance "
+                 "ranking: seed and its powers, Barthag and AdjDE with their squares, and the coach counts are "
+                 "collinear (VIF table above) and offset one another, so neither the size nor the sign of one "
+                 "term is that feature's effect.")
+    lines.append("")
     lines.append(markdown_table(coef_df.head(25)[["feature", "coef", "abs_coef"]], max_rows=None, float_digits=6))
     lines.append("")
     lines.append("## Section 4: Algorithm Search")
@@ -1294,10 +1357,20 @@ def main(argv: list[str] | None = None) -> int:
     lines.append("### Holdout Prediction Table (first 25)")
     lines.append(markdown_table(holdout_output.head(25), max_rows=None, float_digits=4))
     lines.append("")
-    lines.append("### Winner Feature Importance")
-    lines.append(f"![Feature Importance](figures/{feature_importance_path.name})")
+    if winner_is_linear:
+        lines.append("### Winner Coefficients (standardized, signed; top 25 by size)")
+        lines.append(f"The winner (`{winner_algorithm}`, {format_params(winner_params)}) is linear. Its coefficients "
+                     "carry the Section 3 caveat: collinear terms offset one another, so this is not an "
+                     "importance ranking and no importance chart is drawn.")
+    else:
+        lines.append("### Winner Permutation Importance (training rows)")
+        lines.append(f"![Permutation importance](figures/{permutation_importance_path.name})")
+        lines.append("")
+        lines.append("`mse_increase` is the rise in training-row MSE when one feature is shuffled (mean and sd "
+                     "over 20 shuffles). Correlated features share credit, and a value at or below 0 means "
+                     "shuffling did not hurt the fit.")
     lines.append("")
-    lines.append(markdown_table(winner_importance_df.head(25), max_rows=None, float_digits=6))
+    lines.append(markdown_table(winner_description_df.head(25), max_rows=None, float_digits=6))
     lines.append("")
     lines.append("## Recommendation")
     if beats_mse and beats_mae:
