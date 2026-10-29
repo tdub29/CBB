@@ -53,7 +53,8 @@ bootstrap 95% CI, a permutation p-value that shuffles within seed line, and a Be
   pre-tournament signal, and were not tested here.
 
 The briefs date from March 2026, before these checks, and present claims that do not survive them: the
-seeds 11-13 SOS band, conference comparisons, size seed-band effects and the dominant-big-man splits.
+seeds 11-13 SOS band, conference comparisons, the seed-band patterns in the size, three-point and turnover
+briefs, and the dominant-big-man splits.
 
 ## Reproduce from a clean clone
 
