@@ -48,8 +48,6 @@ HIGHLIGHT = PROJECT_PALETTE["sage"]
 TEXT_DARK = PROJECT_PALETTE["fog"]
 TEXT_LIGHT = PROJECT_PALETTE["steel"]
 LABEL_TEXT = PROJECT_PALETTE["deep_ocean"]
-NEGATIVE = "#B26B67"
-POSITIVE = PROJECT_PALETTE["sage"]
 NEUTRAL = PROJECT_PALETTE["steel"]
 SEED_GROUP_MAP_07 = {
     1: "1-2",
@@ -69,6 +67,7 @@ SEED_GROUP_MAP_07 = {
     15: "14-16",
     16: "14-16",
 }
+SEED_GROUP_ORDER_07 = ["1-2", "3-4", "5-6", "7-8", "9-10", "11-13", "14-16"]
 PROJECTED_FIELD_ALIASES = {
     "Connecticut": "UConn",
     "Miami FL": "Miami",
@@ -240,7 +239,7 @@ def build_seed_reference_tables(tournament_df: pd.DataFrame) -> tuple[pd.DataFra
     return full_reference, recent_reference
 
 
-def build_seed_group_carryover_table(tournament_df: pd.DataFrame) -> pd.DataFrame:
+def build_seed_group_rho_table(tournament_df: pd.DataFrame) -> pd.DataFrame:
     def summarize(df: pd.DataFrame, prefix: str) -> pd.DataFrame:
         work = df.copy()
         work["seed_group"] = work["seed_int"].map(SEED_GROUP_MAP_07)
@@ -263,56 +262,7 @@ def build_seed_group_carryover_table(tournament_df: pd.DataFrame) -> pd.DataFram
         tournament_df[tournament_df["year"].between(TRANSFER_PORTAL_YEAR, 2025)].copy(),
         "recent",
     )
-    group_table = full_group.merge(recent_group, on="seed_group", how="outer")
-
-    def classify_action_tier(row: pd.Series) -> str:
-        full_rho = float(row.get("full_group_rho", np.nan))
-        recent_rho = float(row.get("recent_group_rho", np.nan))
-        if pd.notna(full_rho) and full_rho >= 0.25 and pd.notna(recent_rho) and recent_rho > 0:
-            return "High-use pocket"
-        if (pd.notna(full_rho) and full_rho >= 0.10) or (pd.notna(recent_rho) and recent_rho >= 0.15):
-            return "Secondary-use pocket"
-        return "Low-use pocket"
-
-    group_table["seed_action_tier"] = group_table.apply(classify_action_tier, axis=1)
-    return group_table
-
-
-def build_conference_signal_tables(over_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    full_conf = (
-        over_df.groupby("Conf", as_index=False)
-        .agg(
-            conference_full_team_count=("Team", "size"),
-            conference_full_overperformance=("overperformance", "mean"),
-        )
-        .rename(columns={"Conf": "conf"})
-    )
-    recent_conf = (
-        over_df[over_df["year"].between(TRANSFER_PORTAL_YEAR, 2025)]
-        .groupby("Conf", as_index=False)
-        .agg(
-            conference_recent_team_count=("Team", "size"),
-            conference_recent_overperformance=("overperformance", "mean"),
-        )
-        .rename(columns={"Conf": "conf"})
-    )
-
-    def classify_signal(value: float, threshold: float) -> str:
-        if pd.isna(value):
-            return "unclear"
-        if value >= threshold:
-            return "positive"
-        if value <= -threshold:
-            return "negative"
-        return "neutral"
-
-    full_conf["conference_full_signal"] = full_conf["conference_full_overperformance"].apply(
-        lambda value: classify_signal(float(value), 0.05)
-    )
-    recent_conf["conference_recent_signal"] = recent_conf["conference_recent_overperformance"].apply(
-        lambda value: classify_signal(float(value), 0.10)
-    )
-    return full_conf, recent_conf
+    return full_group.merge(recent_group, on="seed_group", how="outer")
 
 
 def fetch_espn_logo_catalog() -> pd.DataFrame:
@@ -712,7 +662,7 @@ def plot_analysis_06(era_table: pd.DataFrame, out_path: Path) -> None:
     metric_specs = [
         ("pooled_raw_rho", "Pooled raw SOS vs finish"),
         ("seed_adjusted_rho", "Exact-seed adjusted SOS vs overperformance"),
-        ("seed_11_13_rho", "11-13 seed-group SOS pocket"),
+        ("seed_11_13_rho", "11-13 seed-group SOS rho"),
     ]
     x = np.arange(len(era_table))
 
@@ -771,7 +721,6 @@ def plot_analysis_06(era_table: pd.DataFrame, out_path: Path) -> None:
 def build_analysis_07_table(
     full_df: pd.DataFrame,
     tournament_df: pd.DataFrame,
-    over_df: pd.DataFrame,
     seeds_path: Path,
     logo_cache_dir: Path,
 ) -> pd.DataFrame:
@@ -785,18 +734,13 @@ def build_analysis_07_table(
         raise ValueError(f"Expected 68 projected 2026 teams after join; found {len(field)}")
 
     full_reference, recent_reference = build_seed_reference_tables(tournament_df)
-    group_table = build_seed_group_carryover_table(tournament_df)
-    full_conf, recent_conf = build_conference_signal_tables(over_df)
-    full_conf.loc[full_conf["conference_full_team_count"] < 5, "conference_full_signal"] = "unclear"
-    recent_conf.loc[recent_conf["conference_recent_team_count"] < 3, "conference_recent_signal"] = "unclear"
+    group_table = build_seed_group_rho_table(tournament_df)
 
     field["seed_group"] = field["projected_seed"].map(SEED_GROUP_MAP_07)
     merged = (
         field.merge(full_reference, on="projected_seed", how="left")
         .merge(recent_reference, on="projected_seed", how="left")
         .merge(group_table, on="seed_group", how="left")
-        .merge(full_conf, on="conf", how="left")
-        .merge(recent_conf, on="conf", how="left")
     )
 
     merged["full_sos_delta"] = merged["elite_sos"] - merged["full_seed_avg_elite_sos"]
@@ -813,78 +757,8 @@ def build_analysis_07_table(
             return "below seed baseline"
         return "near seed baseline"
 
-    def describe_conference(row: pd.Series) -> str:
-        full_signal = row.get("conference_full_signal", "unclear")
-        recent_signal = row.get("conference_recent_signal", "unclear")
-        if full_signal == "positive" and recent_signal == "positive":
-            return "full-sample tailwind with recent reinforcement"
-        if full_signal == "negative" and recent_signal == "negative":
-            return "full-sample headwind with recent reinforcement"
-        if full_signal == "positive":
-            return "full-sample tailwind"
-        if full_signal == "negative":
-            return "full-sample headwind"
-        if recent_signal == "positive":
-            return "recent-only tailwind"
-        if recent_signal == "negative":
-            return "recent-only headwind"
-        return "mixed or unclear conference signal"
-
-    def classify_team(row: pd.Series) -> tuple[str, str]:
-        full_position = row["full_sample_position"]
-        recent_position = row["recent_position"]
-        seed_action_tier = row.get("seed_action_tier", "Low-use pocket")
-        conference_full_signal = row.get("conference_full_signal", "unclear")
-        conference_recent_signal = row.get("conference_recent_signal", "unclear")
-
-        high_use = seed_action_tier == "High-use pocket"
-        secondary_use = seed_action_tier == "Secondary-use pocket"
-        full_positive = full_position == "above seed baseline"
-        full_negative = full_position == "below seed baseline"
-        recent_positive = recent_position == "above seed baseline"
-        recent_negative = recent_position == "below seed baseline"
-        conference_tailwind = conference_full_signal == "positive"
-        conference_headwind = conference_full_signal == "negative"
-        recent_tailwind = conference_recent_signal == "positive"
-        recent_headwind = conference_recent_signal == "negative"
-
-        if full_positive:
-            if high_use and not conference_headwind and (recent_positive or conference_tailwind or recent_tailwind):
-                return "positive carryover", "stronger carryover case"
-            if secondary_use and not conference_headwind and (recent_positive or conference_tailwind or recent_tailwind):
-                return "positive carryover", "some support from recent trends"
-            return "cautious positive", "mixed evidence"
-
-        if full_negative:
-            if high_use and (recent_negative or conference_headwind or recent_headwind):
-                return "negative carryover", "weak carryover case"
-            if secondary_use and (recent_negative or conference_headwind):
-                return "negative carryover", "weak carryover case"
-            if conference_headwind and recent_negative:
-                return "negative carryover", "weak carryover case"
-            return "cautious negative", "mixed evidence"
-
-        if recent_positive:
-            return "cautious positive", "some support from recent trends"
-        if recent_negative:
-            return "cautious negative", "some support from recent trends"
-        return "mixed", "mixed evidence"
-
     merged["full_sample_position"] = merged["full_sos_z"].apply(classify_position)
     merged["recent_position"] = merged["recent_sos_z"].apply(classify_position)
-    merged["conference_carryover_note"] = merged.apply(describe_conference, axis=1)
-    merged[["carryover_direction", "carryover_confidence_note"]] = merged.apply(
-        lambda row: pd.Series(classify_team(row)),
-        axis=1,
-    )
-    merged["conference_halo"] = merged["conference_full_signal"].map(
-        {
-            "positive": POSITIVE,
-            "negative": NEGATIVE,
-            "neutral": NEUTRAL,
-            "unclear": NEUTRAL,
-        }
-    ).fillna(NEUTRAL)
 
     merged = cache_logo_images(merged, logo_cache_dir)
     merged["logo_fallback"] = merged["logo_path"].isna()
@@ -899,9 +773,10 @@ def build_analysis_07_table(
         "elite_sos",
         "conf_avg_barthag",
         "seed_group",
-        "seed_action_tier",
         "full_group_rho",
+        "full_group_team_count",
         "recent_group_rho",
+        "recent_group_team_count",
         "full_seed_avg_elite_sos",
         "recent_seed_avg_elite_sos",
         "full_sos_delta",
@@ -910,60 +785,11 @@ def build_analysis_07_table(
         "recent_sos_z",
         "full_sample_position",
         "recent_position",
-        "conference_full_overperformance",
-        "conference_recent_overperformance",
-        "conference_full_signal",
-        "conference_recent_signal",
-        "conference_carryover_note",
-        "carryover_direction",
-        "carryover_confidence_note",
-        "conference_halo",
         "logo_path",
         "logo_fallback",
     ]
     return merged[ordered_columns].reset_index(drop=True)
 
-
-def _legacy_plot_analysis_07(field_table: pd.DataFrame, out_path: Path) -> None:
-    plot_df = field_table.sort_values("elite_sos_pct", ascending=True, kind="stable").reset_index(drop=True)
-    y = np.arange(len(plot_df))
-
-    set_project_theme()
-    fig, ax = plt.subplots(figsize=(14.2, 10.2), constrained_layout=False)
-    apply_report_background(fig, [ax])
-    fig.subplots_adjust(top=0.85, bottom=0.08, left=0.22, right=0.95)
-    ax.hlines(y, plot_df["conf_avg_pct"], plot_df["elite_sos_pct"], color=PROJECT_PALETTE["storm"], linewidth=2.0)
-    ax.scatter(plot_df["conf_avg_pct"], y, s=80, color=SECONDARY, zorder=2)
-    ax.scatter(plot_df["elite_sos_pct"], y, s=80, color=ACCENT, zorder=3)
-    ax.set_yticks(y)
-    ax.set_yticklabels(plot_df["Team"] + " (" + plot_df["Conf"] + ")", fontsize=10, fontweight="semibold")
-    ax.set_xlabel("Historical percentile vs 2008-2025 tournament teams", fontsize=11, fontweight="semibold")
-    ax.grid(False)
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.tick_params(axis="x", labelsize=10, length=0, pad=6)
-    ax.tick_params(axis="y", length=0, pad=6)
-    ax.text(0.98, 0.96, "● Team SOS percentile", transform=ax.transAxes, ha="right", va="top", fontsize=10.5, fontweight="bold", color=ACCENT)
-    ax.text(0.98, 0.92, "● Conference percentile", transform=ax.transAxes, ha="right", va="top", fontsize=10.5, fontweight="bold", color=SECONDARY)
-    fig.suptitle(
-        f"{CURRENT_FIELD_YEAR} contenders with the strongest historical SOS profiles",
-        fontsize=21,
-        fontweight="bold",
-        y=0.97,
-    )
-    ax.text(
-        0.5,
-        1.03,
-        f"Top {CURRENT_FIELD_TOP_N} teams by current Barthag; percentiles benchmarked against completed tournament fields",
-        transform=ax.transAxes,
-        ha="center",
-        va="bottom",
-        fontsize=9.5,
-        color=TEXT_LIGHT,
-    )
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_path, dpi=220, bbox_inches="tight")
-    plt.close(fig)
 
 def plot_analysis_07(field_table: pd.DataFrame, out_path: Path) -> None:
     plot_df = field_table.copy()
@@ -1019,7 +845,7 @@ def plot_analysis_07(field_table: pd.DataFrame, out_path: Path) -> None:
                 (x_value, y_value),
                 frameon=True,
                 bboxprops={
-                    "edgecolor": str(row.conference_halo),
+                    "edgecolor": NEUTRAL,
                     "facecolor": PROJECT_PALETTE["paper"],
                     "linewidth": 2.0,
                     "alpha": 0.98,
@@ -1040,7 +866,7 @@ def plot_analysis_07(field_table: pd.DataFrame, out_path: Path) -> None:
                 color=LABEL_TEXT,
                 bbox={
                     "facecolor": PROJECT_PALETTE["paper"],
-                    "edgecolor": str(row.conference_halo),
+                    "edgecolor": NEUTRAL,
                     "linewidth": 1.2,
                     "alpha": 0.97,
                     "boxstyle": "round,pad=0.2",
@@ -1071,11 +897,8 @@ def plot_analysis_07(field_table: pd.DataFrame, out_path: Path) -> None:
     ax.tick_params(axis="y", length=0, pad=7)
 
     legend_handles = [
-        Line2D([], [], color=ACCENT, marker="|", linestyle="None", markersize=16, markeredgewidth=3, label="Full-sample seed avg"),
-        Line2D([], [], color=SECONDARY, marker="|", linestyle="None", markersize=14, markeredgewidth=2.3, label="Recent seed avg"),
-        Line2D([], [], marker="o", linestyle="None", markersize=10, markerfacecolor=PROJECT_PALETTE["paper"], markeredgecolor=POSITIVE, markeredgewidth=2, label="Positive conf context"),
-        Line2D([], [], marker="o", linestyle="None", markersize=10, markerfacecolor=PROJECT_PALETTE["paper"], markeredgecolor=NEUTRAL, markeredgewidth=2, label="Mixed / neutral conf"),
-        Line2D([], [], marker="o", linestyle="None", markersize=10, markerfacecolor=PROJECT_PALETTE["paper"], markeredgecolor=NEGATIVE, markeredgewidth=2, label="Negative conf context"),
+        Line2D([], [], color=ACCENT, marker="|", linestyle="None", markersize=16, markeredgewidth=3, label="2008-2025 seed avg"),
+        Line2D([], [], color=SECONDARY, marker="|", linestyle="None", markersize=14, markeredgewidth=2.3, label="2022-2025 seed avg"),
     ]
     legend = ax.legend(
         handles=legend_handles,
@@ -1103,7 +926,7 @@ def plot_analysis_07(field_table: pd.DataFrame, out_path: Path) -> None:
     fig.text(
         0.5,
         0.92,
-        "Logos to the right of their seed markers faced a tougher schedule than that seed line usually carries; halo color shows full-sample conference context",
+        "Logos to the right of their seed markers faced a tougher schedule than past tournament teams on that seed line (March 2026 projection)",
         ha="center",
         va="center",
         fontsize=10.3,
@@ -1119,6 +942,7 @@ def write_analysis_07_md(
     field_table: pd.DataFrame,
     tournament_df: pd.DataFrame,
     over_df: pd.DataFrame,
+    seeds_path: Path,
 ) -> None:
     yearly_rho = (
         tournament_df.groupby("year")
@@ -1128,71 +952,27 @@ def write_analysis_07_md(
     positive_years = int((yearly_rho["yearly_rho"] > 0).sum())
     total_years = int(len(yearly_rho))
     seed_adjusted_rho = float(over_df["overperformance"].corr(over_df["elite_sos_vs_seed"], method="spearman"))
-
     seed_group_view = (
-        field_table[
-            ["seed_group", "full_group_rho", "recent_group_rho", "seed_action_tier"]
-        ]
+        field_table[["seed_group", "full_group_rho", "full_group_team_count", "recent_group_rho", "recent_group_team_count"]]
         .drop_duplicates()
-        .sort_values("seed_group", kind="stable")
+        .set_index("seed_group")
+        .reindex([group for group in SEED_GROUP_ORDER_07 if group in set(field_table["seed_group"])])
+        .reset_index()
     )
-    strongest_full_group = seed_group_view.loc[seed_group_view["full_group_rho"].idxmax()]
-    recent_11_13 = seed_group_view.loc[seed_group_view["seed_group"] == "11-13", "recent_group_rho"]
-    recent_1_2 = seed_group_view.loc[seed_group_view["seed_group"] == "1-2", "recent_group_rho"]
-
-    represented_conferences = (
-        field_table[
-            [
-                "conf",
-                "conference_full_overperformance",
-                "conference_recent_overperformance",
-                "conference_full_signal",
-                "conference_recent_signal",
-                "conference_carryover_note",
-            ]
-        ]
-        .drop_duplicates()
-        .sort_values("conference_full_overperformance", ascending=False, kind="stable")
+    band_text = "; ".join(
+        f"`{row.seed_group}` {row.full_group_rho:+.3f} (n={int(row.full_group_team_count)}) / "
+        f"{row.recent_group_rho:+.3f} (n={int(row.recent_group_team_count)})"
+        for row in seed_group_view.itertuples(index=False)
     )
-    field_counts = field_table.groupby("conf", as_index=False).agg(conference_field_team_count=("team", "size"))
-    represented_conferences = represented_conferences.merge(field_counts, on="conf", how="left")
-    applicable_conferences = represented_conferences[represented_conferences["conference_field_team_count"] >= 2].copy()
-    tailwinds = applicable_conferences[
-        applicable_conferences["conference_full_signal"] == "positive"
-    ].sort_values(["conference_field_team_count", "conference_full_overperformance"], ascending=[False, False], kind="stable")
-    headwinds = applicable_conferences[
-        applicable_conferences["conference_full_signal"] == "negative"
-    ].sort_values(["conference_field_team_count", "conference_full_overperformance"], ascending=[False, True], kind="stable")
-    mixed_conferences = represented_conferences[
-        ~represented_conferences["conf"].isin(tailwinds["conf"]) & ~represented_conferences["conf"].isin(headwinds["conf"])
-    ].sort_values(["conference_field_team_count", "conference_full_overperformance"], ascending=[False, False], kind="stable")
-
-    positive_teams = field_table[field_table["carryover_direction"] == "positive carryover"].copy()
-    negative_teams = field_table[field_table["carryover_direction"] == "negative carryover"].copy()
-    cautious_teams = field_table[
-        field_table["carryover_direction"].isin(["cautious positive", "cautious negative", "mixed"])
-    ].copy()
-
-    if positive_teams.empty:
-        positive_teams = field_table[field_table["full_sample_position"] == "above seed baseline"].copy()
-    if negative_teams.empty:
-        negative_teams = field_table[field_table["full_sample_position"] == "below seed baseline"].copy()
-    if cautious_teams.empty:
-        cautious_teams = field_table[field_table["recent_position"] != "near seed baseline"].copy()
-
-    positive_teams = positive_teams.sort_values(["full_sos_delta", "barthag"], ascending=[False, False], kind="stable").head(5)
-    negative_teams = negative_teams.sort_values(["full_sos_delta", "barthag"], ascending=[True, False], kind="stable").head(5)
-    cautious_teams = cautious_teams.assign(abs_full_sos_delta=lambda df: df["full_sos_delta"].abs()).sort_values(
-        ["abs_full_sos_delta", "barthag"], ascending=[False, False], kind="stable"
-    ).head(5)
+    above = field_table.sort_values(["full_sos_delta", "barthag"], ascending=[False, False], kind="stable").head(5)
+    below = field_table.sort_values(["full_sos_delta", "barthag"], ascending=[True, False], kind="stable").head(5)
+    position_counts = field_table["full_sample_position"].value_counts()
 
     def format_team_list(table: pd.DataFrame) -> str:
-        parts: list[str] = []
-        for row in table.itertuples(index=False):
-            parts.append(
-                f"`{row.team}` ({int(row.projected_seed)}) — {row.full_sos_delta:+.2f} vs full seed baseline; {row.conference_carryover_note}"
-            )
-        return "; ".join(parts)
+        return "; ".join(
+            f"`{row.team}` ({int(row.projected_seed)}) {row.elite_sos:.2f}, {row.full_sos_delta:+.2f} vs the seed-line average"
+            for row in table.itertuples(index=False)
+        )
 
     display_table = field_table[
         [
@@ -1202,71 +982,35 @@ def write_analysis_07_md(
             "elite_sos",
             "full_seed_avg_elite_sos",
             "recent_seed_avg_elite_sos",
+            "full_sos_delta",
             "full_sample_position",
             "recent_position",
-            "conference_full_signal",
-            "conference_recent_signal",
-            "carryover_confidence_note",
         ]
     ].copy()
 
-    recent_11_13_value = float(recent_11_13.iloc[0]) if not recent_11_13.empty else np.nan
-    recent_1_2_value = float(recent_1_2.iloc[0]) if not recent_1_2.empty else np.nan
-
-    tailwind_text = (
-        "; ".join(
-            f"`{row.conf}` ({int(row.conference_field_team_count)} projected teams, {row.conference_carryover_note}, {row.conference_full_overperformance:+.3f} full)"
-            for row in tailwinds.head(4).itertuples(index=False)
-        )
-        if not tailwinds.empty
-        else "No represented conference shows a strong full-sample tailwind."
-    )
-    headwind_text = (
-        "; ".join(
-            f"`{row.conf}` ({int(row.conference_field_team_count)} projected teams, {row.conference_carryover_note}, {row.conference_full_overperformance:+.3f} full)"
-            for row in headwinds.head(4).itertuples(index=False)
-        )
-        if not headwinds.empty
-        else "No represented conference shows a strong full-sample headwind."
-    )
-    mixed_text = (
-        "; ".join(
-            f"`{row.conf}` ({int(row.conference_field_team_count)} projected teams, {row.conference_carryover_note})"
-            for row in mixed_conferences.head(5).itertuples(index=False)
-        )
-        if not mixed_conferences.empty
-        else "No represented conference falls in the mixed bucket."
-    )
-
     lines = [
-        f"# SOS Analysis 7: {CURRENT_FIELD_YEAR} Field Application",
+        f"# SOS Analysis 7: Projected {CURRENT_FIELD_YEAR} Field vs Seed-Line Schedule Strength",
         "",
-        f"Projected seeds from `data/raw/2026 expected seeds.xlsx` are joined to the `{CURRENT_FIELD_YEAR}` SOS sample. The scatter is contextual: logos to the right of their seed markers faced a tougher schedule than that seed line usually carries. Full-sample trends drive the read; recent trends only raise or lower confidence.",
+        f"The March {CURRENT_FIELD_YEAR} bracketology projection (`{seeds_path.relative_to(REPO_ROOT).as_posix()}`) is joined to the "
+        f"`{CURRENT_FIELD_YEAR}` SOS sample. Each team's `Elite SOS` is compared with the average of past tournament teams on "
+        f"the same seed line, over `2008-2025` and over `{TRANSFER_PORTAL_YEAR}-2025`. This is a pre-tournament snapshot; it uses no "
+        f"{CURRENT_FIELD_YEAR} results.",
         "",
-        "## What tends to carry over most reliably",
+        "## Historical relationship (2008-2025)",
         "",
-        f"- Exact-seed-adjusted `Elite SOS` is still context, not destiny. Across the full `2008-2025` tournament sample, the seed-adjusted relationship with overperformance is only `{seed_adjusted_rho:+.3f}`.",
-        f"- The directional signal still holds at the season level. `Elite SOS` was positively correlated with finish depth in `{positive_years}/{total_years}` completed tournament seasons.",
-        f"- The strongest full-sample pocket remains `{strongest_full_group['seed_group']}` seeds (`rho = {float(strongest_full_group['full_group_rho']):+.3f}`), so that is still the cleanest place to trust SOS as more than background context.",
-        "- Outside those stronger seed pockets, treat big SOS numbers as context rather than as an automatic upgrade over the projected seed line.",
+        f"- Seed-adjusted Spearman rho of `Elite SOS` with finish vs exact-seed expectation: `{seed_adjusted_rho:+.3f}`.",
+        f"- `Elite SOS` was positively correlated with raw finish depth in `{positive_years}/{total_years}` seasons. Raw finish "
+        "is not seed-adjusted, and stronger teams also play tougher schedules.",
+        f"- Seed-band rho of `Elite SOS` with finish vs the band's average, `2008-2025` / `{TRANSFER_PORTAL_YEAR}-2025`: {band_text}. "
+        "No significance test is applied.",
         "",
-        "## What recent trends may also carry over",
+        f"## Projected {CURRENT_FIELD_YEAR} teams furthest from their seed line",
         "",
-        f"- Recent seasons do not replace the full-sample rule. The `11-13` pocket is still positive in `2022-2025` (`rho = {recent_11_13_value:+.3f}`), which reinforces the older signal rather than overturning it.",
-        f"- Recent years also showed a stronger `1-2` seed effect (`rho = {recent_1_2_value:+.3f}`), but that is a qualifier, not a license to make blanket high-seed SOS claims.",
-        "- Use recent trends to raise or lower confidence once the full-sample case is already clear; do not let recent-only noise outrank the longer sample.",
-        "",
-        "## Conference tailwinds and headwinds for 2026",
-        "",
-        f"- Tailwinds in this projected field: {tailwind_text}",
-        f"- Headwinds in this projected field: {headwind_text}",
-        f"- Mixed conference reads: {mixed_text}",
-        "",
-        "## Specific 2026 teams to view positively, negatively, or cautiously",
-        "",
-        f"- Stronger carryover cases: {format_team_list(positive_teams)}",
-        f"- Weak carryover cases: {format_team_list(negative_teams)}",
-        f"- Caution flags: {format_team_list(cautious_teams)}",
+        f"- Highest `Elite SOS` relative to the 2008-2025 seed-line average: {format_team_list(above)}.",
+        f"- Lowest: {format_team_list(below)}.",
+        f"- Position counts: `{int(position_counts.get('above seed baseline', 0))}` above, "
+        f"`{int(position_counts.get('near seed baseline', 0))}` near and `{int(position_counts.get('below seed baseline', 0))}` "
+        "below the seed baseline, where above or below means at least 0.5 standard deviations from that seed line's average.",
         "",
         "## Table",
         "",
@@ -1325,7 +1069,7 @@ def main() -> int:
         [
             f"Best conference vs seed expectation: `{best_conf['Conf']}` at `{best_conf['mean_overperformance']:+.3f}`",
             f"Worst conference vs seed expectation: `{worst_conf['Conf']}` at `{worst_conf['mean_overperformance']:+.3f}`",
-            "Interpretation: conference context carries more usable signal than raw team SOS when the goal is to find seed-relative overperformance.",
+            "Interpretation: each conference mean is the average finish minus exact-seed expectation of its tournament teams (`team_count`, minimum 5); no significance test or shrinkage is applied.",
         ],
         conference_table,
     )
@@ -1342,7 +1086,7 @@ def main() -> int:
             f"Primary metric: `{pretty_metric(primary_metric)}`",
             f"Strongest exact-seed-adjusted era: `{strongest_era['era']}` at `{strongest_era['seed_adjusted_rho']:+.3f}`",
             f"Weakest exact-seed-adjusted era: `{weakest_era['era']}` at `{weakest_era['seed_adjusted_rho']:+.3f}`",
-            "Interpretation: the modern era shows more SOS sensitivity than the earliest part of the sample, especially in selective seed pockets.",
+            "Interpretation: era rhos are descriptive, each on that era's `team_count` teams; no significance test is applied.",
         ],
         era_table,
     )
@@ -1350,13 +1094,12 @@ def main() -> int:
     field_table = build_analysis_07_table(
         full_df,
         tournament_df,
-        over_df,
         paths["seeds_2026"],
         paths["logo_cache"],
     )
     plot_analysis_07(field_table, paths["fig_07"])
     with_repo_relative_logo_paths(field_table).round(6).to_csv(paths["csv_07"], index=False)
-    write_analysis_07_md(paths["md_07"], field_table, tournament_df, over_df)
+    write_analysis_07_md(paths["md_07"], field_table, tournament_df, over_df, paths["seeds_2026"])
 
     print(f"Primary metric: {primary_metric}")
     for key in [
