@@ -390,7 +390,7 @@ def write_summary_03(table: pd.DataFrame, out_path: Path) -> None:
         "",
         f"- Seasons with a positive seed-adjusted rho: `3PRATE` `{int((table['three_prate_seed_adjusted_rho'] > 0).sum())}/{len(table)}`, "
         f"`3P%` `{int((table['three_pct_seed_adjusted_rho'] > 0).sum())}/{len(table)}`, `3P%D` `{int((table['three_pct_d_seed_adjusted_rho'] > 0).sum())}/{len(table)}`.",
-        "- The per-season values change size and sign from year to year; each season has its tournament field only and no significance test is applied.",
+        "- The per-season values change size and sign from year to year; each rests on one season's tournament field (`team_count`), and no significance test is applied.",
         "",
         "## Table",
         "",
