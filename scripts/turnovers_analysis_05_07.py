@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import shutil
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -48,7 +47,6 @@ def get_paths() -> dict[str, Path]:
         "input": base["input_sample"],
         "seeds_2026": base["seeds_2026"],
         "logo_cache": Path(__file__).resolve().parent.parent / "data" / "external" / "team_logos" / "espn_ncaam",
-        "thread_dir": base["thread_dir"],
         "fig_05": root / "reports" / "figures" / "turnovers_archetypes_vs_overperformance.png",
         "fig_07": root / "reports" / "figures" / "turnovers_2026_field.png",
         "fig_07_blocks": root / "reports" / "figures" / "turnovers_2026_field_blocks.png",
@@ -764,12 +762,6 @@ def write_summary_07_blocks(table: pd.DataFrame, out_path: Path) -> None:
     out_path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def create_thread_assets(paths: dict[str, Path]) -> None:
-    thread_dir = paths["thread_dir"]
-    thread_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(paths["fig_05"], thread_dir / "1_turnovers_hook.png")
-
-
 def main() -> int:
     paths = get_paths()
     full_df = load_turnovers_data(paths["input"])
@@ -826,7 +818,6 @@ def main() -> int:
     write_summary_06(table06, paths["md_06"])
     write_summary_07(table07, paths["md_07"])
     write_summary_07_blocks(table07, paths["md_07_blocks"])
-    create_thread_assets(paths)
     return 0
 
 

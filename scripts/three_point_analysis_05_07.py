@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import shutil
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
@@ -51,7 +50,6 @@ def get_paths() -> dict[str, Path]:
         "input": base["input_sample"],
         "seeds_2026": base["seeds_2026"],
         "logo_cache": Path(__file__).resolve().parent.parent / "data" / "external" / "team_logos" / "espn_ncaam",
-        "thread_dir": base["thread_dir"],
         "fig_05": root / "reports" / "figures" / "three_point_rate_success_interaction.png",
         "fig_07": root / "reports" / "figures" / "three_point_2026_profile_map.png",
         "fig_07_defense": root / "reports" / "figures" / "three_point_2026_defense_field.png",
@@ -973,12 +971,6 @@ def write_summary_07_defense(table: pd.DataFrame, upset_history: pd.DataFrame, o
     out_path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def create_thread_assets(paths: dict[str, Path]) -> None:
-    thread_dir = paths["thread_dir"]
-    thread_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(paths["fig_05"], thread_dir / "1_three_point_hook.png")
-
-
 def main() -> int:
     paths = get_paths()
     full_df = load_three_point_data(paths["input"])
@@ -1001,7 +993,6 @@ def main() -> int:
     write_summary_06(table06, paths["md_06"])
     write_summary_07(table07, upset_history, paths["md_07"])
     write_summary_07_defense(table07, upset_history, paths["md_07_defense"])
-    create_thread_assets(paths)
     return 0
 
 
