@@ -159,7 +159,9 @@ def get_three_point_base_paths() -> dict[str, Path]:
     return {
         "input_sample": project_root / "data" / "processed" / "three_point_sample.csv",
         "metric_selection": project_root / "reports" / "three_point_metric_selection.csv",
-        "seeds_2026": project_root / "data" / "raw" / "2026_expected_seeds_update.csv",
+        # The March 2026 bracketology projection the 2026-field reports describe. ingest_2026.py replaced
+        # data/raw/2026_expected_seeds_update.csv with the official bracket and archived the projection here.
+        "seeds_2026": project_root / "data" / "raw" / "torvik_2026" / "bracketology_archive" / "2026_expected_seeds_update.csv",
         "thread_dir": project_root / "reports" / "figures" / "three_point_thread",
     }
 

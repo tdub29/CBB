@@ -89,7 +89,9 @@ def get_paths() -> dict[str, Path]:
     project_root = Path(__file__).resolve().parent.parent
     return {
         "input": project_root / "data" / "processed" / "sos_sample.csv",
-        "seeds_2026": project_root / "data" / "raw" / "2026_expected_seeds_update.csv",
+        # The March 2026 bracketology projection the 2026-field reports describe. ingest_2026.py replaced
+        # data/raw/2026_expected_seeds_update.csv with the official bracket and archived the projection here.
+        "seeds_2026": project_root / "data" / "raw" / "torvik_2026" / "bracketology_archive" / "2026_expected_seeds_update.csv",
         "logo_cache": project_root / "data" / "external" / "team_logos" / "espn_ncaam",
         "fig_05a": project_root / "reports" / "figures" / "sos_vs_overperformance.png",
         "fig_05b": project_root / "reports" / "figures" / "sos_conf_vs_overperformance.png",

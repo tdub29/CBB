@@ -98,7 +98,9 @@ def get_size_base_paths() -> dict[str, Path]:
         "input_raw": project_root / "data" / "raw" / "assembled" / "all_trank_team_tables.csv",
         "input_sample": project_root / "data" / "processed" / "size_sample.csv",
         "metric_selection": project_root / "reports" / "size_metric_selection.csv",
-        "seeds_2026": project_root / "data" / "raw" / "2026_expected_seeds_update.csv",
+        # The March 2026 bracketology projection the 2026-field reports describe. ingest_2026.py replaced
+        # data/raw/2026_expected_seeds_update.csv with the official bracket and archived the projection here.
+        "seeds_2026": project_root / "data" / "raw" / "torvik_2026" / "bracketology_archive" / "2026_expected_seeds_update.csv",
         "logo_cache": project_root / "data" / "external" / "team_logos" / "espn_ncaam",
         "player_stats_advanced": project_root / "data" / "raw" / "player_stats" / "player_advanced_all.csv",
     }
