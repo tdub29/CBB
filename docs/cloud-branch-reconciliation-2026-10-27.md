@@ -1,6 +1,6 @@
-# claude/portfolio-fixes reconciliation, 2026-10-27
+# portfolio-fixes reconciliation, 2026-10-27
 
-`claude/portfolio-fixes` (035e94e, 28 commits) branched from main at 2a07385, before the frozen log5 test
+`portfolio-fixes` (archived as `archive/portfolio-fixes`; 035e94e, 28 commits) branched from main at 2a07385, before the frozen log5 test
 harness reached the published main. This integration brings that harness onto main and takes from the branch
 only what is safe on top of it. The branch is left on the remote unchanged.
 

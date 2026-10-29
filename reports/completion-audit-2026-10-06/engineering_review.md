@@ -2,7 +2,7 @@
 
 Reviewer: independent single reviewer, 2026-10-07. I did not write any of the reviewed code.
 In the shared checkout I ran read-only git commands only. Everything I ran that writes ran in my own clone at
-`C:\Users\TrevorWhite\.claude\jobs\aafe185e\tmp\review_clone` (now HEAD 687d3ca).
+a separate local review clone (now HEAD 687d3ca).
 Python: `cbb\.venv\Scripts\python.exe` (3.12). I never ran `run_powered_comparison.py select`.
 
 VERDICT: CERTIFIED
@@ -16,7 +16,7 @@ Must-fix: 0. Should-fix: 0 open (687d3ca closes F1, F2 and F3). Nits: 7 open (N1
 | 1 | Frozen-input protection | PASS. 687d3ca closes F1; nit N7 remains |
 | 2 | predict_selection_sunday.py math, joins, timing labels | PASS |
 | 3 | run_bracket_evaluation NameError fix, --out-tag, test | PASS |
-| 4 | README/AGENTS claims, null result, vintage notes | PASS. 687d3ca closes F2 and F3; nit N8 remains |
+| 4 | README and contributor-notes claims, null result, vintage notes | PASS. 687d3ca closes F2 and F3; nit N8 remains |
 | 5 | Commit closure, 4 staged deletions untouched | PASS |
 | R | Reproduction | PASS. Rests on the coordinator's clean-clone score, which I verified read-only (section 6) |
 
@@ -38,7 +38,7 @@ Must-fix: 0. Should-fix: 0 open (687d3ca closes F1, F2 and F3). Nits: 7 open (N1
 - Score guard: `run_score` (`scripts/run_powered_comparison.py:623`) refuses to score when the three input hash prefixes differ from the frozen JSON.
 - At 284d1ff, `select --force` wrote the frozen JSON without `assert_writable` (F1).
   - 687d3ca closes this: `run_select` now opens with `assert_writable(FROZEN_PATH)` (`scripts/run_powered_comparison.py:530`), and `--force` is gone.
-  - `git grep -E -- "--force|args\.force"` over scripts, src, tests, README.md and AGENTS.md finds nothing.
+  - `git grep -E -- "--force|args\.force"` over scripts, src, tests, README.md and the contributor notes finds nothing.
 - New test `test_select_refuses_before_loading_any_data` (`tests/test_frozen_inputs.py:46`) stubs `load_inputs` to raise and expects `FrozenInputError`. The test catches real regressions:
   - Against the 284d1ff code, `run_select(argparse.Namespace())` raises AttributeError on `args.force`, so the test fails.
   - If the guard moves below `load_inputs`, or the JSON drops out of `FROZEN_INPUTS`, the stub raises AssertionError and the test fails.
@@ -78,16 +78,16 @@ Must-fix: 0. Should-fix: 0 open (687d3ca closes F1, F2 and F3). Nits: 7 open (N1
 
 ### 4. Documentation
 
-- Every flag named in README/AGENTS exists in argparse: --bracket, --check, --from-games, --out-tag, --prep-raw, --semis and --year. 687d3ca removes `--force` from the code and the docs together.
-- Null result: README lines 12-14 and AGENTS line 7 match `reports/model_vs_seeds_powered.md`.
+- Every flag named in README and the contributor notes exists in argparse: --bracket, --check, --from-games, --out-tag, --prep-raw, --semis and --year. 687d3ca removes `--force` from the code and the docs together.
+- Null result: README lines 12-14 and contributor notes line 7 match `reports/model_vs_seeds_powered.md`.
   - They give Brier -0.0059, CI [-0.0123, +0.0004], power 15% and MDE 0.0126.
   - They say "No detectable edge" and "not established".
-  - AGENTS line 7 forbids describing the result as beating seeds.
+  - Contributor notes line 7 forbids describing the result as beating seeds.
 - F3 closed. `README.md:15-16` now reads "Calibration: no detectable miscalibration at this sample size, which is not proof of calibration", which matches the report.
 - F2 closed. `README.md:80-81` now reads "The 2021 walk-forward matches the powered comparison's saved `p_ridge` on the frozen CSV".
 - `README.md:40`, "It refuses to run: the frozen JSON is a protected path in `src/frozen_inputs.py`", matches the code at 687d3ca.
 - The vintage notes on `reports/model_optimization_20260929.md` and `reports/bracket_simulation_2025.md` are prepended text only.
-  - I compared them with the pre-note text recovered from the session transcript.
+  - I compared them with the pre-note text recovered from earlier captured output.
   - model_optimization: 128 of 129 original lines are present verbatim. The 129th is an ellipsis in the capture.
   - bracket_simulation: all 10 headline lines are present verbatim (`grep -F`).
   - The hash prefixes in the notes (8565be043d11155d, 504f855b2dac0ee1) match each report's own provenance lines.
@@ -121,7 +121,7 @@ Must-fix: 0. Should-fix: 0 open (687d3ca closes F1, F2 and F3). Nits: 7 open (N1
   - `check_frozen_inputs()`: no problems
   - `git status`: clean apart from `__pycache__`
 - My own score run did not finish. Other processes held the CPU (processor queue 118). After about 88 minutes it had only reached `[strength fits] 2012`, so I stopped it; `review_score.txt` ends `exit 1`. It is not evidence either way.
-- Score reproduction comes from the coordinator's direct clean-clone run (task boassf2ta, record `tmp/clean_clone_score_284d1ff.txt`). I did not run it. I checked what it left on disk, read-only, with `GIT_OPTIONAL_LOCKS=0`:
+- Score reproduction comes from the coordinator's direct clean-clone run (record `tmp/clean_clone_score_284d1ff.txt`). I did not run it. I checked what it left on disk, read-only, with `GIT_OPTIONAL_LOCKS=0`:
   - `tmp/clean_clone` is a clone of the shared repo at HEAD 284d1ff. Apart from caches, it has no untracked or ignored files.
   - `git status` shows only `reports/model_vs_seeds_powered.md` modified.
   - `git diff -U0` on that report shows lines 307-308 only:
@@ -170,13 +170,13 @@ None open. 687d3ca closes all three; I verified each closure at that commit:
   - Failure: if the frozen JSON is changed outside Python, for example by an editor or a git checkout of another version, score accepts it silently, and a different selection gets scored under the 2026-09-29 registration.
   - Mitigations: the report prints the live sha prefix on line 308 (computed at :627), and `tests/test_frozen_inputs.py` hashes the JSON.
   - Fix: call `check_frozen_inputs()` at the top of `run_score` and exit on any problem.
-- **N8. `README.md:35-36` and `AGENTS.md:14`.** Both say that after `score`, "only the run timestamps" should differ. The clean-clone run also changes the code-revision text on report line 308.
+- **N8. `README.md:35-36` and contributor notes line 14.** Both say that after `score`, "only the run timestamps" should differ. The clean-clone run also changes the code-revision text on report line 308.
   - Failure: a reproducer sees an unexpected change on line 308 and doubts a good reproduction, or learns to wave through any 2-line diff.
   - Fix: "Only the run timestamp and code-revision lines (307-308) should differ".
 
 ## What I could not verify
 
-- The exact pre-note bytes of the two vintage reports. I had only session-transcript captures, so "no numbers changed" rests on a line-by-line comparison of those captures.
+- The exact pre-note bytes of the two vintage reports. I had only earlier captured output, so "no numbers changed" rests on a line-by-line comparison of those captures.
 - A full rerun of the bracket evaluation for any year other than 2021.
 - A score run executed by me. Mine was CPU-starved and stopped. R rests on the coordinator's clean-clone run: I checked its outputs on disk, but I did not watch it execute.
 - That the new select test fails on the old code. I established this by reading, not by running the mutation, because the hard rules forbid calling select.
