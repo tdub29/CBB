@@ -19,13 +19,16 @@ from size_analysis_common import (
     NEUTRAL,
     NEGATIVE,
     POSITIVE,
+    REPO_ROOT,
     SECONDARY,
+    SEED_GROUP_ORDER,
     TEXT_DARK,
     TEXT_LIGHT,
+    TRANSFER_PORTAL_YEAR,
     apply_report_background,
     assign_era,
     build_overperformance_data,
-    build_seed_group_carryover_table,
+    build_seed_group_rho_table,
     build_seed_reference_tables,
     cache_logo_images,
     get_size_base_paths,
@@ -362,85 +365,6 @@ def plot_analysis_05(archetype_table: pd.DataFrame, primary_metric: str, out_pat
     plt.close(fig)
 
 
-def build_analysis_06_table(over_df: pd.DataFrame, primary_metric: str) -> pd.DataFrame:
-    metric_vs_seed_col = f"{metric_slug(primary_metric)}_vs_seed"
-    rows: list[dict[str, object]] = []
-    for year, group in over_df.groupby("year", sort=True):
-        rows.append(
-            {
-                "year": int(year),
-                "team_count": int(len(group)),
-                "raw_rho": float(group["finish_depth"].corr(group[primary_metric], method="spearman")),
-                "seed_adjusted_rho": float(group["overperformance"].corr(group[metric_vs_seed_col], method="spearman")),
-            }
-        )
-    return pd.DataFrame(rows)
-
-
-def plot_analysis_06(year_table: pd.DataFrame, primary_metric: str, out_path: Path) -> None:
-    x = year_table["year"].to_numpy(dtype=int)
-    raw_values = year_table["raw_rho"].to_numpy(dtype=float)
-    seed_values = year_table["seed_adjusted_rho"].to_numpy(dtype=float)
-    title = f"{metric_label(primary_metric)} and tournament success by year"
-
-    set_project_theme()
-    fig, axes = plt.subplots(2, 1, figsize=(14.6, 9.6), constrained_layout=False)
-    apply_report_background(fig, axes)
-    fig.subplots_adjust(top=0.84, bottom=0.09, left=0.12, right=0.95, hspace=0.36)
-
-    for ax, values, panel_title in [
-        (axes[0], raw_values, "Pooled raw size vs finish"),
-        (axes[1], seed_values, "Exact-seed-adjusted size vs overperformance"),
-    ]:
-        ax.plot(x, values, color=ACCENT, linewidth=2.6, marker="o", markersize=7)
-        ax.axhline(0, color=SECONDARY, linestyle=":", linewidth=1.3)
-        mean_value = float(np.mean(values))
-        ax.axhline(mean_value, color=TEXT_LIGHT, linestyle="--", linewidth=1.2, alpha=0.95)
-        ax.axvline(2022, color=SECONDARY, linestyle=":", linewidth=1.8)
-        y_min = float(np.min(values))
-        y_max = float(np.max(values))
-        y_pad = max((y_max - y_min) * 0.28, 0.025)
-        ax.set_ylim(y_min - y_pad, y_max + y_pad)
-        ax.set_title(panel_title, fontsize=12.8, fontweight="bold", color=TEXT_DARK, pad=12)
-        ax.set_xticks(x)
-        ax.set_xticklabels([str(value) for value in x], fontsize=10.2, fontweight="semibold")
-        ax.grid(False)
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        ax.tick_params(axis="x", length=0, pad=7)
-        ax.tick_params(axis="y", labelsize=10.2, length=0, pad=7)
-        x_label_pos = float(x.max()) + 0.1
-        ax.text(
-            x_label_pos,
-            mean_value,
-            "Avg rho",
-            ha="left",
-            va="center",
-            fontsize=10.0,
-            fontweight="semibold",
-            color=LABEL_TEXT,
-            bbox=styled_box(),
-        )
-
-    axes[1].set_xlabel("Season", fontsize=11.5, fontweight="semibold")
-    axes[0].set_ylabel("Spearman rho", fontsize=11.5, fontweight="semibold")
-    axes[1].set_ylabel("Spearman rho", fontsize=11.5, fontweight="semibold")
-
-    fig.suptitle(title, fontsize=22, fontweight="bold", y=0.97)
-    fig.text(
-        0.5,
-        0.91,
-        "Top: raw relationship by season. Bottom: seed-adjusted relationship by season.",
-        ha="center",
-        va="center",
-        fontsize=10.0,
-        color=TEXT_LIGHT,
-    )
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_path, dpi=220, bbox_inches="tight")
-    plt.close(fig)
-
-
 def build_analysis_07_table(
     full_df: pd.DataFrame,
     tournament_df: pd.DataFrame,
@@ -453,7 +377,7 @@ def build_analysis_07_table(
         raise ValueError(f"Expected 68 projected 2026 teams after join; found {len(field)}")
 
     full_reference, recent_reference = build_seed_reference_tables(tournament_df, [primary_metric])
-    group_table = build_seed_group_carryover_table(tournament_df, primary_metric)
+    group_table = build_seed_group_rho_table(tournament_df, primary_metric)
     merged = field.merge(full_reference, on="projected_seed", how="left").merge(
         recent_reference,
         on="projected_seed",
@@ -498,38 +422,6 @@ def build_analysis_07_table(
 
     merged["full_primary_position"] = merged["full_primary_z"].apply(classify_position)
     merged["recent_primary_position"] = merged["recent_primary_z"].apply(classify_position)
-    def classify_team(row: pd.Series) -> tuple[str, str]:
-        high_use = row.get("seed_action_tier") == "High-use pocket"
-        secondary_use = row.get("seed_action_tier") == "Secondary-use pocket"
-        full_positive = row["full_primary_position"] == "above baseline"
-        full_negative = row["full_primary_position"] == "below baseline"
-        recent_positive = row["recent_primary_position"] == "above baseline"
-        recent_negative = row["recent_primary_position"] == "below baseline"
-
-        if full_positive and high_use:
-            return "positive carryover", "stronger carryover case"
-        if full_positive and secondary_use:
-            return "positive carryover", "some support from recent trends" if recent_positive else "mixed evidence"
-        if full_negative and high_use:
-            return "negative carryover", "weak carryover case"
-        if full_negative and secondary_use:
-            return "negative carryover", "weak carryover case" if recent_negative else "mixed evidence"
-        if full_positive and recent_positive:
-            return "positive carryover", "some support from recent trends"
-        if full_positive:
-            return "cautious positive", "mixed evidence"
-        if full_negative:
-            return "cautious negative", "mixed evidence"
-        if recent_positive:
-            return "cautious positive", "some support from recent trends"
-        if recent_negative:
-            return "cautious negative", "some support from recent trends"
-        return "mixed", "mixed evidence"
-
-    merged[["carryover_direction", "carryover_confidence_note"]] = merged.apply(
-        lambda row: pd.Series(classify_team(row)),
-        axis=1,
-    )
     champion_rows = (
         tournament_df.loc[tournament_df["finish"] == "CHAMPS", ["Team", "year", "seed_int"]]
         .assign(team_key=lambda frame: frame["Team"].map(normalize_team_key))
@@ -1080,31 +972,11 @@ def write_analysis_05_md(path: Path, archetype_table: pd.DataFrame, primary_metr
         f"- Metric used here: `{primary_metric}` (`{metric_label(primary_metric)}`).",
         f"- Best archetype: `{best['archetype']}` at `{best['mean_overperformance']:+.3f}` mean finish vs exact-seed expectation.",
         f"- Worst archetype: `{worst['archetype']}` at `{worst['mean_overperformance']:+.3f}` mean finish vs exact-seed expectation.",
-        "- Interpretation: size is most actionable when it shows up as a seed-relative archetype rather than as a raw top-to-bottom ranking.",
+        "- Interpretation: teams are split only by whether the metric sits above or below their exact seed line's average; these are descriptive group means with no significance test.",
         "",
         "## Table",
         "",
         archetype_table.round(3).to_markdown(index=False),
-    ]
-    path.write_text("\n".join(lines), encoding="utf-8")
-
-
-def write_analysis_06_md(path: Path, year_table: pd.DataFrame, primary_metric: str) -> None:
-    strongest_raw = year_table.loc[year_table["raw_rho"].idxmax()]
-    strongest_adjusted = year_table.loc[year_table["seed_adjusted_rho"].idxmax()]
-    weakest_adjusted = year_table.loc[year_table["seed_adjusted_rho"].idxmin()]
-    lines = [
-        "# Size Analysis 6: Year-by-Year Comparison",
-        "",
-        f"- Primary metric: `{primary_metric}` (`{metric_label(primary_metric)}`).",
-        f"- Strongest raw year: `{int(strongest_raw['year'])}` at `{strongest_raw['raw_rho']:+.3f}`.",
-        f"- Strongest exact-seed-adjusted year: `{int(strongest_adjusted['year'])}` at `{strongest_adjusted['seed_adjusted_rho']:+.3f}`.",
-        f"- Weakest exact-seed-adjusted year: `{int(weakest_adjusted['year'])}` at `{weakest_adjusted['seed_adjusted_rho']:+.3f}`.",
-        "- Interpretation: the year view shows whether size behaves consistently over time; any modern bump should still be treated as a qualifier, not a replacement for the full sample.",
-        "",
-        "## Table",
-        "",
-        year_table.round(3).to_markdown(index=False),
     ]
     path.write_text("\n".join(lines), encoding="utf-8")
 
@@ -1115,6 +987,7 @@ def write_analysis_07_md(
     tournament_df: pd.DataFrame,
     over_df: pd.DataFrame,
     primary_metric: str,
+    seeds_path: Path,
 ) -> None:
     primary_vs_seed_col = f"{metric_slug(primary_metric)}_vs_seed"
     seed_adjusted_rho = float(over_df["overperformance"].corr(over_df[primary_vs_seed_col], method="spearman"))
@@ -1125,63 +998,39 @@ def write_analysis_07_md(
     )
     positive_years = int((yearly["raw_rho"] > 0).sum())
     seed_group_view = (
-        field_table[["seed_group", "full_group_rho", "recent_group_rho", "seed_action_tier"]]
+        field_table[["seed_group", "full_group_rho", "full_group_team_count", "recent_group_rho", "recent_group_team_count"]]
         .drop_duplicates()
-        .sort_values("seed_group", kind="stable")
+        .set_index("seed_group")
+        .reindex([group for group in SEED_GROUP_ORDER if group in set(field_table["seed_group"])])
+        .reset_index()
     )
-    high_use = seed_group_view[seed_group_view["seed_action_tier"] == "High-use pocket"]
-    secondary_use = seed_group_view[seed_group_view["seed_action_tier"] == "Secondary-use pocket"]
+    band_text = "; ".join(
+        f"`{row.seed_group}` {row.full_group_rho:+.3f} (n={int(row.full_group_team_count)}) / "
+        f"{row.recent_group_rho:+.3f} (n={int(row.recent_group_team_count)})"
+        for row in seed_group_view.itertuples(index=False)
+    )
     former_champions = field_table[field_table["is_former_champion"]].copy().sort_values(
         ["projected_seed", "barthag"],
         ascending=[True, False],
         kind="stable",
     )
-    secondary_use_text = (
-        ", ".join(
-            [
-                f"`{row.seed_group}` (full {row.full_group_rho:+.3f}, recent {row.recent_group_rho:+.3f})"
-                for row in secondary_use.itertuples(index=False)
-            ]
-        )
-        if not secondary_use.empty
-        else "none"
-    )
     former_champion_text = (
         ", ".join(
-            [
-                f"`{row.team}` ({int(row.projected_seed)}) â€” {row.title_history}"
-                for row in former_champions.itertuples(index=False)
-            ]
+            f"`{row.team}` ({int(row.projected_seed)}): {row.title_history}"
+            for row in former_champions.itertuples(index=False)
         )
         if not former_champions.empty
         else "none"
     )
-
-    positive_teams = field_table[field_table["carryover_direction"] == "positive carryover"].copy()
-    negative_teams = field_table[field_table["carryover_direction"] == "negative carryover"].copy()
-    cautious_teams = field_table[
-        field_table["carryover_direction"].isin(["cautious positive", "cautious negative", "mixed"])
-    ].copy()
-    if positive_teams.empty:
-        positive_teams = field_table[field_table["full_primary_position"] == "above baseline"].copy()
-    if negative_teams.empty:
-        negative_teams = field_table[field_table["full_primary_position"] == "below baseline"].copy()
-    if cautious_teams.empty:
-        cautious_teams = field_table.copy()
-
-    positive_teams = positive_teams.sort_values(["full_primary_delta", "barthag"], ascending=[False, False], kind="stable").head(5)
-    negative_teams = negative_teams.sort_values(["full_primary_delta", "barthag"], ascending=[True, False], kind="stable").head(5)
-    cautious_teams = cautious_teams.assign(abs_primary_delta=lambda frame: frame["full_primary_delta"].abs()).sort_values(
-        ["abs_primary_delta", "barthag"], ascending=[False, False], kind="stable"
-    ).head(5)
+    above = field_table.sort_values(["full_primary_delta", "barthag"], ascending=[False, False], kind="stable").head(5)
+    below = field_table.sort_values(["full_primary_delta", "barthag"], ascending=[True, False], kind="stable").head(5)
+    position_counts = field_table["full_primary_position"].value_counts()
 
     def format_team_list(table: pd.DataFrame) -> str:
-        parts = []
-        for row in table.itertuples(index=False):
-            parts.append(
-                f"`{row.team}` ({int(row.projected_seed)}) — {row.full_primary_delta:+.2f} vs full seed baseline; `{row.carryover_confidence_note}`"
-            )
-        return "; ".join(parts)
+        return "; ".join(
+            f"`{row.team}` ({int(row.projected_seed)}) {getattr(row, primary_metric):.2f}, {row.full_primary_delta:+.2f} vs the seed-line average"
+            for row in table.itertuples(index=False)
+        )
 
     display_table = field_table[
         [
@@ -1197,42 +1046,33 @@ def write_analysis_07_md(
             "full_primary_delta",
             "recent_primary_delta",
             "full_primary_position",
-            "seed_action_tier",
-            "carryover_confidence_note",
+            "recent_primary_position",
         ]
     ].copy()
 
     lines = [
-        f"# Size Analysis 7: {CURRENT_FIELD_YEAR} Field Application",
+        f"# Size Analysis 7: Projected {CURRENT_FIELD_YEAR} Field vs Seed-Line Size",
         "",
-        f"Projected seeds from `data/raw/2026 expected seeds.xlsx` are joined to the `{CURRENT_FIELD_YEAR}` size sample. The scatter is contextual: logos to the right of their seed markers are bigger on `{primary_metric}` than that seed line usually carries. Full-sample trends drive the read; recent trends only raise or lower confidence.",
+        f"The March {CURRENT_FIELD_YEAR} bracketology projection (`{seeds_path.relative_to(REPO_ROOT).as_posix()}`) is joined to the "
+        f"`{CURRENT_FIELD_YEAR}` size sample. Each team's `{primary_metric}` is compared with the average of past tournament teams on "
+        f"the same seed line, over `2008-2025` and over `{TRANSFER_PORTAL_YEAR}-2025`. This is a pre-tournament snapshot; it uses no "
+        f"{CURRENT_FIELD_YEAR} results.",
         "",
-        "## What tends to carry over most reliably",
+        "## Historical relationship (2008-2025)",
         "",
-        f"- Exact-seed-adjusted `{primary_metric}` is still context, not destiny. Across the full `2008-2025` tournament sample, the seed-adjusted relationship with overperformance is `{seed_adjusted_rho:+.3f}`.",
-        f"- The direction still holds over time. `{primary_metric}` was positively correlated with finish depth in `{positive_years}/{len(yearly)}` completed tournament seasons.",
-        f"- The most actionable seed pockets in the historical sample are: {', '.join([f'`{row.seed_group}` ({row.full_group_rho:+.3f})' for row in high_use.itertuples(index=False)]) or 'none'}",
-        "- Use those pockets as the main place to weight size, then treat the rest of the field as context or tiebreaker territory.",
+        f"- Seed-adjusted Spearman rho of `{primary_metric}` with finish vs exact-seed expectation: `{seed_adjusted_rho:+.3f}`.",
+        f"- `{primary_metric}` was positively correlated with raw finish depth in `{positive_years}/{len(yearly)}` seasons. Raw finish is not seed-adjusted.",
+        f"- Seed-band rho of `{primary_metric}` with finish vs the band's average, `2008-2025` / `{TRANSFER_PORTAL_YEAR}-2025`: {band_text}. "
+        "No significance test is applied.",
         "",
-        "## What recent trends may also carry over",
+        f"## Projected {CURRENT_FIELD_YEAR} teams furthest from their seed line",
         "",
-        f"- Recent seasons (`2022-2025`) are a qualifier rather than a reset. The only full-sample pocket still worth monitoring is {secondary_use_text}.",
-        "- Recent results do not create a new strong size pocket on their own, so they should raise or lower confidence only after the full-sample case is already clear.",
-        "- If a 2026 team sits above both its full-sample and recent EFFHGT baselines, confidence can move up one level. If only the recent baseline likes it, keep the conclusion soft.",
-        "",
-        "## 2026 seed bands to weight size most",
-        "",
-        f"- High-use pockets: {', '.join([f'`{row.seed_group}`' for row in high_use.itertuples(index=False)]) or 'none'}",
-        f"- Secondary-use pockets: {', '.join([f'`{row.seed_group}`' for row in secondary_use.itertuples(index=False)]) or 'none'}",
-        "- In low-use pockets, big or long teams still matter as context, but they do not earn the same independent bracket weight.",
-        f"- For dominant-big-team support, use the separate `reports/figures/size_2026_big_man.png` page rather than overloading this main size chart.",
-        f"- Gold-backed logos in the chart mark former NCAA champions in the projected `{CURRENT_FIELD_YEAR}` field: {former_champion_text}.",
-        "",
-        "## Specific 2026 teams to view positively, negatively, or cautiously",
-        "",
-        f"- Stronger carryover cases: {format_team_list(positive_teams)}",
-        f"- Weak carryover cases: {format_team_list(negative_teams)}",
-        f"- Caution flags: {format_team_list(cautious_teams)}",
+        f"- Largest `{primary_metric}` relative to the 2008-2025 seed-line average: {format_team_list(above)}.",
+        f"- Smallest: {format_team_list(below)}.",
+        f"- Position counts: `{int(position_counts.get('above baseline', 0))}` above, `{int(position_counts.get('near baseline', 0))}` near and "
+        f"`{int(position_counts.get('below baseline', 0))}` below baseline, at 0.35 standard deviations from the seed line's average.",
+        f"- Gold-backed logos in the chart mark former NCAA champions in the projected field: {former_champion_text}.",
+        "- The dominant big-man screen is reported separately in `reports/size_2026_big_man_summary.md`.",
         "",
         "## Table",
         "",
@@ -1337,21 +1177,20 @@ def main() -> int:
         "title_history",
         primary_metric,
         "seed_group",
-        "seed_action_tier",
         "full_group_rho",
+        "full_group_team_count",
         "recent_group_rho",
+        "recent_group_team_count",
         f"full_seed_avg_{metric_slug(primary_metric)}",
         f"recent_seed_avg_{metric_slug(primary_metric)}",
         "full_primary_delta",
         "recent_primary_delta",
         "full_primary_position",
         "recent_primary_position",
-        "carryover_direction",
-        "carryover_confidence_note",
         "logo_fallback",
     ]
     field_table[export_columns].round(6).to_csv(paths["csv_07"], index=False)
-    write_analysis_07_md(paths["md_07"], field_table, tournament_df, over_df, primary_metric)
+    write_analysis_07_md(paths["md_07"], field_table, tournament_df, over_df, primary_metric, paths["seeds_2026"])
 
     field_big_man_table = build_analysis_07_big_man_table(
         full_df,
@@ -1380,7 +1219,7 @@ def main() -> int:
         guard_export_cols = [
             "projected_seed", "team", "conf", "barthag",
             "guard_height_in", primary_metric,
-            "seed_group", "carryover_direction",
+            "seed_group", "full_primary_position",
         ]
         guard_field[[c for c in guard_export_cols if c in guard_field.columns]].round(4).to_csv(
             paths["csv_07_guard_height"], index=False

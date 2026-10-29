@@ -327,7 +327,7 @@ def build_seed_reference_tables(
     return full_reference, recent_reference
 
 
-def build_seed_group_carryover_table(tournament_df: pd.DataFrame, metric: str) -> pd.DataFrame:
+def build_seed_group_rho_table(tournament_df: pd.DataFrame, metric: str) -> pd.DataFrame:
     def summarize(df: pd.DataFrame, prefix: str) -> pd.DataFrame:
         work = df.copy()
         work["seed_group"] = work["seed_int"].map(SEED_GROUP_MAP)
@@ -349,19 +349,7 @@ def build_seed_group_carryover_table(tournament_df: pd.DataFrame, metric: str) -
         tournament_df[tournament_df["year"].between(TRANSFER_PORTAL_YEAR, 2025)].copy(),
         "recent",
     )
-    group_table = full_group.merge(recent_group, on="seed_group", how="outer")
-
-    def classify_action_tier(row: pd.Series) -> str:
-        full_rho = float(row.get("full_group_rho", np.nan))
-        recent_rho = float(row.get("recent_group_rho", np.nan))
-        if pd.notna(full_rho) and full_rho >= 0.25 and pd.notna(recent_rho) and recent_rho > 0:
-            return "High-use pocket"
-        if (pd.notna(full_rho) and full_rho >= 0.10) or (pd.notna(recent_rho) and recent_rho >= 0.15):
-            return "Secondary-use pocket"
-        return "Low-use pocket"
-
-    group_table["seed_action_tier"] = group_table.apply(classify_action_tier, axis=1)
-    return group_table
+    return full_group.merge(recent_group, on="seed_group", how="outer")
 
 
 def assign_era(year: int) -> str:
