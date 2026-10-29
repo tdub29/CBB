@@ -201,7 +201,7 @@ def plot_analysis_02(tournament_df: pd.DataFrame, over_df: pd.DataFrame, summary
         bbox=styled_box(),
     )
     fig.suptitle("Turnover and block metrics versus tournament overperformance", fontsize=22, fontweight="bold", y=0.975)
-    fig.text(0.5, 0.91, "Each point is one tournament team. Offense and defense now use separate panels.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
+    fig.text(0.5, 0.91, "Each point is one tournament team. Offense and defense use separate panels.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=220, bbox_inches="tight")
     plt.close(fig)
@@ -496,7 +496,7 @@ def write_summary_02(table: pd.DataFrame, metric_selection: pd.DataFrame, out_pa
         f"- Exact-seed-controlled BLK% relationship: `{row['blk_seed_adjusted_spearman']:+.3f}`.",
         f"- Exact-seed-controlled BLKED% relationship: `{row['blked_seed_adjusted_spearman']:+.3f}`.",
         f"- Champions averaged `{row['champ_mean_tor']:.2f}` TOR vs `{row['r64_mean_tor']:.2f}` for R64 exits.",
-        "- Interpretation: the descriptive gradient is real, but the seed-controlled panel is the actual Day 4 bracket read.",
+        "- Interpretation: the unadjusted gradient mixes in seed strength; the seed-controlled panel compares teams within the same seed line.",
         "",
         "## Metric selection",
         "",
@@ -515,7 +515,7 @@ def write_summary_03(table: pd.DataFrame, out_path: Path) -> None:
         "",
         f"- Average seed-adjusted turnover-force rho: `{table['tord_seed_adjusted_rho'].mean():+.3f}`.",
         f"- Average seed-adjusted block-pressure rho: `{table['blk_seed_adjusted_rho'].mean():+.3f}`.",
-        "- Interpretation: turnover forcing stays the lead defensive pressure lens, while blocks only matter if they reinforce the broader disruption read.",
+        f"- Seasons with a positive rho: turnover force `{int((table['tord_seed_adjusted_rho'] > 0).sum())}/{len(table)}`, block pressure `{int((table['blk_seed_adjusted_rho'] > 0).sum())}/{len(table)}`; no significance test is applied.",
         "",
         "## Table",
         "",
@@ -532,7 +532,7 @@ def write_summary_04(table: pd.DataFrame, out_path: Path) -> None:
         "",
         f"- Strongest TOR seed band: `{strongest_tor['seed_group']}` at `{strongest_tor['tor_seed_band_rho']:+.3f}`.",
         f"- Strongest TORD seed band: `{strongest_tord['seed_group']}` at `{strongest_tord['tord_seed_band_rho']:+.3f}`.",
-        "- Interpretation: Day 4 should stay seed-band aware because the turnover-overperformance relationship changes materially across the bracket.",
+        f"- Band rhos run from `{table['tor_seed_band_rho'].min():+.3f}` to `{table['tor_seed_band_rho'].max():+.3f}` for TOR and from `{table['tord_seed_band_rho'].min():+.3f}` to `{table['tord_seed_band_rho'].max():+.3f}` for TORD; no significance test is applied.",
         "",
         "## Table",
         "",
@@ -549,7 +549,7 @@ def write_summary_04_blocks(table: pd.DataFrame, out_path: Path) -> None:
         "",
         f"- Strongest BLK% seed band: `{strongest_blk['seed_group']}` at `{strongest_blk['blk_pct_seed_band_rho']:+.3f}`.",
         f"- Strongest BLKED% seed band: `{strongest_blked['seed_group']}` at `{strongest_blked['blked_pct_seed_band_rho']:+.3f}`.",
-        "- Interpretation: block metrics are not uniform either, so they belong as seed-band-specific support rather than a global headline.",
+        f"- Band rhos run from `{table['blk_pct_seed_band_rho'].min():+.3f}` to `{table['blk_pct_seed_band_rho'].max():+.3f}` for BLK% and from `{table['blked_pct_seed_band_rho'].min():+.3f}` to `{table['blked_pct_seed_band_rho'].max():+.3f}` for BLKED%; no significance test is applied.",
         "",
         "## Table",
         "",

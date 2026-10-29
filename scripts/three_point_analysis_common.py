@@ -298,6 +298,6 @@ def choose_primary_metric(over_df: pd.DataFrame) -> pd.DataFrame:
     metric_df["selection_note"] = np.where(
         metric_df["metric"].isin(["3P%", "3PRATE"]),
         f"3P% remains the default lead offense metric unless another metric leads by >= 0.05; observed lead margin = {lead_margin:.3f}.",
-        "3P%D is the defensive companion metric for this day.",
+        "3P%D is the defensive companion metric.",
     )
     return metric_df

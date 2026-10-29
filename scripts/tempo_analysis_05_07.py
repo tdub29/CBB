@@ -120,7 +120,7 @@ def plot_analysis_05(table: pd.DataFrame, tournament_df: pd.DataFrame, out_path:
     fig.text(
         0.5,
         0.905,
-        "AdjT is the lead Day 8 lens here, but these panels check whether faster or slower teams are just proxies for efficiency and overall strength.",
+        "AdjT is the lead metric; these panels check whether faster or slower teams are just proxies for efficiency and overall strength.",
         ha="center",
         va="center",
         fontsize=10.0,
@@ -176,7 +176,7 @@ def plot_analysis_06(table: pd.DataFrame, out_path: Path) -> None:
         ax.tick_params(axis="x", length=0, pad=7)
         ax.tick_params(axis="y", length=0, pad=7)
 
-    fig.suptitle("Did the modern era change the tempo read?", fontsize=22, fontweight="bold", y=0.97)
+    fig.suptitle("Tempo metrics by era", fontsize=22, fontweight="bold", y=0.97)
     fig.text(
         0.5,
         0.91,
@@ -710,7 +710,7 @@ def write_summary_07(table: pd.DataFrame, out_path: Path) -> None:
     lines = [
         "# Tempo Analysis 7: 2026 Profile Map",
         "",
-        "- The 2026 tempo package now includes four logo maps: AdjT x seed, AdjT x Barthag, AdjT x AdjOE, and AdjT x AdjDE.",
+        "- Four logo maps of the March 2026 projection: AdjT x seed, AdjT x Barthag, AdjT x AdjOE, and AdjT x AdjDE.",
         f"- Gold-backed logos mark former NCAA champions in the projected `{CURRENT_FIELD_YEAR}` field: {former_champion_text}.",
         "- Rose-backed circles mark historical 1-3 seeds that lost in the first round.",
         "",

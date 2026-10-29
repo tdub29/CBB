@@ -293,6 +293,6 @@ def choose_primary_metric(over_df: pd.DataFrame) -> pd.DataFrame:
     lead_margin = float(metric_df.iloc[0]["seed_adjusted_spearman"] - metric_df.iloc[1]["seed_adjusted_spearman"])
     metric_df["primary_metric"] = "FTR" if lead_margin < 0.05 else str(metric_df.iloc[0]["metric"])
     metric_df["selection_note"] = (
-        f"FTR remains the default Day 10 lead metric unless another metric leads by >= 0.05; observed lead margin = {lead_margin:.3f}."
+        f"FTR remains the default lead metric unless another metric leads by >= 0.05; observed lead margin = {lead_margin:.3f}."
     )
     return metric_df

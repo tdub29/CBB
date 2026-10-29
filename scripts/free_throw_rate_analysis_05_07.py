@@ -265,7 +265,7 @@ def plot_analysis_06(table: pd.DataFrame, out_path: Path) -> None:
         ax.tick_params(axis="x", length=0, pad=7)
         ax.tick_params(axis="y", length=0, pad=7)
 
-    fig.suptitle("Did the modern era change the whistle read?", fontsize=22, fontweight="bold", y=0.97)
+    fig.suptitle("Free throw metrics by era", fontsize=22, fontweight="bold", y=0.97)
     fig.text(
         0.5,
         0.905,
@@ -577,7 +577,7 @@ def write_summary_05(table: pd.DataFrame, out_path: Path) -> None:
         "# Free Throw Analysis 5: Rate x Make% Archetypes",
         "",
         f"- Best archetype: `{best['archetype']}` at `{best['mean_overperformance']:+.3f}` overperformance points.",
-        "- Day 10 treats getting to the line and making free throws as separate until the interaction view.",
+        "- Getting to the line and making free throws are analysed separately until the interaction view.",
         "",
         "## Table",
         "",
@@ -615,7 +615,7 @@ def write_summary_07(table: pd.DataFrame, out_path: Path) -> None:
     lines = [
         "# Free Throw Analysis 7: 2026 Profile Map",
         "",
-        "- This chart uses raw FTR and FT% on the axes so 2026 line reliance and line conversion can be read in one glance.",
+        "- This chart plots raw FTR (line reliance) and FT% (line conversion) for the March 2026 projection.",
         f"- Gold-backed logos mark former NCAA champions in the projected `{CURRENT_FIELD_YEAR}` field: {former_champion_text}.",
         "",
         "## Best current-field cases",

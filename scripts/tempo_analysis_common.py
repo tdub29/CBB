@@ -293,6 +293,6 @@ def choose_primary_metric(over_df: pd.DataFrame) -> pd.DataFrame:
     metric_df = pd.DataFrame(rows).sort_values("seed_adjusted_spearman", ascending=False, kind="stable").reset_index(drop=True)
     metric_df["primary_metric"] = "AdjT"
     metric_df["selection_note"] = (
-        "AdjT is locked as the Day 8 lead metric. AdjOE, AdjDE, and Barthag are support lenses for explaining where tempo helps or fails."
+        "AdjT is the lead metric. AdjOE, AdjDE, and Barthag are context metrics for checking whether tempo is a proxy for team quality."
     )
     return metric_df

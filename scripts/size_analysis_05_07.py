@@ -1112,7 +1112,7 @@ def write_analysis_07_big_man_md(path: Path, field_table: pd.DataFrame, big_man_
         f"# Size Analysis 7B: {CURRENT_FIELD_YEAR} Dominant Big Men in the Projected Field",
         "",
         f"A dominant big team is one whose top center has `{BIG_MAN_METRIC} >= {DOMINANT_BIG_MAN_THRESHOLD:.1f}`. "
-        f"This page lists the projected `{CURRENT_FIELD_YEAR}` field against that threshold only.",
+        f"The table lists the projected `{CURRENT_FIELD_YEAR}` field against that threshold only.",
         "",
         "## Outcome contamination",
         "",
