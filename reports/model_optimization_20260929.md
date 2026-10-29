@@ -188,6 +188,12 @@ Prediction moment: the published bracket on Selection Sunday, before any NCAA to
 - selected_ridge_alpha: `0.1`
 
 ### VIF (Top 20)
+> **Note (added 2026-10-29; values below unchanged).** These come from auxiliary regressions without an
+> intercept, which misstate the VIF of uncentred columns; `compute_vif` in `scripts/run_analysis.py` now fits
+> one. The pre-2025 rows of the frozen `a35137c1619032e6` CSV reproduce every value below to four decimals
+> with the old formula. With the intercept, AdjDE is 1004.95 and AdjDE_2 987.69 (listed as 37.41 and 31.62);
+> no other value moves by more than 14 (largest: Barthag_2, 213.42 to 226.84).
+
 | feature | vif |
 | --- | --- |
 | seed_2 | 1099.6722 |

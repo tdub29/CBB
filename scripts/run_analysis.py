@@ -569,7 +569,10 @@ def compute_vif(X: pd.DataFrame) -> pd.DataFrame:
         if X_others.shape[1] == 0:
             vif = 1.0
         else:
-            # Solve linear least squares and compute R^2 for VIF = 1/(1-R^2).
+            # Solve linear least squares and compute R^2 for VIF = 1/(1-R^2). The auxiliary
+            # regression needs an intercept: R^2 is measured against the mean, and without one an
+            # uncentred column such as AdjDE (~103) gets a wrong R^2 and a wrong VIF.
+            X_others = np.column_stack([np.ones(len(X_others)), X_others])
             beta, *_ = np.linalg.lstsq(X_others, y_col, rcond=None)
             y_hat = X_others @ beta
             ss_res = float(np.sum((y_col - y_hat) ** 2))
