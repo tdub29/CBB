@@ -4,7 +4,7 @@
 - Strongest seed band: `1-2` at `+0.108`.
 - Weakest seed band: `7-8` at `-0.077`.
 - Positive seed bands: `1-2`, `9-10`, `11-13`.
-- Interpretation: size is not a uniform bracket lever; its usefulness depends on the seed band.
+- Band rhos run from `-0.077` to `+0.108`; these are descriptive with no significance test.
 
 ## Table
 

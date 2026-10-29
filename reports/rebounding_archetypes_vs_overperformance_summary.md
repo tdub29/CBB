@@ -1,7 +1,7 @@
 # Rebounding Analysis 5: Glass Archetypes
 
 - Best archetype: `strong on both ends` at `+0.087` overperformance points.
-- Day 6 should treat offensive and defensive rebounding as separate inputs first, then combine them in the archetype read.
+- Offensive and defensive rebounding are treated as separate inputs first, then combined in the archetypes.
 
 ## Table
 

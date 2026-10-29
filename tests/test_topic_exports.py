@@ -32,3 +32,16 @@ def test_export_copy_leaves_the_plotting_table_alone() -> None:
     assert table.loc[0, "logo_path"] == logo
     no_logo = pd.DataFrame({"team": ["Akron"]})
     assert sac.with_repo_relative_logo_paths(no_logo) is no_logo
+
+
+def test_committed_field_tables_point_at_logos_inside_the_repo() -> None:
+    tables = sorted((sac.REPO_ROOT / "reports").glob("*_2026_field_table.csv"))
+    assert tables
+    for csv in tables:
+        table = pd.read_csv(csv)
+        if "logo_path" not in table.columns:
+            continue
+        paths = table["logo_path"].dropna().astype(str)
+        assert not paths.str.contains(r"^(?:[A-Za-z]:|/)|\\", regex=True).any(), csv.name
+        missing = [p for p in paths if not (sac.REPO_ROOT / p).exists()]
+        assert not missing, (csv.name, missing[:3])
