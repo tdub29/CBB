@@ -18,7 +18,7 @@ Must-fix: 0. Should-fix: 0 open (687d3ca closes F1, F2 and F3). Nits: 7 open (N1
 | 3 | run_bracket_evaluation NameError fix, --out-tag, test | PASS |
 | 4 | README and contributor-notes claims, null result, vintage notes | PASS. 687d3ca closes F2 and F3; nit N8 remains |
 | 5 | Commit closure, 4 staged deletions untouched | PASS |
-| R | Reproduction | PASS. Rests on the coordinator's clean-clone score, which I verified read-only (section 6) |
+| R | Reproduction | PASS. Rests on the lead auditor's clean-clone score, which I verified read-only (section 6) |
 
 ### 1. Frozen-input protection
 
@@ -101,7 +101,7 @@ Must-fix: 0. Should-fix: 0 open (687d3ca closes F1, F2 and F3). Nits: 7 open (N1
 - 687d3ca: 4 files, +20/-8, all of it the F1, F2, F3 and N2 fixes.
   - Files: scripts/run_powered_comparison.py, README.md, tests/test_frozen_inputs.py, tests/test_bracket_evaluation_cli.py.
   - Author: Trevor White.
-- None of the three messages has an AI co-author trailer.
+- None of the three messages has a co-author trailer.
 - Shared checkout, rechecked when I finalized: HEAD 687d3ca. `git diff --cached --name-status` still shows exactly the 4 staged deletions, uncommitted:
   - models/analysis_best_model_20260304.joblib
   - models/analysis_best_model_20260306.joblib
@@ -121,7 +121,7 @@ Must-fix: 0. Should-fix: 0 open (687d3ca closes F1, F2 and F3). Nits: 7 open (N1
   - `check_frozen_inputs()`: no problems
   - `git status`: clean apart from `__pycache__`
 - My own score run did not finish. Other processes held the CPU (processor queue 118). After about 88 minutes it had only reached `[strength fits] 2012`, so I stopped it; `review_score.txt` ends `exit 1`. It is not evidence either way.
-- Score reproduction comes from the coordinator's direct clean-clone run (record `tmp/clean_clone_score_284d1ff.txt`). I did not run it. I checked what it left on disk, read-only, with `GIT_OPTIONAL_LOCKS=0`:
+- Score reproduction comes from the lead auditor's direct clean-clone run (record `tmp/clean_clone_score_284d1ff.txt`). I did not run it. I checked what it left on disk, read-only, with `GIT_OPTIONAL_LOCKS=0`:
   - `tmp/clean_clone` is a clone of the shared repo at HEAD 284d1ff. Apart from caches, it has no untracked or ignored files.
   - `git status` shows only `reports/model_vs_seeds_powered.md` modified.
   - `git diff -U0` on that report shows lines 307-308 only:
@@ -178,6 +178,6 @@ None open. 687d3ca closes all three; I verified each closure at that commit:
 
 - The exact pre-note bytes of the two vintage reports. I had only earlier captured output, so "no numbers changed" rests on a line-by-line comparison of those captures.
 - A full rerun of the bracket evaluation for any year other than 2021.
-- A score run executed by me. Mine was CPU-starved and stopped. R rests on the coordinator's clean-clone run: I checked its outputs on disk, but I did not watch it execute.
+- A score run executed by me. Mine was CPU-starved and stopped. R rests on the lead auditor's clean-clone run: I checked its outputs on disk, but I did not watch it execute.
 - That the new select test fails on the old code. I established this by reading, not by running the mutation, because the hard rules forbid calling select.
 - The full pytest suite at 687d3ca. I ran only the two changed test files (7 passed). The rest passed at 284d1ff (39), and none of them references the removed flag.

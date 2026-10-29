@@ -1,5 +1,5 @@
 {
-  "source": "C:\\Users\\TrevorWhite\\OneDrive - GOOD360\\Documents\\madness24model.csv (copied by Trevor to Downloads 2026-09-30)",
+  "source": "OneDrive Documents/madness24model.csv (copied by Trevor to Downloads 2026-09-30)",
   "source_modified": "2024-03-18T18:56:49-07:00",
   "copied_at": "2026-10-01T01:57:37+00:00",
   "produced_by": "madness.R (general ridge plus seed-stratified models, R lm/glmnet with intercept); R wrote Predicted_round as a list column, so every row carries the same 68-value vector; row i takes element i (Spearman with seed -0.92)",

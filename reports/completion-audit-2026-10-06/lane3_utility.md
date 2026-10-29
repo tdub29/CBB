@@ -1,6 +1,6 @@
 # Lane 3: metrics, calibration, baselines and bracket utility
 
-Coordinator lane, 2026-10-06. Independent code: `scratch/lane3_recompute.py` (own log5, own seed-pair
+Lead auditor, 2026-10-06. Independent code: `scratch/lane3_recompute.py` (own log5, own seed-pair
 rates, own bootstrap and DM); output `scratch/lane3_results.json`. Only the bracket-structure helpers
 (`bracket_from_games`, `committed_bracket`) were reused; they raise if the bracket disagrees with the games.
 

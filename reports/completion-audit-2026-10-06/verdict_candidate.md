@@ -1,6 +1,6 @@
-# Candidate verdict (coordinator, not yet reviewed)
+# Candidate verdict (lead auditor, not yet reviewed)
 
-Status: CANDIDATE. The coordinator did the lanes, so this is not certified until `review.md` agrees.
+Status: CANDIDATE. The lead auditor did the lanes, so this is not certified until `review.md` agrees.
 
 ## Is the project done?
 

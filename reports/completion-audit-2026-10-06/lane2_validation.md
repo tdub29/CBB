@@ -1,6 +1,6 @@
 # Lane 2: source time, leakage and validation
 
-Coordinator lane, 2026-10-06. All checks read-only; scanner output in `scratch/leakage_scan.json`.
+Lead auditor, 2026-10-06. All checks read-only; scanner output in `scratch/leakage_scan.json`.
 
 ## Verdict
 

@@ -1,6 +1,6 @@
 # Lane 1: lineage and last state
 
-Coordinator lane, 2026-10-06. Read-only on everything frozen; `select` was not run.
+Lead auditor, 2026-10-06. Read-only on everything frozen; `select` was not run.
 
 ## Last real state
 
