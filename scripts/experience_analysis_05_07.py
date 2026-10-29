@@ -12,12 +12,10 @@ from experience_analysis_common import (
     ACCENT,
     COACH_ANALYSIS_START_YEAR,
     COACH_SUPPORT_METRIC,
+    CURRENT_FIELD_YEAR,
     LABEL_TEXT,
-    NEGATIVE,
-    NEUTRAL,
     PLAYER_PRIMARY_METRIC,
     PLAYER_SUPPORT_METRIC,
-    POSITIVE,
     SECONDARY,
     TEXT_DARK,
     TEXT_LIGHT,
@@ -26,7 +24,6 @@ from experience_analysis_common import (
     build_overperformance_data,
     build_seed_reference_tables,
     cache_logo_images,
-    coach_context_bucket,
     format_year_tick,
     filter_coach_analysis,
     get_experience_base_paths,
@@ -347,7 +344,6 @@ def build_analysis_07_table(
     merged["recent_coach_delta"] = merged[coach_primary_metric] - merged[f"recent_seed_avg_{coach_slug}"]
     merged["full_coach_z"] = merged["full_coach_delta"] / merged[f"full_seed_std_{coach_slug}"].replace(0, np.nan)
     merged["recent_coach_z"] = merged["recent_coach_delta"] / merged[f"recent_seed_std_{coach_slug}"].replace(0, np.nan)
-    merged["coach_context"] = merged["full_coach_z"].apply(coach_context_bucket)
 
     def classify_exp_position(z_score: float, threshold: float = 0.35) -> str:
         if pd.isna(z_score):
@@ -360,26 +356,7 @@ def build_analysis_07_table(
 
     merged["full_exp_position"] = merged["full_exp_z"].apply(classify_exp_position)
     merged["recent_exp_position"] = merged["recent_exp_z"].apply(classify_exp_position)
-
-    def build_note(row: pd.Series) -> str:
-        full_pos = row["full_exp_position"]
-        recent_pos = row["recent_exp_position"]
-        coach_context = row["coach_context"]
-        if full_pos == "above baseline" and coach_context == "positive":
-            return "stronger carryover case" if recent_pos != "below baseline" else "mixed evidence"
-        if full_pos == "above baseline" and coach_context == "neutral":
-            return "some support from recent trends" if recent_pos == "above baseline" else "player experience edge"
-        if full_pos == "above baseline" and coach_context == "negative":
-            return "mixed evidence"
-        if full_pos == "below baseline" and coach_context == "negative":
-            return "weak experience case"
-        if full_pos == "below baseline":
-            return "mixed evidence"
-        if recent_pos == "above baseline" and coach_context == "positive":
-            return "some support from recent trends"
-        return "mixed evidence"
-
-    merged["carryover_note"] = merged.apply(build_note, axis=1)
+    merged["full_coach_position"] = merged["full_coach_z"].apply(classify_exp_position)
     champ_cols = ["Team", "year", "seed_int", PLAYER_VISUAL_METRIC]
     if coach_primary_metric in tournament_df.columns:
         champ_cols.append(coach_primary_metric)
@@ -449,7 +426,6 @@ def plot_analysis_07(field_table: pd.DataFrame, coach_primary_metric: str, out_p
         .sort_values("projected_seed", kind="stable")
     )
 
-    halo_colors = {"positive": POSITIVE, "neutral": NEUTRAL, "negative": NEGATIVE}
     set_project_theme()
     fig, ax = plt.subplots(figsize=(22.4, 12.2), constrained_layout=False)
     apply_report_background(fig, [ax])
@@ -481,7 +457,6 @@ def plot_analysis_07(field_table: pd.DataFrame, coach_primary_metric: str, out_p
     for row in plot_df.itertuples(index=False):
         x_value = float(getattr(row, PLAYER_VISUAL_METRIC))
         y_value = float(row.plot_y)
-        halo_color = halo_colors.get(getattr(row, "coach_context", "neutral"), NEUTRAL)
         is_former_champion = bool(getattr(row, "is_former_champion", False))
         logo_path = getattr(row, "logo_path", None)
         if isinstance(logo_path, (str, Path)) and Path(logo_path).exists():
@@ -528,7 +503,7 @@ def plot_analysis_07(field_table: pd.DataFrame, coach_primary_metric: str, out_p
                 fontsize=7.0,
                 fontweight="bold",
                 color=LABEL_TEXT,
-                bbox=styled_box(facecolor="white", edgecolor=halo_color),
+                bbox=styled_box(facecolor="white", edgecolor=ACCENT),
                 zorder=4,
             )
             if is_former_champion:
@@ -581,9 +556,6 @@ def plot_analysis_07(field_table: pd.DataFrame, coach_primary_metric: str, out_p
     legend_handles = [
         plt.Line2D([0], [0], color=ACCENT, linewidth=3.0, label="Full-sample seed avg"),
         plt.Line2D([0], [0], color=SECONDARY, linewidth=2.1, label="Recent seed avg"),
-        plt.Line2D([0], [0], marker="o", linestyle="", markerfacecolor="white", markeredgecolor=POSITIVE, markeredgewidth=2.0, markersize=10, label=f"Positive {metric_label(coach_primary_metric)}\ncontext"),
-        plt.Line2D([0], [0], marker="o", linestyle="", markerfacecolor="white", markeredgecolor=NEUTRAL, markeredgewidth=2.0, markersize=10, label="Mixed / neutral coach"),
-        plt.Line2D([0], [0], marker="o", linestyle="", markerfacecolor="white", markeredgecolor=NEGATIVE, markeredgewidth=2.0, markersize=10, label=f"Negative {metric_label(coach_primary_metric)}\ncontext"),
         plt.Line2D([0], [0], marker="o", linestyle="", markerfacecolor="#F5E7A1", markeredgecolor="#D4A72C", markeredgewidth=1.3, markersize=10, label="Former champ badge\n(title seed)"),
     ]
     legend = ax.legend(
@@ -609,7 +581,7 @@ def plot_analysis_07(field_table: pd.DataFrame, coach_primary_metric: str, out_p
     fig.text(
         0.5,
         0.915,
-        "Lower season-wide Exp ranks mean more experience; logos to the right of their seed markers are more experienced than that seed line usually carries, halo shows coach support, and gold-backed badges mark former champs at title seed lines",
+        "Lower season-wide Exp ranks mean more experience; logos to the right of their seed markers are more experienced than past tournament teams on that seed line, and gold-backed badges mark former champs at title seed lines (March 2026 projection)",
         ha="center",
         va="center",
         fontsize=10.0,
@@ -624,7 +596,6 @@ def plot_analysis_07_coach(field_table: pd.DataFrame, coach_primary_metric: str,
     coach_slug = metric_slug(coach_primary_metric)
     plot_df = field_table.copy()
     plot_df["plot_y"] = plot_df["projected_seed"].astype(float)
-    plot_df["player_context"] = plot_df["full_exp_z"].apply(coach_context_bucket)
     for seed, idx in plot_df.groupby("projected_seed", sort=True).groups.items():
         indices = list(idx)
         offsets = np.linspace(-0.24, 0.24, len(indices)) if len(indices) > 1 else np.array([0.0])
@@ -637,7 +608,6 @@ def plot_analysis_07_coach(field_table: pd.DataFrame, coach_primary_metric: str,
         .sort_values("projected_seed", kind="stable")
     )
 
-    halo_colors = {"positive": POSITIVE, "neutral": NEUTRAL, "negative": NEGATIVE}
     set_project_theme()
     fig, ax = plt.subplots(figsize=(22.4, 12.2), constrained_layout=False)
     apply_report_background(fig, [ax])
@@ -669,7 +639,6 @@ def plot_analysis_07_coach(field_table: pd.DataFrame, coach_primary_metric: str,
     for row in plot_df.itertuples(index=False):
         x_value = float(getattr(row, coach_primary_metric))
         y_value = float(row.plot_y)
-        halo_color = halo_colors.get(getattr(row, "player_context", "neutral"), NEUTRAL)
         is_former_champion = bool(getattr(row, "is_former_champion", False))
         logo_path = getattr(row, "logo_path", None)
         if isinstance(logo_path, (str, Path)) and Path(logo_path).exists():
@@ -716,7 +685,7 @@ def plot_analysis_07_coach(field_table: pd.DataFrame, coach_primary_metric: str,
                 fontsize=7.0,
                 fontweight="bold",
                 color=LABEL_TEXT,
-                bbox=styled_box(facecolor="white", edgecolor=halo_color),
+                bbox=styled_box(facecolor="white", edgecolor=ACCENT),
                 zorder=4,
             )
             if is_former_champion:
@@ -765,9 +734,6 @@ def plot_analysis_07_coach(field_table: pd.DataFrame, coach_primary_metric: str,
     legend_handles = [
         plt.Line2D([0], [0], color=ACCENT, linewidth=3.0, label="Full-sample seed avg"),
         plt.Line2D([0], [0], color=SECONDARY, linewidth=2.1, label="Recent seed avg"),
-        plt.Line2D([0], [0], marker="o", linestyle="", markerfacecolor="white", markeredgecolor=POSITIVE, markeredgewidth=2.0, markersize=10, label="Positive player Exp rank context"),
-        plt.Line2D([0], [0], marker="o", linestyle="", markerfacecolor="white", markeredgecolor=NEUTRAL, markeredgewidth=2.0, markersize=10, label="Mixed / neutral player Exp rank"),
-        plt.Line2D([0], [0], marker="o", linestyle="", markerfacecolor="white", markeredgecolor=NEGATIVE, markeredgewidth=2.0, markersize=10, label="Negative player Exp rank context"),
         plt.Line2D([0], [0], marker="o", linestyle="", markerfacecolor="#F5E7A1", markeredgecolor="#D4A72C", markeredgewidth=1.3, markersize=10, label="Former champ badge (title seed)"),
     ]
     legend = ax.legend(
@@ -790,7 +756,8 @@ def plot_analysis_07_coach(field_table: pd.DataFrame, coach_primary_metric: str,
     fig.text(
         0.5,
         0.915,
-        "Logos to the right of their seed markers are above that seed line's usual coach March reps; outline shows player experience support and gold-backed badges mark former champs at title seed lines",
+        f"Logos to the right of their seed markers are above the {COACH_ANALYSIS_START_YEAR}-2025 seed-line average on {metric_label(coach_primary_metric).lower()}; "
+        "gold-backed badges mark former champs at title seed lines (March 2026 projection)",
         ha="center",
         va="center",
         fontsize=10.0,
@@ -810,7 +777,7 @@ def write_analysis_05_summary(path: Path, table: pd.DataFrame) -> None:
         f"- Best archetype: `{best['archetype']}` at `{best['mean_overperformance']:+.3f}` mean finish vs exact-seed expectation.",
         f"- Worst archetype: `{worst['archetype']}` at `{worst['mean_overperformance']:+.3f}` mean finish vs exact-seed expectation.",
         f"- The best archetype also carried an average coach tournament win rate of `{best['avg_coach_win_pct_5y']:.3f}`.",
-        "- Interpretation: player and coach experience work best together as a combined bracket filter rather than as two isolated checkboxes.",
+        "- Interpretation: each team is split at its exact seed line's average on both metrics; these are descriptive group means with no significance test.",
         "",
         "## Table",
         "",
@@ -829,7 +796,7 @@ def write_analysis_06_summary(path: Path, table: pd.DataFrame, coach_primary_met
         "",
         f"- Player season-wide `Exp` rank edge was positive in `{player_positive}` of `{len(table)}` seasons, with the strongest year at `{int(player_best['year'])}` (`{player_best['player_seed_adjusted_rho']:+.3f}`).",
         f"- Coach experience (`{metric_label(coach_primary_metric)}`) was positive in `{coach_positive}` of `{int(table['coach_seed_adjusted_rho'].notna().sum())}` plotted seasons, with the strongest year at `{int(coach_best['year'])}` (`{coach_best['coach_seed_adjusted_rho']:+.3f}`).",
-        "- Interpretation: this page is the stability check. It asks whether player and coach experience behave like repeatable March signals or just occasional stories.",
+        "- Interpretation: the per-season rhos show how much each relationship moves from year to year; each rests on that season's `team_count` teams.",
         "",
         "## Table",
         "",
@@ -839,39 +806,34 @@ def write_analysis_06_summary(path: Path, table: pd.DataFrame, coach_primary_met
 
 
 def write_analysis_07_summary(path: Path, field_table: pd.DataFrame, coach_primary_metric: str) -> None:
-    positive = (
-        field_table[
-            field_table["carryover_note"].isin(
-                ["stronger carryover case", "player experience edge", "some support from recent trends"]
-            )
-        ]
-        .sort_values(["full_exp_z", "barthag"], ascending=[False, False], kind="stable")
-        .head(5)
-    )
-    negative = (
-        field_table[
-            field_table["carryover_note"].isin(["weak experience case", "mixed evidence"])
-        ]
-        .sort_values(["full_exp_z", "barthag"], ascending=[True, False], kind="stable")
-        .head(5)
-    )
+    most = field_table.sort_values(["full_exp_z", "barthag"], ascending=[False, False], kind="stable").head(5)
+    least = field_table.sort_values(["full_exp_z", "barthag"], ascending=[True, False], kind="stable").head(5)
+    position_counts = field_table["full_exp_position"].value_counts()
 
     def format_team_list(table: pd.DataFrame) -> str:
         parts = []
         for row in table.itertuples(index=False):
             parts.append(
-                f"`{row.team}` ({int(row.projected_seed)}) — season-wide rank `{row.exp_rank_season:.0f}`, Exp. `{row.exp_raw:.2f}`, {metric_label(coach_primary_metric)} context `{row.coach_context}`, `{row.carryover_note}`"
+                f"`{row.team}` ({int(row.projected_seed)}) season-wide rank `{row.exp_rank_season:.0f}`, Exp. `{row.exp_raw:.2f}`, "
+                f"`{row.full_exp_delta:+.1f}` ranks vs the seed-line average"
             )
         return "; ".join(parts)
 
     lines = [
-        "# Experience Analysis 7: 2026 Field Application",
+        f"# Experience Analysis 7: Projected {CURRENT_FIELD_YEAR} Field vs Seed-Line Experience",
         "",
-        f"- Main player visual metric: `{PLAYER_VISUAL_METRIC}` (`{player_visual_label()}`).",
-        f"- Coach support layer: `{coach_primary_metric}` (`{metric_label(coach_primary_metric)}`), using `{COACH_ANALYSIS_START_YEAR}+` seasons.",
-        "- Full-sample exact-seed baselines drive the read; recent baselines are a qualifier only.",
-        f"- Stronger experience cases: {format_team_list(positive)}",
-        f"- Weaker experience cases: {format_team_list(negative)}",
+        f"The March {CURRENT_FIELD_YEAR} bracketology projection is joined to the `{CURRENT_FIELD_YEAR}` experience sample. Each team is "
+        "compared with past tournament teams on the same seed line. This is a pre-tournament snapshot; it uses no "
+        f"{CURRENT_FIELD_YEAR} results.",
+        "",
+        f"- Player metric: `{PLAYER_VISUAL_METRIC}` (`{player_visual_label()}`, 1 = most experienced), against `2008-2025` seed-line averages. "
+        "`full_exp_delta` is the seed-line average rank minus the team's rank, so positive means more experienced than the seed line.",
+        f"- Coach metric: `{coach_primary_metric}` (`{metric_label(coach_primary_metric)}`), against `{COACH_ANALYSIS_START_YEAR}-2025` seed-line averages.",
+        "- Positions are `above`, `near` or `below baseline` at 0.35 standard deviations from the seed line's average.",
+        f"- Most experienced relative to their seed line (by z-score): {format_team_list(most)}.",
+        f"- Least experienced relative to their seed line (by z-score): {format_team_list(least)}.",
+        f"- Player position counts: `{int(position_counts.get('above baseline', 0))}` above, "
+        f"`{int(position_counts.get('near baseline', 0))}` near, `{int(position_counts.get('below baseline', 0))}` below.",
         "",
         "## Table",
         "",
@@ -891,8 +853,8 @@ def write_analysis_07_summary(path: Path, field_table: pd.DataFrame, coach_prima
                 "recent_exp_delta",
                 "full_coach_delta",
                 "recent_coach_delta",
-                "coach_context",
-                "carryover_note",
+                "full_exp_position",
+                "full_coach_position",
             ]
         ].round(3).to_markdown(index=False),
     ]

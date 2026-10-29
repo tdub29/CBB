@@ -382,16 +382,6 @@ def load_projected_field(path: Path, full_df: pd.DataFrame) -> pd.DataFrame:
     return merged
 
 
-def coach_context_bucket(z_score: float, threshold: float = 0.35) -> str:
-    if pd.isna(z_score):
-        return "neutral"
-    if z_score >= threshold:
-        return "positive"
-    if z_score <= -threshold:
-        return "negative"
-    return "neutral"
-
-
 __all__ = [
     "ACCENT",
     "COACH_CANDIDATES",
@@ -421,7 +411,6 @@ __all__ = [
     "build_seed_reference_tables",
     "cache_logo_images",
     "clean_projected_team_name",
-    "coach_context_bucket",
     "compute_coach_metric_selection",
     "format_year_tick",
     "filter_coach_analysis",
