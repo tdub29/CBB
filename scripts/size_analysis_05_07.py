@@ -365,6 +365,85 @@ def plot_analysis_05(archetype_table: pd.DataFrame, primary_metric: str, out_pat
     plt.close(fig)
 
 
+def build_analysis_06_table(over_df: pd.DataFrame, primary_metric: str) -> pd.DataFrame:
+    metric_vs_seed_col = f"{metric_slug(primary_metric)}_vs_seed"
+    rows: list[dict[str, object]] = []
+    for year, group in over_df.groupby("year", sort=True):
+        rows.append(
+            {
+                "year": int(year),
+                "team_count": int(len(group)),
+                "raw_rho": float(group["finish_depth"].corr(group[primary_metric], method="spearman")),
+                "seed_adjusted_rho": float(group["overperformance"].corr(group[metric_vs_seed_col], method="spearman")),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def plot_analysis_06(year_table: pd.DataFrame, primary_metric: str, out_path: Path) -> None:
+    x = year_table["year"].to_numpy(dtype=int)
+    raw_values = year_table["raw_rho"].to_numpy(dtype=float)
+    seed_values = year_table["seed_adjusted_rho"].to_numpy(dtype=float)
+    title = f"{metric_label(primary_metric)} and tournament success by year"
+
+    set_project_theme()
+    fig, axes = plt.subplots(2, 1, figsize=(14.6, 9.6), constrained_layout=False)
+    apply_report_background(fig, axes)
+    fig.subplots_adjust(top=0.84, bottom=0.09, left=0.12, right=0.95, hspace=0.36)
+
+    for ax, values, panel_title in [
+        (axes[0], raw_values, "Pooled raw size vs finish"),
+        (axes[1], seed_values, "Exact-seed-adjusted size vs overperformance"),
+    ]:
+        ax.plot(x, values, color=ACCENT, linewidth=2.6, marker="o", markersize=7)
+        ax.axhline(0, color=SECONDARY, linestyle=":", linewidth=1.3)
+        mean_value = float(np.mean(values))
+        ax.axhline(mean_value, color=TEXT_LIGHT, linestyle="--", linewidth=1.2, alpha=0.95)
+        ax.axvline(2022, color=SECONDARY, linestyle=":", linewidth=1.8)
+        y_min = float(np.min(values))
+        y_max = float(np.max(values))
+        y_pad = max((y_max - y_min) * 0.28, 0.025)
+        ax.set_ylim(y_min - y_pad, y_max + y_pad)
+        ax.set_title(panel_title, fontsize=12.8, fontweight="bold", color=TEXT_DARK, pad=12)
+        ax.set_xticks(x)
+        ax.set_xticklabels([str(value) for value in x], fontsize=10.2, fontweight="semibold")
+        ax.grid(False)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.tick_params(axis="x", length=0, pad=7)
+        ax.tick_params(axis="y", labelsize=10.2, length=0, pad=7)
+        x_label_pos = float(x.max()) + 0.1
+        ax.text(
+            x_label_pos,
+            mean_value,
+            "Avg rho",
+            ha="left",
+            va="center",
+            fontsize=10.0,
+            fontweight="semibold",
+            color=LABEL_TEXT,
+            bbox=styled_box(),
+        )
+
+    axes[1].set_xlabel("Season", fontsize=11.5, fontweight="semibold")
+    axes[0].set_ylabel("Spearman rho", fontsize=11.5, fontweight="semibold")
+    axes[1].set_ylabel("Spearman rho", fontsize=11.5, fontweight="semibold")
+
+    fig.suptitle(title, fontsize=22, fontweight="bold", y=0.97)
+    fig.text(
+        0.5,
+        0.91,
+        "Top: raw relationship by season. Bottom: seed-adjusted relationship by season.",
+        ha="center",
+        va="center",
+        fontsize=10.0,
+        color=TEXT_LIGHT,
+    )
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=220, bbox_inches="tight")
+    plt.close(fig)
+
+
 def build_analysis_07_table(
     full_df: pd.DataFrame,
     tournament_df: pd.DataFrame,
@@ -977,6 +1056,26 @@ def write_analysis_05_md(path: Path, archetype_table: pd.DataFrame, primary_metr
         "## Table",
         "",
         archetype_table.round(3).to_markdown(index=False),
+    ]
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def write_analysis_06_md(path: Path, year_table: pd.DataFrame, primary_metric: str) -> None:
+    strongest_raw = year_table.loc[year_table["raw_rho"].idxmax()]
+    strongest_adjusted = year_table.loc[year_table["seed_adjusted_rho"].idxmax()]
+    weakest_adjusted = year_table.loc[year_table["seed_adjusted_rho"].idxmin()]
+    lines = [
+        "# Size Analysis 6: Year-by-Year Comparison",
+        "",
+        f"- Primary metric: `{primary_metric}` (`{metric_label(primary_metric)}`).",
+        f"- Strongest raw year: `{int(strongest_raw['year'])}` at `{strongest_raw['raw_rho']:+.3f}`.",
+        f"- Strongest exact-seed-adjusted year: `{int(strongest_adjusted['year'])}` at `{strongest_adjusted['seed_adjusted_rho']:+.3f}`.",
+        f"- Weakest exact-seed-adjusted year: `{int(weakest_adjusted['year'])}` at `{weakest_adjusted['seed_adjusted_rho']:+.3f}`.",
+        "- Interpretation: per-season rank correlations on each season's tournament field; no significance test is applied.",
+        "",
+        "## Table",
+        "",
+        year_table.round(3).to_markdown(index=False),
     ]
     path.write_text("\n".join(lines), encoding="utf-8")
 
