@@ -65,12 +65,22 @@ PLAYER_SUPPORT_METRIC = "exp_rank_season"
 COACH_CANDIDATES = ["coach_tourn_games_5y", "coach_years_with_program"]
 COACH_SUPPORT_METRIC = "coach_tourn_win_pct_5y"
 COACH_ANALYSIS_START_YEAR = 2013
+COACH_HISTORY_COLUMNS = [
+    "coach_tourn_appearances_5y",
+    "coach_tourn_wins_5y",
+    "coach_tourn_losses_5y",
+    "coach_years_with_program",
+]
 
 
 def get_experience_base_paths() -> dict[str, Path]:
     project_root = Path(__file__).resolve().parent.parent
     return {
         "input_raw": project_root / "data" / "raw" / "assembled" / "all_trank_team_tables.csv",
+        # Coach 5-year history comes from the enriched team-history cache (scripts/enrich_team_history_cache.py).
+        # The assembled table copies these columns at recompile time and still holds the values of the old
+        # substring finish mapping, which counted a Sweet Sixteen run as no tournament.
+        "coach_history": project_root / "data" / "raw" / "team_history_cache_enriched.csv",
         "input_sample": project_root / "data" / "processed" / "experience_sample.csv",
         "metric_selection": project_root / "reports" / "experience_metric_selection.csv",
         "seeds_2026": project_root / "data" / "raw" / "2026_expected_seeds_update.csv",
@@ -100,7 +110,19 @@ def metric_label(metric: str) -> str:
     }.get(metric, metric)
 
 
-def load_experience_data(path: Path) -> pd.DataFrame:
+def attach_coach_history(df: pd.DataFrame, coach_history_path: Path) -> pd.DataFrame:
+    """Replace the coach 5-year columns with the enriched team-history cache's, matched on (Team, year)."""
+    history = pd.read_csv(coach_history_path, usecols=["team", "year", *COACH_HISTORY_COLUMNS])
+    history = history.rename(columns={"team": "Team"})
+    history["year"] = pd.to_numeric(history["year"], errors="coerce")
+    history = history.drop_duplicates(["Team", "year"], keep="first")
+    out = df.drop(columns=[column for column in COACH_HISTORY_COLUMNS if column in df.columns])
+    out["year"] = pd.to_numeric(out["year"], errors="coerce")
+    out = out.merge(history, on=["Team", "year"], how="left", validate="many_to_one")
+    return out[[*df.columns, *[column for column in COACH_HISTORY_COLUMNS if column not in df.columns]]]
+
+
+def load_experience_data(path: Path, coach_history_path: Path | None = None) -> pd.DataFrame:
     df = pd.read_csv(path)
     rename_map = {
         "Year": "year",
@@ -110,6 +132,8 @@ def load_experience_data(path: Path) -> pd.DataFrame:
     applicable = {old: new for old, new in rename_map.items() if old in df.columns and new not in df.columns}
     if applicable:
         df = df.rename(columns=applicable)
+    if coach_history_path is not None:
+        df = attach_coach_history(df, coach_history_path)
 
     required = {
         "Team",
@@ -196,6 +220,9 @@ def load_tournament_data(df: pd.DataFrame) -> pd.DataFrame:
 
     out = df.copy()
     out = out[out["year"] != 2020].copy()
+    # Completed tournaments before the projected field's season only: the assembled table now also carries
+    # 2026 results, which would otherwise enter the seed-line baselines the 2026 field is compared with.
+    out = out[out["year"] < CURRENT_FIELD_YEAR].copy()
     out = out[out["seed"].notna() & out["finish"].notna()].copy()
     out = out[out["finish"] != "R68"].copy()
     out = out[out["finish"].isin(FINISH_ORDER)].copy()
@@ -365,6 +392,7 @@ def coach_context_bucket(z_score: float, threshold: float = 0.35) -> str:
 __all__ = [
     "ACCENT",
     "COACH_CANDIDATES",
+    "COACH_HISTORY_COLUMNS",
     "COACH_ANALYSIS_START_YEAR",
     "COACH_SUPPORT_METRIC",
     "CURRENT_FIELD_YEAR",
@@ -385,6 +413,7 @@ __all__ = [
     "TEXT_LIGHT",
     "TRANSFER_PORTAL_YEAR",
     "apply_report_background",
+    "attach_coach_history",
     "build_overperformance_data",
     "build_seed_reference_tables",
     "cache_logo_images",
