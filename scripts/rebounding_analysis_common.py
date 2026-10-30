@@ -184,6 +184,9 @@ def load_rebounding_data(path: Path) -> pd.DataFrame:
 def load_tournament_data(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     out = out[out["year"] != 2020].copy()
+    # Completed tournaments before the projected field's season only: the team-history cache now also carries
+    # 2026 seeds and finishes, which a rebuilt sample would otherwise pass into the 2008-2025 statistics.
+    out = out[out["year"] < CURRENT_FIELD_YEAR].copy()
     out = out[out["seed"].notna() & out["finish"].notna()].copy()
     out = out[out["finish"] != "R68"].copy()
     out = out[out["finish"].isin(FINISH_ORDER)].copy()

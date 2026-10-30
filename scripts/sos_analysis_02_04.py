@@ -69,6 +69,7 @@ HIGHLIGHT = PROJECT_PALETTE["sage"]
 TEXT_DARK = PROJECT_PALETTE["fog"]
 TEXT_LIGHT = PROJECT_PALETTE["steel"]
 TRANSFER_PORTAL_YEAR = 2022
+CURRENT_FIELD_YEAR = 2026
 
 
 def styled_box() -> dict[str, object]:
@@ -150,6 +151,9 @@ def load_tournament_data(path: Path) -> pd.DataFrame:
     out["Conf"] = out["Conf"].astype(str).str.strip().replace(CONFERENCE_RENAMES)
     out["finish"] = out["finish"].astype(str).str.strip()
     out = out[out["year"] != 2020].copy()
+    # Completed tournaments before the projected field's season only: the team-history cache now also carries
+    # 2026 seeds and finishes, which a rebuilt sample would otherwise pass into the 2008-2025 statistics.
+    out = out[out["year"] < CURRENT_FIELD_YEAR].copy()
     out = out[out["seed"].notna() & out["finish"].notna()].copy()
     out = out[out["finish"] != "R68"].copy()
     out = out[out["finish"].isin(FINISH_ORDER)].copy()

@@ -169,6 +169,9 @@ def load_data(path: Path) -> pd.DataFrame:
 
 def load_tournament_data(df: pd.DataFrame) -> pd.DataFrame:
     out = df[df["seed"].notna() & df["finish"].notna() & (df["finish"] != "R68")].copy()
+    # Completed tournaments before the projected field's season only: the team-history cache now also carries
+    # 2026 seeds and finishes, which a rebuilt sample would otherwise pass into the 2008-2025 statistics.
+    out = out[out["year"] < CURRENT_FIELD_YEAR].copy()
     out = out[out["finish"].isin(FINISH_DEPTH)].copy()
     out["seed_int"] = out["seed"].astype(int)
     out["finish_depth"] = out["finish"].map(FINISH_DEPTH)
