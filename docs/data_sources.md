@@ -168,8 +168,9 @@ Individual player-level advanced season statistics from Bart Torvik, matching th
 - **Source (2008–2023)**: Pre-built parquet files from the [toRvik-data GitHub repo](https://github.com/andreweatherman/toRvik-data)
 - **Source (2024+)**: Bart Torvik CSV endpoint (`getadvstats.php?year=YYYY&csv=1`)
 - **Columns** (29): `player`, `pos`, `exp`, `team`, `conf`, `g`, `min`, `porpag`, `dporpag`, `ortg`, `adj_oe`, `drtg`, `adj_de`, `stops`, `obpm`, `dbpm`, `bpm`, `oreb`, `dreb`, `ast`, `to`, `blk`, `stl`, `ftr`, `pfr`, `rec`, `pick`, `year`, `id`
-- **Year range**: 2008–2025 (2020 excluded per project convention)
-- **Total records**: ~81,000 players across all years
+- **Year range**: 2008–2026 (2020 excluded per project convention)
+- **Total records**: ~86,000 players across all years
+- **Includes NCAA tournament games**: these are end-of-season totals, so for 2008–2025 tournament teams `g` and every per-game rate cover the team's NCAA tournament games too (player `g` exceeds the team's regular-season `G` by about the number of tournament games played). Anything derived from them, such as `max_c_porpag` in the size analysis, is partly measured on tournament results. The 2026 file was pulled before the 2026 tournament.
 
 #### Fetching
 
