@@ -70,8 +70,11 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt 
 
 - `score` first checks that the three hashed inputs match the `inputs` block of the frozen JSON and exits
   if any changed. It then rewrites `reports/model_vs_seeds_powered.md`, the two
-  `data/processed/powered_*_2010_2026.csv` files and the calibration figure. Only the run timestamps
-  should differ from the committed copies.
+  `data/processed/powered_*_2010_2026.csv` files and the calibration figure. In the md only the run
+  timestamp and the code revision should change. On macOS/Linux the md comes back with LF line endings (the
+  committed copy has CRLF), and another machine can render the figure's fonts differently and leave float
+  noise in the CSVs of up to about 1e-12 in `p_ridge` and `p_madness` (1e-16 in `p_frozen`). Every number in
+  the report stays the same.
 - `--check` must print `CHECK PASS`: the outcome-free bracket math reproduces the saved 2026 `p_frozen`
   game rows and round probabilities to 1e-12.
 - **Never run `run_powered_comparison.py select`.** The selection is frozen; rerunning it would be a
