@@ -13,6 +13,7 @@ from experience_analysis_common import (
     COACH_ANALYSIS_START_YEAR,
     COACH_SUPPORT_METRIC,
     CURRENT_FIELD_YEAR,
+    TEAM_HISTORY_START_YEAR,
     LABEL_TEXT,
     PLAYER_PRIMARY_METRIC,
     PLAYER_SUPPORT_METRIC,
@@ -159,7 +160,7 @@ def plot_analysis_05(table: pd.DataFrame, out_path: Path) -> None:
     fig.text(
         0.5,
         0.91,
-        "Teams are split by whether raw Exp. and the lead coach metric sit above or below their exact-seed baselines",
+        f"{COACH_ANALYSIS_START_YEAR}+ teams are split by whether raw Exp. and the lead coach metric sit above or below their exact-seed baselines",
         ha="center",
         va="center",
         fontsize=9.9,
@@ -777,6 +778,7 @@ def write_analysis_05_summary(path: Path, table: pd.DataFrame) -> None:
         f"- Best archetype: `{best['archetype']}` at `{best['mean_overperformance']:+.3f}` mean finish vs exact-seed expectation.",
         f"- Worst archetype: `{worst['archetype']}` at `{worst['mean_overperformance']:+.3f}` mean finish vs exact-seed expectation.",
         f"- The best archetype also carried an average coach tournament win rate of `{best['avg_coach_win_pct_5y']:.3f}`.",
+        f"- Seasons: `{COACH_ANALYSIS_START_YEAR}+` only, as in every coach analysis. The team-history cache starts in `{TEAM_HISTORY_START_YEAR}`, so 5-year coach counts before `{COACH_ANALYSIS_START_YEAR}` are left-censored; both seed baselines are averages over the same seasons.",
         "- Interpretation: each team is split at its exact seed line's average on both metrics; these are descriptive group means with no significance test.",
         "",
         "## Table",
@@ -809,6 +811,9 @@ def write_analysis_07_summary(path: Path, field_table: pd.DataFrame, coach_prima
     most = field_table.sort_values(["full_exp_z", "barthag"], ascending=[False, False], kind="stable").head(5)
     least = field_table.sort_values(["full_exp_z", "barthag"], ascending=[True, False], kind="stable").head(5)
     position_counts = field_table["full_exp_position"].value_counts()
+    tenure_cap = CURRENT_FIELD_YEAR - TEAM_HISTORY_START_YEAR + 1
+    capped = field_table.loc[field_table["coach_years_with_program"] >= tenure_cap, "coach"].tolist()
+    capped_text = f" ({', '.join(f'`{coach}`' for coach in capped)})" if capped else ""
 
     def format_team_list(table: pd.DataFrame) -> str:
         parts = []
@@ -830,6 +835,8 @@ def write_analysis_07_summary(path: Path, field_table: pd.DataFrame, coach_prima
         "`full_exp_delta` is the seed-line average rank minus the team's rank, so positive means more experienced than the seed line.",
         f"- Coach metric: `{coach_primary_metric}` (`{metric_label(coach_primary_metric)}`), against `{COACH_ANALYSIS_START_YEAR}-2025` seed-line averages.",
         "- Positions are `above`, `near` or `below baseline` at 0.35 standard deviations from the seed line's average.",
+        f"- `coach_years_with_program` is shown for reference only. It is counted from `{TEAM_HISTORY_START_YEAR}`, the first season "
+        f"in the team-history cache, so it tops out at `{tenure_cap}` in `{CURRENT_FIELD_YEAR}`, and a `{tenure_cap}`{capped_text} means at least `{tenure_cap}` seasons.",
         f"- Most experienced relative to their seed line (by z-score): {format_team_list(most)}.",
         f"- Least experienced relative to their seed line (by z-score): {format_team_list(least)}.",
         f"- Player position counts: `{int(position_counts.get('above baseline', 0))}` above, "
@@ -870,7 +877,9 @@ def main() -> int:
     over_df = build_overperformance_data(tournament_df)
     coach_over_df = build_overperformance_data(coach_tournament_df)
 
-    table_05 = build_analysis_05_table(over_df, coach_primary_metric)
+    # The coach baseline is censored before COACH_ANALYSIS_START_YEAR, so the archetypes use the same
+    # seasons as every other coach analysis, with both seed baselines rebuilt on them.
+    table_05 = build_analysis_05_table(coach_over_df, coach_primary_metric)
     table_06 = build_analysis_06_table(over_df, coach_over_df, coach_primary_metric)
     table_07 = build_analysis_07_table(full_df, tournament_df, coach_tournament_df, coach_primary_metric, paths["seeds_2026"], paths["logo_cache"])
 

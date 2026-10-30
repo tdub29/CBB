@@ -119,7 +119,7 @@ This reads the team-history cache and writes `data/raw/team_history_cache_enrich
 
 - **`coach_tourn_appearances_5y`**: NCAA tournaments the head coach appeared in over the prior 5 tournament years (2020 excluded).
 - **`coach_tourn_wins_5y`** / **`coach_tourn_losses_5y`**: Tournament W-L for that coach over those same seasons.
-- **`coach_years_with_program`**: Consecutive years (including current) the head coach has been at this program.
+- **`coach_years_with_program`**: Consecutive years (including current) the head coach has been at this program. The cache starts in 2008, so tenure is capped at the seasons since then (6 in 2013, 19 in 2026) and understates longer tenures. The 5-year tournament counts are complete only from 2013, which is why the coach analyses start there.
 
 The enriched cache is joined into `all_trank_team_tables.csv` by `recompile_all_trank_team_tables.py`. **Estimated runtime**: ~20 seconds (local computation, no network).
 

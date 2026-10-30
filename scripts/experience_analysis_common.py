@@ -66,6 +66,8 @@ PLAYER_SUPPORT_METRIC = "exp_rank_season"
 COACH_CANDIDATES = ["coach_tourn_games_5y", "coach_years_with_program"]
 COACH_SUPPORT_METRIC = "coach_tourn_win_pct_5y"
 COACH_ANALYSIS_START_YEAR = 2013
+# First season in data/raw/team_history_cache.csv: coach windows and tenure cannot look back past it.
+TEAM_HISTORY_START_YEAR = 2008
 COACH_HISTORY_COLUMNS = [
     "coach_tourn_appearances_5y",
     "coach_tourn_wins_5y",
@@ -402,6 +404,7 @@ __all__ = [
     "SECONDARY",
     "SEED_GROUP_MAP",
     "SEED_GROUP_ORDER",
+    "TEAM_HISTORY_START_YEAR",
     "TEXT_DARK",
     "TEXT_LIGHT",
     "TRANSFER_PORTAL_YEAR",

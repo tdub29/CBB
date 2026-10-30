@@ -10,6 +10,7 @@ from experience_analysis_common import (
     ACCENT,
     COACH_ANALYSIS_START_YEAR,
     COACH_SUPPORT_METRIC,
+    CURRENT_FIELD_YEAR,
     FINISH_DISPLAY,
     FINISH_ORDER,
     HIGHLIGHT,
@@ -19,6 +20,7 @@ from experience_analysis_common import (
     SECONDARY,
     SEED_GROUP_MAP,
     SEED_GROUP_ORDER,
+    TEAM_HISTORY_START_YEAR,
     TEXT_DARK,
     TEXT_LIGHT,
     apply_report_background,
@@ -486,7 +488,10 @@ def write_analysis_04_summary(path: Path, table: pd.DataFrame, coach_primary_met
         "# Experience Analysis 4: Coach Experience vs March Success",
         "",
         f"- Lead coach metric: `{coach_primary_metric}` (`{metric_label(coach_primary_metric)}`) with seed-adjusted rho `{lead_row['seed_adjusted_spearman']:+.3f}` on `{COACH_ANALYSIS_START_YEAR}+` seasons.",
-        f"- `coach_years_with_program` seed-adjusted rho: `{tenure_row['seed_adjusted_spearman']:+.3f}`.",
+        f"- `coach_years_with_program` seed-adjusted rho: `{tenure_row['seed_adjusted_spearman']:+.3f}`. Tenure is counted from "
+        f"`{TEAM_HISTORY_START_YEAR}`, the first season in the team-history cache, so it is capped "
+        f"(`{COACH_ANALYSIS_START_YEAR - TEAM_HISTORY_START_YEAR + 1}` in `{COACH_ANALYSIS_START_YEAR}`, "
+        f"`{CURRENT_FIELD_YEAR - TEAM_HISTORY_START_YEAR}` in `{CURRENT_FIELD_YEAR - 1}`) and understates longer tenures.",
         f"- Support metric `coach_tourn_win_pct_5y` seed-adjusted rho: `{support_row['seed_adjusted_spearman']:+.3f}`.",
         f"- Interpretation: descriptive rank correlations on `{COACH_ANALYSIS_START_YEAR}+` seasons; no significance test is applied.",
         "",
