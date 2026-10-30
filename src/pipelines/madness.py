@@ -737,9 +737,13 @@ def build_team_history_all(
     delay_sec: float = 0.8,
     force_playwright: bool = False,
     user_agent: str = USER_AGENT,
+    fetch_missing: bool = True,
 ) -> tuple[pd.DataFrame, list[str]]:
     """
     Build/refresh team history cache and return history rows for requested teams.
+
+    With fetch_missing=False the cache is only read: teams missing from it come back as failed, with no
+    request and no cache write. The cache file is rewritten only when a fetch added rows.
 
     Returns (history_df, failed_teams).
     """
@@ -766,10 +770,10 @@ def build_team_history_all(
 
     cached_teams = set(cached["team"].unique()) if not cached.empty else set()
     missing_teams = team_list if refresh else [t for t in team_list if t not in cached_teams]
-    if not missing_teams:
+    if not missing_teams or not fetch_missing:
         out = cached[cached["team"].isin(team_list)].copy()
         out = out.drop_duplicates(subset=["team", "year"], keep="last")
-        return out, []
+        return out, [t for t in team_list if t not in cached_teams]
 
     session = requests.Session()
     session.headers.update({"User-Agent": user_agent})
@@ -854,7 +858,9 @@ def build_team_history_all(
         return combined, failed
     combined = combined.drop_duplicates(subset=["team", "year"], keep="last")
     combined = combined.sort_values(["team", "year"]).reset_index(drop=True)
-    combined.to_csv(cache_path, index=False)
+    # Rewrite the cache only when a fetch added rows; an offline or all-failed run leaves its bytes alone.
+    if fetched_rows:
+        combined.to_csv(cache_path, index=False)
     out = combined[combined["team"].isin(team_list)].copy()
     return out, failed
 
@@ -1103,8 +1109,12 @@ def build_training_from_all_tables(
     refresh_team_history: bool = False,
     team_history_delay_sec: float = 0.8,
     team_history_force_playwright: bool = False,
+    fetch_team_history: bool = True,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Build training frame from all-trank base + Torvik team-history enrichment."""
+    """Build training frame from all-trank base + Torvik team-history enrichment.
+
+    fetch_team_history=False reads the team-history cache without fetching or rewriting it.
+    """
     base = load_all_trank_base(all_tables_path, year_start, year_end, exclude_years)
     if base.empty:
         raise ValueError(f"No rows loaded from base file: {all_tables_path}")
@@ -1117,6 +1127,7 @@ def build_training_from_all_tables(
         delay_sec=team_history_delay_sec,
         force_playwright=team_history_force_playwright,
         user_agent=USER_AGENT,
+        fetch_missing=fetch_team_history,
     )
 
     skip = set(exclude_years)
@@ -2501,6 +2512,8 @@ def run_pipeline(
                 )
         else:
             print(f"Building {bracket_season} team rows for the bracket (scored, never trained on)...")
+            # Read-only on the team-history cache: a season outside the training range must not fetch
+            # teams new to D1 or rewrite data/raw/team_history_cache.csv (manifested in torvik_2026/MANIFEST.md).
             _, season_full = build_training_from_all_tables(
                 all_tables_path=all_tables_path,
                 team_history_cache_path=team_history_cache_path,
@@ -2510,9 +2523,9 @@ def run_pipeline(
                 year_start=bracket_season,
                 year_end=bracket_season,
                 exclude_years=exclude_years,
-                refresh_team_history=refresh_team_history,
                 team_history_delay_sec=team_history_delay_sec,
                 team_history_force_playwright=team_history_force_playwright,
+                fetch_team_history=False,
             )
         bracket_rows = bracket_season_rows(bracket_df, season_full, bracket_season)
         _warn_bracket_seed_mismatch(bracket_rows, bracket_season)

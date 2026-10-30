@@ -118,3 +118,24 @@ def test_run_pipeline_warns_when_bracket_seeds_disagree_with_the_season(monkeypa
     out = capsys.readouterr().out
     assert "1 of 2 bracket teams have another seed in the 2025 data: Duke (1 in data, 4 here)" in out
     assert "the 2025 tournament is in the training data" in out
+
+
+def test_run_pipeline_builds_a_later_bracket_season_without_touching_the_history_cache(
+    monkeypatch, tmp_path: Path
+) -> None:
+    # A 2026 bracket with 2024-2025 training: the 2026 rows are built read-only on the team-history
+    # cache, which used to fetch teams new to D1 and rewrite the manifested cache file.
+    _patch_pipeline(monkeypatch, tmp_path, "Duke,1,East\nSeton Hall,13,East\n")
+    builds: list[dict] = []
+
+    def _build(**kwargs):
+        builds.append(kwargs)
+        full = _training_data_full()
+        if kwargs["year_start"] == 2026:
+            full = full[full["year"] == 2025].assign(year=2026)
+        return full[full["seed"].notna()].copy(), full
+
+    monkeypatch.setattr(madness, "build_training_from_all_tables", _build)
+    madness.run_pipeline(bracket_season=2026)
+
+    assert [(b["year_start"], b.get("fetch_team_history", True)) for b in builds] == [(2024, True), (2026, False)]

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -213,6 +214,40 @@ def test_compute_coach_stats_tenure_spans_excluded_2020() -> None:
     # A missing 2020 row is only bridged when the same coach is on both sides.
     assert _tenure([(2019, "Coach Z"), (2021, "Coach A")]) == 1
     assert _tenure([(2019, "Coach Z"), (2020, "Coach A"), (2021, "Coach A")]) == 2
+
+
+def _no_fetch(*args, **kwargs):
+    raise AssertionError("team-history fetch attempted")
+
+
+def test_build_team_history_all_read_only_neither_fetches_nor_rewrites_the_cache(monkeypatch, tmp_path: Path) -> None:
+    cache = tmp_path / "team_history_cache.csv"
+    # CRLF endings and float text pandas would not write back, so any rewrite changes the bytes.
+    cache.write_bytes(b"team,year,coach,seed,finish\r\nAlpha,2026,Coach A,1.0,R64\r\n")
+    before = cache.read_bytes()
+    monkeypatch.setattr(madness, "fetch_team_history", _no_fetch)
+
+    hist, failed = madness.build_team_history_all(
+        ["Alpha", "New Team"], cache_path=cache, delay_sec=0.0, fetch_missing=False
+    )
+
+    assert cache.read_bytes() == before
+    assert failed == ["New Team"]
+    assert hist["team"].tolist() == ["Alpha"]
+
+
+def test_build_team_history_all_leaves_the_cache_alone_when_every_fetch_fails(monkeypatch, tmp_path: Path) -> None:
+    cache = tmp_path / "team_history_cache.csv"
+    cache.write_bytes(b"team,year,coach,seed,finish\r\nAlpha,2026,Coach A,1.0,R64\r\n")
+    before = cache.read_bytes()
+    monkeypatch.setattr(madness, "fetch_team_history", lambda *args, **kwargs: madness._team_history_empty())
+    monkeypatch.setitem(sys.modules, "playwright.sync_api", None)  # no browser fallback either
+
+    hist, failed = madness.build_team_history_all(["Alpha", "New Team"], cache_path=cache, delay_sec=0.0)
+
+    assert cache.read_bytes() == before
+    assert failed == ["New Team"]
+    assert hist["team"].tolist() == ["Alpha"]
 
 
 def test_build_training_from_all_tables_keeps_2020_for_coach_tenure(monkeypatch, tmp_path: Path) -> None:
