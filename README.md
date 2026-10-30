@@ -35,7 +35,7 @@ bootstrap 95% CI, a permutation p-value that shuffles within seed line, and a Be
 
 - **Strength of schedule within seed line:** rho +0.061 (n = 1088), CI [-0.001, +0.123], p = 0.041. Borderline:
   the interval reaches zero, and within one seed line and season the association is not detectable (p = 0.290).
-- **Seed-band correlations did not survive.** None of the 131 band cells across nine topics has pooled BH q < 0.05;
+- **Seed-band correlations did not survive.** None of the 131 band cells across nine published tables has pooled BH q < 0.05;
   9 have nominal p < 0.05, about the 6.6 expected by chance. The largest, Elite SOS in seeds 11-13 (rho +0.313,
   n = 204, CI [+0.181, +0.437]), has q = 0.367; it passes only when each published table is its own BH family
   (q = 0.034), and the within-seed null alone averages +0.155. The size bands (EFFHGT +0.108 in seeds 1-2,
