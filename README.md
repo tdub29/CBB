@@ -73,7 +73,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt 
   `data/processed/powered_*_2010_2026.csv` files and the calibration figure. In the md only the run
   timestamp and the code revision should change. On macOS/Linux the md comes back with LF line endings (the
   committed copy has CRLF), and another machine can render the figure's fonts differently and leave float
-  noise in the CSVs of up to about 1e-12 in `p_ridge` and `p_madness` (1e-16 in `p_frozen`). Every number in
+  noise in the CSVs of up to about 3e-12 in `p_ridge` and `p_madness` (1e-16 in `p_frozen`). Every number in
   the report stays the same.
 - `--check` must print `CHECK PASS`: the outcome-free bracket math reproduces the saved 2026 `p_frozen`
   game rows and round probabilities to 1e-12.
