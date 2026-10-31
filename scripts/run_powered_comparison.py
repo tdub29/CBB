@@ -1093,7 +1093,7 @@ def run_score(args: argparse.Namespace) -> int:
     L.append(f"- Identity: `{fname}`, version = `reports/model_selection_frozen.json` sha256 `{frozen_sha}`, "
              f"frozen {frozen['frozen_at']}; owner Trevor White; status: evaluated, not approved for betting use.")
     L.append("- Intended use: pre-tournament game and round probabilities for NCAA men's tournament brackets and "
-             "analysis posts. Prohibited: wagering decisions, in-tournament updating, women's or other tournaments.")
+             "descriptive analysis. Prohibited: wagering decisions, in-tournament updating, women's or other tournaments.")
     L.append("- Target and timing: P(better seed wins) for each Round-of-64-onward game, from inputs known at the "
              "published bracket; horizon = the whole tournament, no updates.")
     L.append(f"- Data: {inputs} from the Torvik regular-season table (Section 3); seed-pair history 1985 to Y-1 "
@@ -1106,13 +1106,12 @@ def run_score(args: argparse.Namespace) -> int:
              "if the running Brier over the post-freeze tournaments is worse than seed-pair rates with the year-block "
              "CI above zero; any change to the spec is a new version with a new frozen file.")
     L.append("")
-    L.append("## Deviations from the brief (stricter rule followed)")
-    L.append("- One primary metric locked before fitting (Brier); selection runs on it, log loss is secondary "
-             "(validation-design, sports-modeling-doctrine).")
+    L.append("## Design choices stricter than the usual defaults")
+    L.append("- One primary metric locked before fitting (Brier); selection runs on it, log loss is secondary.")
     L.append("- Seed-pair history extended to 1985, so the baseline is not starved in the early walk-forward "
              "years; the 2008-onward version is reported as a sensitivity row.")
     L.append("- The baseline is logged in the selection but cannot be frozen, so the 2021-2026 test always tests a model.")
-    L.append("- Coin-flip and constant baselines added (baseline-models Tier A).")
+    L.append("- Coin-flip and constant baselines added.")
     L.append("- Round probabilities computed exactly instead of Monte Carlo, so no simulation seed is needed; the "
              f"bootstrap seed {BOOT_SEED} is recorded.")
     L.append("- No from-scratch Elo: Torvik's AdjOE/AdjDE (opponent-adjusted offense and defense ratings from "
@@ -1124,8 +1123,8 @@ def run_score(args: argparse.Namespace) -> int:
     L.append(markdown_table(pd.DataFrame(PRIOR_SOURCES, columns=["source", "status", "use or reason"])))
     L.append("")
     L.append("## Reproduction")
-    L.append(f"- `python scripts/run_powered_comparison.py select` (charter locked {frozen['charter_locked_at']}, "
-             f"frozen {frozen['frozen_at']}), then `python scripts/run_powered_comparison.py score` (run "
+    L.append(f"- `select` ran once (charter locked {frozen['charter_locked_at']}, frozen {frozen['frozen_at']}) "
+             "and now refuses to run; reproduce with `python scripts/run_powered_comparison.py score` (run "
              f"{datetime.now(timezone.utc).isoformat(timespec='seconds')}); data refresh: "
              "`scripts/fetch_tournament_games.py`, `scripts/fetch_seed_history.py`.")
     L.append(f"- Frozen selection sha256 `{frozen_sha}`; code at selection `{frozen['code_revision']}`, at scoring "
