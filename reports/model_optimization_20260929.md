@@ -43,8 +43,9 @@
 > **Figures (note added 2026-10-29).** None of the five images in this report was drawn by this run. They
 > are shared files in `reports/figures/` that every run overwrites, and the copies in the repository were
 > committed on 2026-09-20, before this run. The model comparison, holdout and importance images match
-> `predictive_analysis_20260304.md` and `predictive_analysis_20260306.md` (11 configurations, a gbr winner,
-> PASE first in importance: runs voided by the PASE/PAKE leak), not the tables here.
+> the March 2026 runs `predictive_analysis_20260304.md` and `predictive_analysis_20260306.md` (11 configurations,
+> a gbr winner, PASE first in importance), not the tables here. Those two reports and their model files were
+> removed: voided by the PASE/PAKE leak (b117223).
 
 ![Missingness Heatmap](figures/missingness_heatmap.png)
 
