@@ -341,7 +341,7 @@ def plot_analysis_02(
     )
 
     fig.suptitle(
-        "Deeper tournament runs came from teams with tougher schedules overall",
+        f"{pretty_metric(primary_metric)} by finish round, all tournaments pooled (raw, not seed-adjusted)",
         fontsize=22,
         fontweight="bold",
         y=0.975,
@@ -537,7 +537,7 @@ def plot_analysis_02_seed_controlled(
     ax.tick_params(axis="x", labelsize=10, length=0, pad=6)
     ax.tick_params(axis="y", labelsize=10, length=0, pad=6)
     fig.suptitle(
-        "After controlling for seed, the SOS relationship is much weaker",
+        f"{pretty_metric(primary_metric)} vs finish, both centered on the exact seed line",
         fontsize=20,
         fontweight="bold",
         y=0.97,
@@ -574,14 +574,6 @@ def build_analysis_03_tables(df: pd.DataFrame, primary_metric: str) -> tuple[pd.
     yearly_df["primary_metric_rho"] = (
         yearly_df["elite_sos_rho"] if primary_metric == "Elite SOS" else yearly_df["conf_avg_barthag_rho"]
     )
-    yearly_df["signal_bucket"] = np.select(
-        [
-            yearly_df["primary_metric_rho"] >= 0.40,
-            yearly_df["primary_metric_rho"] > 0,
-        ],
-        ["Clear positive", "Positive but weaker"],
-        default="Inverse / noisy",
-    )
 
     heatmap = (
         df.groupby(["year", "finish"], as_index=False)[primary_metric]
@@ -604,8 +596,6 @@ def plot_analysis_03(
     rho = yearly_df["primary_metric_rho"].to_numpy(dtype=float)
     strongest = yearly_df.loc[yearly_df["primary_metric_rho"].idxmax()]
     weakest = yearly_df.loc[yearly_df["primary_metric_rho"].idxmin()]
-    positive_count = int((yearly_df["primary_metric_rho"] > 0).sum())
-    clear_count = int((yearly_df["signal_bucket"] == "Clear positive").sum())
 
     cmap = LinearSegmentedColormap.from_list(
         "sos_heatmap",
@@ -644,7 +634,7 @@ def plot_analysis_03(
             bbox=styled_box(),
     )
     ax.annotate(
-        f"Strongest: {int(strongest['year'])}\n{strongest['primary_metric_rho']:.3f}",
+        f"Highest: {int(strongest['year'])}\n{strongest['primary_metric_rho']:.3f}",
         xy=(strongest["year"], strongest["primary_metric_rho"]),
         xytext=(strongest["year"] - 2.5, strongest["primary_metric_rho"] + 0.03),
         arrowprops={"arrowstyle": "->", "color": PROJECT_PALETTE["steel"]},
@@ -653,7 +643,7 @@ def plot_analysis_03(
         bbox=styled_box(),
     )
     ax.annotate(
-        f"Weakest: {int(weakest['year'])}\n{weakest['primary_metric_rho']:.3f}",
+        f"Lowest: {int(weakest['year'])}\n{weakest['primary_metric_rho']:.3f}",
         xy=(weakest["year"], weakest["primary_metric_rho"]),
         xytext=(weakest["year"] + 0.3, weakest["primary_metric_rho"] + 0.03),
         arrowprops={"arrowstyle": "->", "color": PROJECT_PALETTE["steel"]},
@@ -685,7 +675,7 @@ def plot_analysis_03(
     ax.text(
         0.5,
         1.04,
-        "Year-by-year stability",
+        "Raw rho by tournament year",
         transform=ax.transAxes,
         ha="center",
         va="bottom",
@@ -731,7 +721,7 @@ def plot_analysis_03(
     heat_ax.text(
         0.5,
         1.02,
-        "Darker cells mean tougher schedules for teams that reached that round in that year",
+        "Lighter cells mean tougher schedules for teams that reached that round in that year",
         transform=heat_ax.transAxes,
         ha="center",
         va="bottom",
@@ -743,7 +733,7 @@ def plot_analysis_03(
     color_bar.ax.tick_params(labelsize=9.5, length=0)
 
     fig.suptitle(
-        "The SOS signal has peaked in past two years.",
+        f"{pretty_metric(primary_metric)} vs finish by tournament year (raw, not seed-adjusted)",
         fontsize=22,
         fontweight="bold",
         y=0.975,
@@ -850,7 +840,7 @@ def plot_analysis_04(seed_table: pd.DataFrame, seed_points: pd.DataFrame, primar
         ax.set_xlabel(pretty_metric(primary_metric), fontsize=10.5, fontweight="semibold")
 
     fig.suptitle(
-        "Within-group SOS signal is strongest in selective seed bands",
+        f"{pretty_metric(primary_metric)} vs finish minus expected finish, by seed group",
         fontsize=21,
         fontweight="bold",
         y=0.97,
@@ -979,7 +969,7 @@ def plot_analysis_04_individual(
         ax.set_xlabel(pretty_metric(primary_metric), fontsize=10.5, fontweight="semibold")
         ax.set_ylabel("Finish - expected finish", fontsize=10.5, fontweight="semibold")
         fig.suptitle(
-            f"Within-group SOS signal: seed group {seed_group}",
+            f"{pretty_metric(primary_metric)} vs finish minus expected finish: seed group {seed_group}",
             fontsize=17,
             fontweight="bold",
             y=0.96,
@@ -1014,8 +1004,8 @@ def write_analysis_02_summary(
         "",
         f"- Primary metric: `{pretty_metric(primary_metric)}`",
         "- Method: each team is centered against its exact seed-line average finish depth and average SOS.",
-        f"- Headline finding: after controlling for seed, the within-seed Spearman relationship is `{within_seed_rho:.3f}`.",
-        "- Interpretation: the broad pooled gradient is mostly seed structure; the residual SOS relationship inside seed lines is weak.",
+        f"- Measured: with SOS and finish depth both centered on the seed line, the within-seed Spearman relationship is `{within_seed_rho:.3f}`.",
+        "- No significance test here; see `reports/robustness_summary.md` for its bootstrap interval and permutation p-value.",
         "",
         "## Seed Baselines",
         "",
@@ -1039,9 +1029,11 @@ def write_analysis_02_unadjusted_summary(
         "",
         f"- Primary metric: `{pretty_metric(primary_metric)}`",
         f"- Metric rule: {correlation_df['selection_note'].iloc[0]}",
-        f"- Headline finding: champions averaged `{champ_value:.2f}` {pretty_metric(primary_metric)} versus `{r64_value:.2f}` for Round-of-64 exits.",
+        "- Measured: mean and median SOS of the teams that exited in each round, all tournaments pooled, not seed-adjusted.",
+        f"- Champions averaged `{champ_value:.2f}` {pretty_metric(primary_metric)} versus `{r64_value:.2f}` for Round-of-64 exits.",
         f"- Baseline: the field-wide average was `{field_average:.2f}` {pretty_metric(primary_metric)}.",
-        f"- Interpretation: stronger schedules mapped to deeper runs overall, but much of this pooled signal is seed structure.",
+        "- Seed drives both SOS and finish depth, so this gradient is mostly seed structure; the seed-centered view is "
+        "`reports/sos_vs_finish_pooled_summary.md`. No significance test; see `reports/robustness_summary.md`.",
         "",
         "## Pooled Finish Table",
         "",
@@ -1078,15 +1070,17 @@ def write_analysis_03_summary(
         "# SOS Analysis 3: SOS vs Finish by Year",
         "",
         f"- Primary metric: `{pretty_metric(primary_metric)}`",
-        f"- Headline finding: `{positive_count}` of `{len(yearly_df)}` tournament years showed a positive SOS-to-finish relationship.",
-        f"- Strongest year: `{int(strongest['year'])}` at rho `{strongest['primary_metric_rho']:.3f}`.",
-        f"- Weakest year: `{int(weakest['year'])}` at rho `{weakest['primary_metric_rho']:.3f}`.",
-        "- Interpretation: the pooled signal is not a one-off artifact; it shows up every year in this sample.",
+        "- Measured: each tournament year's Spearman correlation between finish depth and SOS, raw and not seed-adjusted.",
+        f"- Positive years: `{positive_count}` of `{len(yearly_df)}`.",
+        f"- Highest year: `{int(strongest['year'])}` at rho `{strongest['primary_metric_rho']:.3f}`.",
+        f"- Lowest year: `{int(weakest['year'])}` at rho `{weakest['primary_metric_rho']:.3f}`.",
+        "- Seed drives both SOS and finish depth, so these raw rhos mostly measure seed structure; the seed-centered view is "
+        "`reports/sos_vs_finish_pooled_summary.md`. No significance test; see `reports/robustness_summary.md`.",
         "",
         "## Yearly Correlations",
         "",
         yearly_df[
-            ["year", "elite_sos_rho", "conf_avg_barthag_rho", "primary_metric_rho", "signal_bucket"]
+            ["year", "elite_sos_rho", "conf_avg_barthag_rho", "primary_metric_rho"]
         ]
         .round(3)
         .to_markdown(index=False),
@@ -1106,9 +1100,10 @@ def write_analysis_04_summary(
         "# SOS Analysis 4: Seed Groups and Finish-vs-Expectation Scatter",
         "",
         f"- Primary metric: `{pretty_metric(primary_metric)}`",
-        f"- Headline finding: seed group `{best_group['seed_group']}` had the strongest within-group Spearman relationship at `{best_group[rho_column]:+.3f}`.",
-        f"- Weakest group: `{weakest_group['seed_group']}` at `{weakest_group[rho_column]:+.3f}`.",
-        "- Interpretation: the SOS signal is not uniform across seed bands; the faceted scatter shows where schedule strength actually tracks overperformance.",
+        "- Measured: inside each seed group, the Spearman correlation between raw SOS and finish minus the group's expected finish depth.",
+        f"- Largest absolute rho: `{best_group['seed_group']}` at `{best_group[rho_column]:+.3f}`.",
+        f"- Smallest absolute rho: `{weakest_group['seed_group']}` at `{weakest_group[rho_column]:+.3f}`.",
+        "- No significance test here; see `reports/robustness_summary.md`, where none of these band cells survives the pooled multiple-comparison check.",
         "",
         "## Seed Group Summary",
         "",

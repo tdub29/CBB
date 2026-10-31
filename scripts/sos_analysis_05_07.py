@@ -514,7 +514,7 @@ def plot_analysis_05a(over_df: pd.DataFrame, primary_metric: str, metric_summary
     ax.tick_params(axis="x", labelsize=10, length=0, pad=6)
     ax.tick_params(axis="y", labelsize=10, length=0, pad=6)
     fig.suptitle(
-        "Raw SOS barely explains who beats seed expectation",
+        f"{pretty_metric(primary_metric)} vs finish minus exact-seed expectation",
         fontsize=21,
         fontweight="bold",
         y=0.97,
@@ -678,10 +678,14 @@ def plot_analysis_06(era_table: pd.DataFrame, out_path: Path) -> None:
         values = era_table[column].to_numpy(dtype=float)
         ax.plot(x, values, color=ACCENT, linewidth=2.4, marker="o", markersize=7)
         ax.axhline(0, color=SECONDARY, linestyle=":", linewidth=1.2)
+        # Headroom above the highest point keeps its value label below the panel title.
+        low, high = min(float(values.min()), 0.0), max(float(values.max()), 0.0)
+        span = high - low
+        ax.set_ylim(low - 0.10 * span, high + 0.30 * span)
         for idx, value in enumerate(values):
             ax.text(
                 idx,
-                value + 0.018,
+                value + 0.05 * span,
                 f"{value:+.3f}",
                 ha="center",
                 va="bottom",
@@ -702,7 +706,7 @@ def plot_analysis_06(era_table: pd.DataFrame, out_path: Path) -> None:
     axes[-1].set_xlabel("Era", fontsize=11, fontweight="semibold")
     axes[1].set_ylabel("Spearman rho", fontsize=11, fontweight="semibold")
     fig.suptitle(
-        "SOS matters more in modern tournament eras than it did early in the sample",
+        "SOS rho by era: pooled raw, exact-seed adjusted, and seeds 11-13",
         fontsize=21,
         fontweight="bold",
         y=0.97,
@@ -710,7 +714,7 @@ def plot_analysis_06(era_table: pd.DataFrame, out_path: Path) -> None:
     fig.text(
         0.5,
         0.92,
-        "Eras use the 2012 structural shift and the 2022 transfer-rules breakpoint established earlier",
+        "Eras: " + ", ".join(label for label, _, _ in ERAS) + " (2022 = current transfer rules); descriptive, no significance test",
         ha="center",
         va="center",
         fontsize=9.5,
