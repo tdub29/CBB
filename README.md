@@ -3,6 +3,14 @@
 Pre-tournament win probabilities for the NCAA men's tournament, built on Bart Torvik team stats and
 tested against historical seed-pair win rates under a pre-registered charter.
 
+**Question:** do team-strength ratings predict tournament games better than the seeds do?
+
+![Calibration of the frozen log5 model and seed-pair win rates, 2021-2026, 377 games](reports/figures/frozen_model_calibration_2021_2026.png)
+
+Predicted vs. observed win rate for the better seed, 2021-2026. The frozen `log5` model is slightly ahead
+of seed-pair rates on Brier score, but the difference is within noise: Brier minus seed-pair -0.0059, 95%
+CI [-0.0123, +0.0004]. Details, power and limits are below.
+
 ## Result: log5 is frozen, and its edge over seeds is not established
 
 - **Model.** `log5` on Torvik's Barthag: P(a beats b) = expit(logit(Barthag_a) - logit(Barthag_b)). It has
