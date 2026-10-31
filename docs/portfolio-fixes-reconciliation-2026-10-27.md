@@ -25,9 +25,9 @@ only what is safe on top of it. The branch is left on the remote unchanged.
 |---|---|
 | 06d992e, dd6864a experience `.corr()` alignment | **Ported** in 295bec4: index alignment, the sign convention and the aligned-array tests. Outputs regenerated in 01e793f. |
 | b3b9d9a, ebb85cd, 3deea04 descriptive robustness checks | **Ported** in 98e61bb (`scripts/robustness_checks.py` and its test as on the branch, rerun on main's inputs); README and coverage notes in 97061be and 3a9a304. b5a7310 (scipy) was already on main. |
-| 736eb05, 93a4748, 80d2a44 report wording | **Ported in part**: post-series wording (f78a9c2), 2026-field position labels (2f4d1dd, 0a819e0, 0f4411b), field score names (b3dcb32), repo-relative paths (fd45028), the archived March 2026 projection (584af7c), the 2026 dominant-big-man count (01e793f) and the simulation summary labels (bf54c4a). Not ported: "Headline finding" lines in five summaries, All-D1 labels and 2020 line breaks on the context charts, removal of the `reports/figures/*_thread/` copies, and the five turnovers figures the scripts write but the repo does not track. |
+| 736eb05, 93a4748, 80d2a44 report wording | **Ported in part**: post-series wording (f78a9c2), 2026-field position labels (2f4d1dd, 0a819e0, 0f4411b), field score names (b3dcb32), repo-relative paths (fd45028), the archived March 2026 projection (584af7c), the 2026 dominant-big-man count (01e793f) and the simulation summary labels (bf54c4a). The `reports/figures/*_thread/` copies were removed in 69d8fac, and the "Headline finding" lines in the SOS summaries were replaced in eee4d62. Not ported: All-D1 labels and 2020 line breaks on the context charts, and the five turnovers figures the scripts write but the repo does not track. |
 | 60f79fe, 33c23f9 data-doc wording | **Not ported.** `docs/data_sources.md` gained only the tenure-cap (0a43960) and tournament-games (0239eae) notes. |
-| 5c70f3e removals | **In part:** b3973fa removes 83 of its 166 paths (social drafts, thread viewers, loop scripts). The postseason file renames are not ported. |
+| 5c70f3e removals | **In part:** b3973fa removes 83 of its 166 paths (social drafts, thread viewers, loop scripts), and 377aa88 removes the size post viewer and its `reports/figures/size_post/` copies. The postseason file renames are not ported. |
 
 ## Coach features in the legacy default
 
