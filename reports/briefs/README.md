@@ -1,11 +1,13 @@
 # Illustrated analysis briefs
 
-Presentation versions of the project's topic analyses.
+Screenshots of the March 2026 threads that first presented four of the topic analyses. The PDFs are
+images, so their text is not searchable.
 
 The briefs date from March 2026, before the multiple-comparison checks in
 [reports/robustness_summary.md](../robustness_summary.md), and present claims that do not survive them:
-the seeds 11-13 SOS band, conference comparisons, the seed-band patterns in the size, three-point and
-turnover briefs, and the dominant-big-man splits, which are measured partly on tournament games.
+the seed-band patterns in all four briefs, conference comparisons, and the dominant-big-man splits, which
+are measured partly on tournament games. The SOS brief's year-by-year trend rests on raw, not
+seed-adjusted, correlations and was not tested.
 
 - [Three-point shooting](three-point-analysis.pdf)
 - [Strength of schedule](strength-of-schedule.pdf)

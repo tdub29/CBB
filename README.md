@@ -53,8 +53,9 @@ bootstrap 95% CI, a permutation p-value that shuffles within seed line, and a Be
   pre-tournament signal, and were not tested here.
 
 The briefs date from March 2026, before these checks, and present claims that do not survive them: the
-seeds 11-13 SOS band, conference comparisons, the seed-band patterns in the size, three-point and turnover
-briefs, and the dominant-big-man splits.
+seed-band patterns in all four briefs, conference comparisons, and the dominant-big-man splits. The SOS
+brief's year-by-year trend ("all-time highs in back to back years") rests on raw, not seed-adjusted,
+correlations and was not tested.
 
 ## Reproduce from a clean clone
 
