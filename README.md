@@ -134,7 +134,7 @@ python scripts/run_pipeline.py --prep-raw   # rebuild data/raw/assembled/ from p
 Rscript scripts/install_deps.R && Rscript scripts/run_pipeline.R
 ```
 
-Config: [configs/default.yaml](configs/default.yaml), local overrides in `configs/local.yaml` (gitignored).
+Config: [configs/default.yaml](configs/default.yaml).
 Data sources and rate limits: [docs/data_sources.md](docs/data_sources.md). Naming:
 [docs/naming_conventions.md](docs/naming_conventions.md).
 
