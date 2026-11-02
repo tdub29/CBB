@@ -1,9 +1,9 @@
 # Turnovers Analysis 7B: 2026 BLKED% x BLK% Pair View
 
-- This companion chart reads the projected 2026 field on one plane: right is better BLKED% relative to seed baseline, up is better BLK% relative to seed baseline.
+- The March 2026 bracketology projection on one plane: right is a lower blocked-shot rate (BLKED%) than the seed line's 2008-2025 average, up is a higher block rate (BLK%).
 - Gold-backed logos in the chart mark former NCAA champions in the projected `2026` field: `Duke` (1) - 2010 (1); 2015 (1), `Florida` (1) - 2025 (1), `UConn` (2) - 2011 (3); 2014 (7); 2023 (4); 2024 (1), `Virginia` (3) - 2019 (1), `Kansas` (4) - 2008 (1); 2022 (1), `Louisville` (6) - 2013 (1), `North Carolina` (6) - 2009 (1); 2017 (1), `Kentucky` (6) - 2012 (1), `Villanova` (9) - 2016 (2); 2018 (1).
 
-## Best current-field cases
+## Highest BLKED% edge + BLK% edge
 
 | team_display   |   projected_seed |   full_blked_pct_edge |   full_blk_pct_edge |
 |:---------------|-----------------:|----------------------:|--------------------:|
@@ -14,7 +14,7 @@
 | Virginia       |                3 |                -0.957 |               5.612 |
 | Utah Valley    |               13 |                 0.528 |               3.946 |
 
-## Weak current-field cases
+## Lowest BLKED% edge + BLK% edge
 
 | team_display   |   projected_seed |   full_blked_pct_edge |   full_blk_pct_edge |
 |:---------------|-----------------:|----------------------:|--------------------:|

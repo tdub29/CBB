@@ -47,11 +47,15 @@ Run pipeline (writes report automatically):
 python scripts/run_pipeline.py
 ```
 
-Run pipeline with bracket simulation:
+Run pipeline with bracket simulation (a Team,Seed,Region CSV with Torvik team names, and its season):
 
 ```bash
-python scripts/run_pipeline.py --bracket data/external/templates/bracket_template.csv --n-sims 20000 --k 1.0
+python scripts/run_pipeline.py --bracket path/to/bracket.csv --season 2025 --n-sims 20000 --k 1.0
 ```
+
+Each bracket team is scored on its own row for `--season`, with its bracket seed; a team with no row
+for that season stops the run. The template in `data/external/templates/` shows the format only: its
+placeholder names match no team.
 
 Validate a bracket CSV:
 

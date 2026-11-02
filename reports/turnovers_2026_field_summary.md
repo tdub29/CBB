@@ -1,9 +1,10 @@
 # Turnovers Analysis 7: 2026 TOR x TORD Pair View
 
-- This chart reads the projected 2026 field on one plane: right is cleaner TOR relative to seed baseline, up is stronger TORD relative to seed baseline.
+- The March 2026 bracketology projection on one plane: right is a lower turnover rate (TOR) than the seed line's 2008-2025 average, up is a higher forced-turnover rate (TORD).
+- `turnover_profile_score` in the table CSV is TOR edge + 0.55 x defensive disruption edge (TORD edge + 0.35 x BLK% edge). The weights are ad hoc, not fitted; the score only orders teams within a seed line.
 - Gold-backed logos in the chart mark former NCAA champions in the projected `2026` field: `Duke` (1) - 2010 (1); 2015 (1), `Florida` (1) - 2025 (1), `UConn` (2) - 2011 (3); 2014 (7); 2023 (4); 2024 (1), `Virginia` (3) - 2019 (1), `Kansas` (4) - 2008 (1); 2022 (1), `Louisville` (6) - 2013 (1), `North Carolina` (6) - 2009 (1); 2017 (1), `Kentucky` (6) - 2012 (1), `Villanova` (9) - 2016 (2); 2018 (1).
 
-## Best current-field cases
+## Highest TOR edge + TORD edge
 
 | team_display   |   projected_seed |   full_tor_edge |   full_tord_edge |
 |:---------------|-----------------:|----------------:|-----------------:|
@@ -14,7 +15,7 @@
 | Iowa           |                9 |           3.663 |            1.818 |
 | Iowa St.       |                2 |           1.738 |            2.579 |
 
-## Weak current-field cases
+## Lowest TOR edge + TORD edge
 
 | team_display   |   projected_seed |   full_tor_edge |   full_tord_edge |
 |:---------------|-----------------:|----------------:|-----------------:|

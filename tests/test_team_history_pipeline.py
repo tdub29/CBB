@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -215,6 +216,40 @@ def test_compute_coach_stats_tenure_spans_excluded_2020() -> None:
     assert _tenure([(2019, "Coach Z"), (2020, "Coach A"), (2021, "Coach A")]) == 2
 
 
+def _no_fetch(*args, **kwargs):
+    raise AssertionError("team-history fetch attempted")
+
+
+def test_build_team_history_all_read_only_neither_fetches_nor_rewrites_the_cache(monkeypatch, tmp_path: Path) -> None:
+    cache = tmp_path / "team_history_cache.csv"
+    # CRLF endings and float text pandas would not write back, so any rewrite changes the bytes.
+    cache.write_bytes(b"team,year,coach,seed,finish\r\nAlpha,2026,Coach A,1.0,R64\r\n")
+    before = cache.read_bytes()
+    monkeypatch.setattr(madness, "fetch_team_history", _no_fetch)
+
+    hist, failed = madness.build_team_history_all(
+        ["Alpha", "New Team"], cache_path=cache, delay_sec=0.0, fetch_missing=False
+    )
+
+    assert cache.read_bytes() == before
+    assert failed == ["New Team"]
+    assert hist["team"].tolist() == ["Alpha"]
+
+
+def test_build_team_history_all_leaves_the_cache_alone_when_every_fetch_fails(monkeypatch, tmp_path: Path) -> None:
+    cache = tmp_path / "team_history_cache.csv"
+    cache.write_bytes(b"team,year,coach,seed,finish\r\nAlpha,2026,Coach A,1.0,R64\r\n")
+    before = cache.read_bytes()
+    monkeypatch.setattr(madness, "fetch_team_history", lambda *args, **kwargs: madness._team_history_empty())
+    monkeypatch.setitem(sys.modules, "playwright.sync_api", None)  # no browser fallback either
+
+    hist, failed = madness.build_team_history_all(["Alpha", "New Team"], cache_path=cache, delay_sec=0.0)
+
+    assert cache.read_bytes() == before
+    assert failed == ["New Team"]
+    assert hist["team"].tolist() == ["Alpha"]
+
+
 def test_build_training_from_all_tables_keeps_2020_for_coach_tenure(monkeypatch, tmp_path: Path) -> None:
     all_tables = tmp_path / "all_trank_team_tables.csv"
     _make_all_tables_csv(all_tables, [{"TEAM": "Alpha", "YEAR": 2021}, {"TEAM": "Beta", "YEAR": 2021}])
@@ -306,6 +341,50 @@ def test_build_training_from_all_tables_integration(monkeypatch, tmp_path: Path)
         assert c in full.columns
     assert set(full["Team"]) == {"Alpha", "Beta"}
     assert len(train) > 0
+
+
+def test_training_rows_survive_the_empty_blank_column(monkeypatch, tmp_path: Path) -> None:
+    # In data/raw/assembled/all_trank_team_tables.csv Torvik's spacer column `blank` is empty in
+    # every row; the row-wise dropna() then removed every training row and run_pipeline could not fit.
+    all_tables = tmp_path / "all_trank_team_tables.csv"
+    _make_all_tables_csv(
+        all_tables,
+        [{"TEAM": "Alpha", "YEAR": 2024}, {"TEAM": "Beta", "YEAR": 2024}, {"TEAM": "Gamma", "YEAR": 2024}],
+    )
+    raw = pd.read_csv(all_tables, header=None)
+    raw[madness.TEAM_TABLE_COL_NAMES.index("blank")] = np.nan
+    raw.to_csv(all_tables, index=False, header=False)
+
+    def _mock_history(**kwargs):
+        hist = pd.DataFrame(
+            [
+                {"team": "Alpha", "year": 2024, "coach": "Coach A", "seed": 1, "finish": "Elite Eight", "conf": "ACC"},
+                {"team": "Beta", "year": 2024, "coach": "Coach B", "seed": 7, "finish": "R32", "conf": "SEC"},
+                {"team": "Gamma", "year": 2024, "coach": "Coach C", "finish": "", "conf": "B10"},
+            ]
+        )
+        for c in madness.TEAM_HISTORY_CANONICAL_COLS:
+            if c not in hist.columns:
+                hist[c] = ""
+        hist["ov_rec"] = "25-8"
+        hist["conf_rec"] = "14-4"
+        return hist[madness.TEAM_HISTORY_CANONICAL_COLS], []
+
+    monkeypatch.setattr(madness, "build_team_history_all", _mock_history)
+    train, full = madness.build_training_from_all_tables(
+        all_tables_path=all_tables,
+        team_history_cache_path=tmp_path / "team_history_cache.csv",
+        ext_data_dir=tmp_path,
+        data_raw_dir=tmp_path,
+        run_tag="20260101",
+        year_start=2024,
+        year_end=2024,
+        exclude_years=(2020,),
+    )
+
+    assert full["blank"].isna().all()
+    assert len(train) == 2  # the two seeded teams; Gamma missed the tournament
+    assert sorted(train["seed"].tolist()) == [1.0, 7.0]
 
 
 def test_run_pipeline_data_only_avoids_trank_scrape(monkeypatch, tmp_path: Path) -> None:

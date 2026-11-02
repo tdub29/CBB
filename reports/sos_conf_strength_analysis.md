@@ -1,7 +1,7 @@
 # SOS Analysis 1: Conference Strength by Year
 
-- Input: `C:\Users\TrevorWhite\Downloads\CBBData\CBB\data\processed\sos_sample.csv`
-- Figure: `C:\Users\TrevorWhite\Downloads\CBBData\CBB\reports\figures\sos_conf_strength_over_time.png`
+- Input: `data/processed/sos_sample.csv`
+- Figure: `reports/figures/sos_conf_strength_over_time.png`
 - Rows analyzed: `581` conference-year rows from `2008-2026` (2020 excluded).
 - Conference avg validation: max absolute diff between recomputed and stored `conf_avg_barthag` = `0.0000000000`.
 

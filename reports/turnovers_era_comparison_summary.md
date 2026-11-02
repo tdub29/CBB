@@ -1,8 +1,8 @@
 # Turnovers Analysis 6: Era Comparison
 
-- Full-sample seed-adjusted TOR rho: `+0.065`.
-- Modern-era seed-adjusted TOR rho: `+0.037`.
-- Interpretation: the close should lean on the modern-era result whenever it materially differs from the full sample.
+- Full-sample (`2008-2025`) seed-adjusted TOR rho: `+0.065` on `1088` teams.
+- `2022-2025` seed-adjusted TOR rho: `+0.037` on `256` teams.
+- Interpretation: the eras are subsets of the full sample with no significance test; report the era estimates alongside the full-sample one rather than in place of it.
 
 ## Table
 

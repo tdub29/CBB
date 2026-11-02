@@ -1,5 +1,5 @@
 metric,label,seed_adjusted_spearman,primary_metric,selection_note
-Barthag,Barthag,0.152479,AdjT,"AdjT is locked as the Day 8 lead metric. AdjOE, AdjDE, and Barthag are support lenses for explaining where tempo helps or fails."
-AdjOE,Adjusted offensive efficiency,0.098431,AdjT,"AdjT is locked as the Day 8 lead metric. AdjOE, AdjDE, and Barthag are support lenses for explaining where tempo helps or fails."
-AdjDE,Adjusted defensive efficiency,0.056258,AdjT,"AdjT is locked as the Day 8 lead metric. AdjOE, AdjDE, and Barthag are support lenses for explaining where tempo helps or fails."
-AdjT,Adjusted tempo,-0.030127,AdjT,"AdjT is locked as the Day 8 lead metric. AdjOE, AdjDE, and Barthag are support lenses for explaining where tempo helps or fails."
+Barthag,Barthag,0.152479,AdjT,"AdjT is the lead metric. AdjOE, AdjDE, and Barthag are context metrics for checking whether tempo is a proxy for team quality."
+AdjOE,Adjusted offensive efficiency,0.098431,AdjT,"AdjT is the lead metric. AdjOE, AdjDE, and Barthag are context metrics for checking whether tempo is a proxy for team quality."
+AdjDE,Adjusted defensive efficiency,0.056258,AdjT,"AdjT is the lead metric. AdjOE, AdjDE, and Barthag are context metrics for checking whether tempo is a proxy for team quality."
+AdjT,Adjusted tempo,-0.030127,AdjT,"AdjT is the lead metric. AdjOE, AdjDE, and Barthag are context metrics for checking whether tempo is a proxy for team quality."

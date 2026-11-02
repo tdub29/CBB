@@ -1,4 +1,4 @@
 metric,raw_spearman,seed_adjusted_spearman,field_mean,champ_mean,r64_mean,champ_minus_r64
-coach_tourn_games_5y,0.374717,0.073554,3.700521,8.25,2.197917,6.052083
+coach_tourn_games_5y,0.415448,0.100554,4.528646,9.25,2.580729,6.669271
 coach_years_with_program,0.174213,0.058961,6.282552,8.25,5.596354,2.653646
-coach_tourn_win_pct_5y,0.366152,0.063886,0.276529,0.478149,0.174432,0.303717
+coach_tourn_win_pct_5y,0.40921,0.053754,0.299828,0.492264,0.184001,0.308263

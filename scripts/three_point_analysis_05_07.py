@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import shutil
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
@@ -11,12 +10,11 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 import numpy as np
 import pandas as pd
 
-from size_analysis_common import cache_logo_images, load_logo_image
+from size_analysis_common import cache_logo_images, load_logo_image, with_repo_relative_logo_paths
 from three_point_analysis_common import (
     ACCENT,
     CURRENT_FIELD_YEAR,
     ERAS,
-    HIGHLIGHT,
     LABEL_TEXT,
     NEGATIVE,
     POSITIVE,
@@ -51,7 +49,6 @@ def get_paths() -> dict[str, Path]:
         "input": base["input_sample"],
         "seeds_2026": base["seeds_2026"],
         "logo_cache": Path(__file__).resolve().parent.parent / "data" / "external" / "team_logos" / "espn_ncaam",
-        "thread_dir": base["thread_dir"],
         "fig_05": root / "reports" / "figures" / "three_point_rate_success_interaction.png",
         "fig_07": root / "reports" / "figures" / "three_point_2026_profile_map.png",
         "fig_07_defense": root / "reports" / "figures" / "three_point_2026_defense_field.png",
@@ -282,40 +279,6 @@ def build_analysis_06_table(over_df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def plot_analysis_06(table: pd.DataFrame, out_path: Path) -> None:
-    panel_specs = [
-        ("three_prate_seed_adjusted_rho", "Three-point attempt rate", ACCENT),
-        ("three_pct_seed_adjusted_rho", "Three-point percentage", PROJECT_PALETTE["lake_blue"]),
-        ("three_pct_d_seed_adjusted_rho", "Opponent three-point percentage", HIGHLIGHT),
-    ]
-
-    set_project_theme()
-    fig, axes = plt.subplots(1, 3, figsize=(20.8, 7.6), constrained_layout=False)
-    apply_report_background(fig, axes)
-    fig.subplots_adjust(top=0.83, bottom=0.14, left=0.05, right=0.98, wspace=0.16)
-
-    eras = table["era"].tolist()
-    for ax, (column, title, color) in zip(axes, panel_specs):
-        colors = [color] + [HIGHLIGHT if "2022" in era else PROJECT_PALETTE["steel"] for era in eras[1:]]
-        ax.bar(np.arange(len(table)), table[column], color=colors, width=0.62)
-        ax.axhline(0, color=SECONDARY, linestyle=":", linewidth=1.3)
-        ax.set_xticks(np.arange(len(table)))
-        ax.set_xticklabels(eras, fontsize=10.0, fontweight="semibold")
-        ax.set_ylabel("Seed-adjusted Spearman rho", fontsize=11.0, fontweight="semibold")
-        ax.set_title(title, fontsize=13.0, fontweight="bold", color=TEXT_DARK, pad=12)
-        ax.grid(False)
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        ax.tick_params(axis="x", length=0, pad=7)
-        ax.tick_params(axis="y", length=0, pad=6)
-
-    fig.suptitle("Did the modern three-point era change the Day 5 read?", fontsize=22, fontweight="bold", y=0.97)
-    fig.text(0.5, 0.905, "Each panel keeps one metric isolated so the modern-era comparison stays readable.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_path, dpi=220, bbox_inches="tight")
-    plt.close(fig)
-
-
 def build_analysis_07_upset_history(
     tournament_df: pd.DataFrame,
     full_ref: pd.DataFrame,
@@ -391,18 +354,9 @@ def build_analysis_07_table(
         slug = metric_slug(metric)
         merged[f"full_{slug}_delta_raw"] = merged[metric] - merged[f"full_seed_avg_{slug}"]
         merged[f"full_{slug}_edge"] = -merged[f"full_{slug}_delta_raw"] if metric in LOWER_BETTER else merged[f"full_{slug}_delta_raw"]
+    # Ad hoc weights, not fitted: the scores only order teams within a seed line in the exported table.
     merged["offense_profile_score"] = 0.60 * merged["full_three_pct_edge"] + 0.50 * merged["full_three_prate_edge"]
-    merged["defense_context"] = np.where(
-        merged["full_three_pct_d_edge"] >= 0.75,
-        "positive",
-        np.where(merged["full_three_pct_d_edge"] <= -0.75, "negative", "neutral"),
-    )
-    merged["offense_context"] = np.where(
-        merged["offense_profile_score"] >= 0.75,
-        "positive",
-        np.where(merged["offense_profile_score"] <= -0.75, "negative", "neutral"),
-    )
-    merged["day5_score"] = merged["offense_profile_score"] + 0.35 * merged["full_three_pct_d_edge"]
+    merged["three_point_profile_score"] = merged["offense_profile_score"] + 0.35 * merged["full_three_pct_d_edge"]
     merged["team_key"] = merged["team_display"].map(normalize_team_key)
     merged["logo_lookup_key"] = merged["team_display"].map(normalize_team_key)
 
@@ -468,7 +422,7 @@ def build_analysis_07_table(
     merged["is_former_champion"] = merged["championship_count"] > 0
     merged = cache_logo_images(merged, logo_cache_dir)
     merged["logo_fallback"] = merged["logo_path"].isna()
-    merged = merged.sort_values(["projected_seed", "day5_score"], ascending=[True, False], kind="stable").reset_index(drop=True)
+    merged = merged.sort_values(["projected_seed", "three_point_profile_score"], ascending=[True, False], kind="stable").reset_index(drop=True)
     upset_history = build_analysis_07_upset_history(tournament_df, full_ref, logo_cache_dir)
     overperformer_history = build_analysis_07_overperformer_history(tournament_df, logo_cache_dir)
     return merged, upset_history, overperformer_history
@@ -522,7 +476,6 @@ def plot_analysis_07(table: pd.DataFrame, upset_history: pd.DataFrame, overperfo
     x_split = float(plot_df["3PRATE"].mean())
     y_split = float(plot_df["3P%"].mean())
 
-    support_color_map = {"positive": POSITIVE, "neutral": PROJECT_PALETTE["steel"], "negative": NEGATIVE}
 
     set_project_theme()
     fig, ax = plt.subplots(figsize=(16.0, 12.4), constrained_layout=False)
@@ -556,7 +509,6 @@ def plot_analysis_07(table: pd.DataFrame, upset_history: pd.DataFrame, overperfo
     for _, row in plot_df.iterrows():
         x_value = float(row["3PRATE"])
         y_value = float(row["3P%"])
-        halo_color = support_color_map.get(str(row.get("defense_context", "neutral")), PROJECT_PALETTE["steel"])
         logo_path = row.get("logo_path")
         is_former_champion = bool(row.get("is_former_champion", False))
         if isinstance(logo_path, (str, Path)) and Path(logo_path).exists():
@@ -603,7 +555,7 @@ def plot_analysis_07(table: pd.DataFrame, upset_history: pd.DataFrame, overperfo
                 fontsize=7.2,
                 fontweight="bold",
                 color=PROJECT_PALETTE["deep_ocean"],
-                bbox=styled_box(facecolor="white", edgecolor=halo_color),
+                bbox=styled_box(facecolor="white", edgecolor=PROJECT_PALETTE["steel"]),
                 zorder=4,
             )
 
@@ -647,9 +599,6 @@ def plot_analysis_07(table: pd.DataFrame, upset_history: pd.DataFrame, overperfo
 
     legend_handles = [
         Line2D([], [], color=SECONDARY, linestyle=":", linewidth=1.6, label="Projected field average"),
-        Line2D([], [], marker="o", linestyle="None", markerfacecolor="white", markeredgecolor=POSITIVE, markeredgewidth=2.0, markersize=10, label="Positive 3P defense support"),
-        Line2D([], [], marker="o", linestyle="None", markerfacecolor="white", markeredgecolor=PROJECT_PALETTE["steel"], markeredgewidth=2.0, markersize=10, label="Neutral 3P defense support"),
-        Line2D([], [], marker="o", linestyle="None", markerfacecolor="white", markeredgecolor=NEGATIVE, markeredgewidth=2.0, markersize=10, label="Negative 3P defense support"),
         Line2D([], [], marker="o", linestyle="None", markerfacecolor="#F5E7A1", markeredgecolor="#D4A72C", markeredgewidth=1.3, markersize=10, label="Former champ badge"),
         Line2D([], [], marker="o", linestyle="None", markerfacecolor=UPSET_BADGE_FACE, markeredgecolor=UPSET_BADGE_EDGE, markeredgewidth=1.3, markersize=10, label="Historical 1-3 seed R64 upset"),
         Line2D([], [], marker="^", linestyle="None", markerfacecolor=OVERPERFORMER_BADGE_FACE, markeredgecolor=OVERPERFORMER_BADGE_EDGE, markeredgewidth=1.3, markersize=15, label="Historical 3+ round overperformer"),
@@ -685,7 +634,7 @@ def plot_analysis_07(table: pd.DataFrame, upset_history: pd.DataFrame, overperfo
     fig.text(
         0.5,
         0.92,
-        "Right means a higher three-point attempt rate. Up means a higher three-point percentage. Dashed lines mark projected field averages and halo color shows three-point defense support.",
+        "Right means a higher three-point attempt rate. Up means a higher three-point percentage. Dashed lines mark projected field averages (March 2026 projection).",
         ha="center",
         va="center",
         fontsize=10.2,
@@ -710,7 +659,6 @@ def plot_analysis_07_defense(table: pd.DataFrame, upset_history: pd.DataFrame, o
         .first()
         .sort_values("projected_seed", kind="stable")
     )
-    support_color_map = {"positive": POSITIVE, "neutral": PROJECT_PALETTE["steel"], "negative": NEGATIVE}
 
     set_project_theme()
     fig, ax = plt.subplots(figsize=(22.8, 12.4), constrained_layout=False)
@@ -743,7 +691,6 @@ def plot_analysis_07_defense(table: pd.DataFrame, upset_history: pd.DataFrame, o
     for _, row in plot_df.iterrows():
         x_value = float(row["3P%D"])
         y_value = float(row["plot_y"])
-        halo_color = support_color_map.get(str(row.get("offense_context", "neutral")), PROJECT_PALETTE["steel"])
         logo_path = row.get("logo_path")
         is_former_champion = bool(row.get("is_former_champion", False))
         if isinstance(logo_path, (str, Path)) and Path(logo_path).exists():
@@ -787,7 +734,7 @@ def plot_analysis_07_defense(table: pd.DataFrame, upset_history: pd.DataFrame, o
                 fontsize=7.2,
                 fontweight="bold",
                 color=PROJECT_PALETTE["deep_ocean"],
-                bbox=styled_box(facecolor="white", edgecolor=halo_color),
+                bbox=styled_box(facecolor="white", edgecolor=PROJECT_PALETTE["steel"]),
                 zorder=4,
             )
 
@@ -855,9 +802,6 @@ def plot_analysis_07_defense(table: pd.DataFrame, upset_history: pd.DataFrame, o
     legend_handles = [
         Line2D([], [], color=ACCENT, marker="|", linestyle="None", markersize=16, markeredgewidth=3, label="Full-sample seed avg"),
         Line2D([], [], color=SECONDARY, marker="|", linestyle="None", markersize=14, markeredgewidth=2.2, label="Recent seed avg"),
-        Line2D([], [], marker="o", linestyle="None", markerfacecolor="white", markeredgecolor=POSITIVE, markeredgewidth=2.0, markersize=10, label="Positive offense support"),
-        Line2D([], [], marker="o", linestyle="None", markerfacecolor="white", markeredgecolor=PROJECT_PALETTE["steel"], markeredgewidth=2.0, markersize=10, label="Neutral offense support"),
-        Line2D([], [], marker="o", linestyle="None", markerfacecolor="white", markeredgecolor=NEGATIVE, markeredgewidth=2.0, markersize=10, label="Negative offense support"),
         Line2D([], [], marker="o", linestyle="None", markerfacecolor="#F5E7A1", markeredgecolor="#D4A72C", markeredgewidth=1.3, markersize=10, label="Former champ badge (title seed)"),
         Line2D([], [], marker="o", linestyle="None", markerfacecolor=UPSET_BADGE_FACE, markeredgecolor=UPSET_BADGE_EDGE, markeredgewidth=1.3, markersize=10, label="Historical 1-3 seed R64 upset"),
         Line2D([], [], marker="^", linestyle="None", markerfacecolor=OVERPERFORMER_BADGE_FACE, markeredgecolor=OVERPERFORMER_BADGE_EDGE, markeredgewidth=1.3, markersize=15, label="Historical 3+ round overperformer"),
@@ -880,7 +824,7 @@ def plot_analysis_07_defense(table: pd.DataFrame, upset_history: pd.DataFrame, o
         text.set_color(legend_text_color)
 
     fig.suptitle("Projected 2026 opponent three-point defense", fontsize=22, fontweight="bold", y=0.965)
-    fig.text(0.5, 0.92, "Lower values are better here. Halo color shows whether the team also brings a positive or negative offensive three-point profile.", ha="center", va="center", fontsize=10.2, color=PROJECT_PALETTE["steel"])
+    fig.text(0.5, 0.92, "Lower opponent three-point percentage is to the right. Seed markers show the 2008-2025 and 2022-2025 averages of each seed line (March 2026 projection).", ha="center", va="center", fontsize=10.2, color=PROJECT_PALETTE["steel"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
@@ -892,7 +836,7 @@ def write_summary_05(table: pd.DataFrame, out_path: Path) -> None:
         "# Three-Point Analysis 5: Rate and Success Interaction",
         "",
         f"- Best profile: `{best['profile']}` at `{best['mean_overperformance']:+.3f}` overperformance points.",
-        "- Interpretation: Day 5 should focus on how volume and success combine, not on either metric in isolation.",
+        "- Profiles split teams at their exact seed line's average on three-point attempt rate and three-point percentage; these are descriptive group means with no significance test.",
         "- Figure structure: ranked profile view on the left, 3PRATE x 3P% overperformance heatmap on the right.",
         "",
         "## Table",
@@ -920,8 +864,8 @@ def write_summary_06(table: pd.DataFrame, out_path: Path) -> None:
 
 
 def write_summary_07(table: pd.DataFrame, upset_history: pd.DataFrame, out_path: Path) -> None:
-    best = table.nlargest(8, "day5_score")[["team_display", "projected_seed", "full_three_prate_edge", "full_three_pct_edge", "full_three_pct_d_edge"]]
-    worst = table.nsmallest(8, "day5_score")[["team_display", "projected_seed", "full_three_prate_edge", "full_three_pct_edge", "full_three_pct_d_edge"]]
+    best = table.nlargest(8, "three_point_profile_score")[["team_display", "projected_seed", "full_three_prate_edge", "full_three_pct_edge", "full_three_pct_d_edge", "three_point_profile_score"]]
+    worst = table.nsmallest(8, "three_point_profile_score")[["team_display", "projected_seed", "full_three_prate_edge", "full_three_pct_edge", "full_three_pct_d_edge", "three_point_profile_score"]]
     former_champions = table[table["is_former_champion"]].copy().sort_values(["projected_seed", "barthag"], ascending=[True, False], kind="stable")
     former_champion_text = (
         ", ".join([f"`{row.team_display}` ({int(row.projected_seed)}) - {row.title_history}" for row in former_champions.itertuples(index=False)])
@@ -931,15 +875,16 @@ def write_summary_07(table: pd.DataFrame, upset_history: pd.DataFrame, out_path:
     lines = [
         "# Three-Point Analysis 7: 2026 Profile Map",
         "",
-        "- This chart puts rate and success on the axes so the 2026 field can be read in one glance.",
+        "- The March 2026 bracketology projection, with three-point attempt rate and three-point percentage on the axes.",
+        "- `three_point_profile_score` = 0.60 x 3P% edge + 0.50 x 3PRATE edge + 0.35 x 3P%D edge, each edge relative to the seed line's 2008-2025 average. The weights are ad hoc, not fitted; the score only orders teams in the tables below.",
         f"- Gold-backed logos in the chart mark former NCAA champions in the projected `{CURRENT_FIELD_YEAR}` field: {former_champion_text}.",
         f"- Rose-backed logos mark the `{len(upset_history)}` historical 1-3 seeds that lost in the first round.",
         "",
-        "## Best current-field cases",
+        "## Highest three_point_profile_score",
         "",
         best.round(3).to_markdown(index=False),
         "",
-        "## Weak current-field cases",
+        "## Lowest three_point_profile_score",
         "",
         worst.round(3).to_markdown(index=False),
     ]
@@ -958,25 +903,20 @@ def write_summary_07_defense(table: pd.DataFrame, upset_history: pd.DataFrame, o
     lines = [
         "# Three-Point Analysis 7B: 2026 Defensive Field View",
         "",
-        "- This companion chart leads with opponent three-point percentage allowed, then uses the offensive profile as support.",
+        "- Opponent three-point percentage (3P%D) of the March 2026 bracketology projection against each seed line's 2008-2025 average; a positive `full_three_pct_d_edge` means a lower percentage allowed.",
+        "- `offense_profile_score` (0.60 x 3P% edge + 0.50 x 3PRATE edge, ad hoc weights) is listed alongside for reference.",
         f"- Gold-backed logos in the chart mark former NCAA champions in the projected `{CURRENT_FIELD_YEAR}` field: {former_champion_text}.",
         f"- Rose-backed logos mark the `{len(upset_history)}` historical 1-3 seeds that lost in the first round.",
         "",
-        "## Best current-field cases",
+        "## Largest 3P%D edge",
         "",
         best.round(3).to_markdown(index=False),
         "",
-        "## Weak current-field cases",
+        "## Smallest 3P%D edge",
         "",
         worst.round(3).to_markdown(index=False),
     ]
     out_path.write_text("\n".join(lines), encoding="utf-8")
-
-
-def create_thread_assets(paths: dict[str, Path]) -> None:
-    thread_dir = paths["thread_dir"]
-    thread_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(paths["fig_05"], thread_dir / "1_three_point_hook.png")
 
 
 def main() -> int:
@@ -992,7 +932,7 @@ def main() -> int:
 
     table05.round(6).to_csv(paths["csv_05"], index=False)
     table06.round(6).to_csv(paths["csv_06"], index=False)
-    table07.round(6).to_csv(paths["csv_07"], index=False)
+    with_repo_relative_logo_paths(table07).round(6).to_csv(paths["csv_07"], index=False)
 
     plot_analysis_05(table05, over_df, paths["fig_05"])
     plot_analysis_07(table07, upset_history, overperformer_history, paths["fig_07"])
@@ -1001,7 +941,6 @@ def main() -> int:
     write_summary_06(table06, paths["md_06"])
     write_summary_07(table07, upset_history, paths["md_07"])
     write_summary_07_defense(table07, upset_history, paths["md_07_defense"])
-    create_thread_assets(paths)
     return 0
 
 

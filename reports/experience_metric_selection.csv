@@ -1,3 +1,3 @@
 metric,raw_spearman,seed_adjusted_spearman,lead_margin,coach_primary_metric,selection_note
-coach_tourn_games_5y,0.374717,0.073554,0.014592,coach_tourn_games_5y,"coach_tourn_games_5y led by only 0.015, below the 0.05 switch threshold, so coach_tourn_games_5y remains the default."
-coach_years_with_program,0.174213,0.058961,0.014592,coach_tourn_games_5y,"coach_tourn_games_5y led by only 0.015, below the 0.05 switch threshold, so coach_tourn_games_5y remains the default."
+coach_tourn_games_5y,0.415448,0.100554,0.041592,coach_tourn_games_5y,"coach_tourn_games_5y led by only 0.042, below the 0.05 switch threshold, so coach_tourn_games_5y remains the default."
+coach_years_with_program,0.174213,0.058961,0.041592,coach_tourn_games_5y,"coach_tourn_games_5y led by only 0.042, below the 0.05 switch threshold, so coach_tourn_games_5y remains the default."

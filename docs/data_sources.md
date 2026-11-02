@@ -119,7 +119,7 @@ This reads the team-history cache and writes `data/raw/team_history_cache_enrich
 
 - **`coach_tourn_appearances_5y`**: NCAA tournaments the head coach appeared in over the prior 5 tournament years (2020 excluded).
 - **`coach_tourn_wins_5y`** / **`coach_tourn_losses_5y`**: Tournament W-L for that coach over those same seasons.
-- **`coach_years_with_program`**: Consecutive years (including current) the head coach has been at this program.
+- **`coach_years_with_program`**: Consecutive years (including current) the head coach has been at this program. The cache starts in 2008, so tenure is capped at the seasons since then (6 in 2013, 19 in 2026) and understates longer tenures. The 5-year tournament counts are complete only from 2013, which is why the coach analyses start there.
 
 The enriched cache is joined into `all_trank_team_tables.csv` by `recompile_all_trank_team_tables.py`. **Estimated runtime**: ~20 seconds (local computation, no network).
 
@@ -168,8 +168,9 @@ Individual player-level advanced season statistics from Bart Torvik, matching th
 - **Source (2008–2023)**: Pre-built parquet files from the [toRvik-data GitHub repo](https://github.com/andreweatherman/toRvik-data)
 - **Source (2024+)**: Bart Torvik CSV endpoint (`getadvstats.php?year=YYYY&csv=1`)
 - **Columns** (29): `player`, `pos`, `exp`, `team`, `conf`, `g`, `min`, `porpag`, `dporpag`, `ortg`, `adj_oe`, `drtg`, `adj_de`, `stops`, `obpm`, `dbpm`, `bpm`, `oreb`, `dreb`, `ast`, `to`, `blk`, `stl`, `ftr`, `pfr`, `rec`, `pick`, `year`, `id`
-- **Year range**: 2008–2025 (2020 excluded per project convention)
-- **Total records**: ~81,000 players across all years
+- **Year range**: 2008–2026 (2020 excluded per project convention)
+- **Total records**: ~86,000 players across all years
+- **Includes NCAA tournament games**: these are end-of-season totals, so for 2008–2025 tournament teams `g` and every per-game rate cover the team's NCAA tournament games too (player `g` exceeds the team's regular-season `G` by about the number of tournament games played). Anything derived from them, such as `max_c_porpag` in the size analysis, is partly measured on tournament results. The 2026 file was pulled before the 2026 tournament.
 
 #### Fetching
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from src.models.simulate import ROUND_COLUMNS, simulate_bracket
 
@@ -50,3 +51,13 @@ def test_simulation_is_deterministic_given_seed() -> None:
     c = simulate_bracket(bracket, lookup, n_sims=200, k=0.3, random_state=124)
     pd.testing.assert_frame_equal(a, b)
     assert not a.equals(c)
+
+
+def test_simulate_bracket_refuses_a_team_without_strength() -> None:
+    # The old fallback gave such a team 6 - log2(seed), a scale unrelated to the model's strengths,
+    # and a bracket of names the data does not know ran on seeds alone with no warning.
+    bracket = _sample_bracket()
+    lookup = _strength_lookup(bracket)
+    del lookup["West_16"]
+    with pytest.raises(ValueError, match="1 of 64 bracket teams have no strength: West_16"):
+        simulate_bracket(bracket, lookup, n_sims=10, random_state=1)

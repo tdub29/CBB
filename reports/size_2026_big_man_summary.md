@@ -1,88 +1,86 @@
-# Size Analysis 7B: 2026 Dominant Big-Man Support
+# Size Analysis 7B: 2026 Dominant Big Men in the Projected Field
 
-The dominant-big-team threshold is locked at `max_c_porpag >= 4.0`. Historically that split matters most in `5-8` seeds, with `11-13` as a softer qualifier. It is a support screen, not a standalone bracket model.
+A dominant big team is one whose top center has `max_c_porpag >= 4.0`. The table lists the projected `2026` field against that threshold only.
 
-## What the threshold means historically
+## Outcome contamination
 
-- Overall exact-seed split: dominant big teams average `+0.050` vs `-0.009` below the line.
-- The real leverage lives in the mid-seed pocket, not at the top or bottom of the bracket.
-- Use the threshold first, then use the exact-seed baseline deltas to see whether a 2026 team is unusually strong or weak for that line.
+- `max_c_porpag` comes from season player stats that include the team's NCAA tournament games, so any 2008-2025 split of tournament results on it is partly measured on the outcome it is compared with. Read it as outcome-contaminated description, not as a pre-tournament signal.
+- The `2026` values come from a pre-tournament player export (player game counts match the team's pre-tournament games), so they are not comparable with the tournament-inclusive 2008-2025 values. The field is therefore not compared with historical seed-line averages, and no team is rated on the historical split.
+- For reference only, the contaminated 2008-2025 split is `+0.050` for dominant big teams vs `-0.009` for the rest of the field (finish minus exact-seed expectation).
 
-## 2026 teams with the clearest support
+## Projected 2026 teams at or above the threshold
 
-- Stronger big-man support cases (`5-8` seeds): `St. John's` (6) — `max_c_porpag` `4.65`, `+2.17` vs seed baseline; `Miami FL` (7) — `max_c_porpag` `4.25`, `+1.77` vs seed baseline
-- Softer qualifier cases (`11-13` seeds): none
-- Weak support cases in the actionable bands: `Northern Iowa` (13) — `max_c_porpag` `-0.04`, `-2.14` vs seed baseline; `Clemson` (8) — `max_c_porpag` `0.14`, `-2.30` vs seed baseline; `North Carolina` (6) — `max_c_porpag` `0.66`, `-1.82` vs seed baseline; `Wisconsin` (5) — `max_c_porpag` `0.72`, `-1.77` vs seed baseline; `Akron` (12) — `max_c_porpag` `0.50`, `-1.70` vs seed baseline
+- `8` of `68` teams: `Michigan` (1) `4.42`; `Gonzaga` (3) `5.07`; `Purdue` (3) `4.77`; `Kansas` (4) `4.57`; `St. John's` (6) `4.65`; `Miami FL` (7) `4.25`; `Villanova` (9) `4.02`; `N.C. State` (10) `4.87`.
 
 ## Table
 
-|   projected_seed | team             | conf   |   max_c_porpag | dominant_big_man   | seed_group   | big_man_signal_band      |   full_seed_avg_max_c_porpag |   recent_seed_avg_max_c_porpag |   full_big_man_delta |   recent_big_man_delta |   full_big_man_z |   recent_big_man_z | big_man_support_note          |
-|-----------------:|:-----------------|:-------|---------------:|:-------------------|:-------------|:-------------------------|-----------------------------:|-------------------------------:|---------------------:|-----------------------:|-----------------:|-------------------:|:------------------------------|
-|                1 | Michigan         | B10    |          4.418 | True               | 1-2          | context only             |                        3.384 |                          4.271 |                1.034 |                  0.147 |            0.567 |              0.102 | context only                  |
-|                1 | Duke             | ACC    |          3.708 | False              | 1-2          | context only             |                        3.384 |                          4.271 |                0.324 |                 -0.563 |            0.178 |             -0.392 | context only                  |
-|                1 | Florida          | SEC    |          3.679 | False              | 1-2          | context only             |                        3.384 |                          4.271 |                0.295 |                 -0.592 |            0.162 |             -0.412 | context only                  |
-|                1 | Arizona          | B12    |          3.473 | False              | 1-2          | context only             |                        3.384 |                          4.271 |                0.089 |                 -0.798 |            0.049 |             -0.556 | context only                  |
-|                2 | Connecticut      | BE     |          3.526 | False              | 1-2          | context only             |                        3.077 |                          3.591 |                0.45  |                 -0.065 |            0.273 |             -0.059 | context only                  |
-|                2 | Illinois         | B10    |          3.098 | False              | 1-2          | context only             |                        3.077 |                          3.591 |                0.021 |                 -0.494 |            0.013 |             -0.451 | context only                  |
-|                2 | Iowa St.         | B12    |          2.909 | False              | 1-2          | context only             |                        3.077 |                          3.591 |               -0.168 |                 -0.683 |           -0.102 |             -0.623 | context only                  |
-|                2 | Houston          | B12    |          2.703 | False              | 1-2          | context only             |                        3.077 |                          3.591 |               -0.374 |                 -0.888 |           -0.227 |             -0.811 | context only                  |
-|                3 | Gonzaga          | WCC    |          5.067 | True               | 3-4          | context only             |                        2.791 |                          3.003 |                2.277 |                  2.064 |            1.414 |              1.309 | context only                  |
-|                3 | Purdue           | B10    |          4.773 | True               | 3-4          | context only             |                        2.791 |                          3.003 |                1.983 |                  1.77  |            1.232 |              1.123 | context only                  |
-|                3 | Michigan St.     | B10    |          3.549 | False              | 3-4          | context only             |                        2.791 |                          3.003 |                0.758 |                  0.546 |            0.471 |              0.346 | context only                  |
-|                3 | Virginia         | ACC    |          2.222 | False              | 3-4          | context only             |                        2.791 |                          3.003 |               -0.569 |                 -0.781 |           -0.354 |             -0.496 | context only                  |
-|                4 | Kansas           | B12    |          4.569 | True               | 3-4          | context only             |                        2.955 |                          3.617 |                1.614 |                  0.952 |            0.958 |              0.743 | context only                  |
-|                4 | Alabama          | SEC    |          3.845 | False              | 3-4          | context only             |                        2.955 |                          3.617 |                0.89  |                  0.228 |            0.529 |              0.178 | context only                  |
-|                4 | Vanderbilt       | SEC    |          3.278 | False              | 3-4          | context only             |                        2.955 |                          3.617 |                0.323 |                 -0.339 |            0.192 |             -0.264 | context only                  |
-|                4 | Nebraska         | B10    |          0.465 | False              | 3-4          | context only             |                        2.955 |                          3.617 |               -2.49  |                 -3.152 |           -1.479 |             -2.458 | context only                  |
-|                5 | Arkansas         | SEC    |          2.88  | False              | 5-6          | primary support pocket   |                        2.491 |                          3.217 |                0.389 |                 -0.337 |            0.269 |             -0.341 | context only                  |
-|                5 | Tennessee        | SEC    |          2.64  | False              | 5-6          | primary support pocket   |                        2.491 |                          3.217 |                0.149 |                 -0.577 |            0.103 |             -0.584 | context only                  |
-|                5 | Texas Tech       | B12    |          2.183 | False              | 5-6          | primary support pocket   |                        2.491 |                          3.217 |               -0.309 |                 -1.034 |           -0.213 |             -1.048 | context only                  |
-|                5 | Wisconsin        | B10    |          0.723 | False              | 5-6          | primary support pocket   |                        2.491 |                          3.217 |               -1.769 |                 -2.494 |           -1.222 |             -2.526 | weak big-man support case     |
-|                6 | St. John's       | BE     |          4.648 | True               | 5-6          | primary support pocket   |                        2.481 |                          2.743 |                2.168 |                  1.905 |            1.471 |              1.281 | stronger big-man support case |
-|                6 | Louisville       | ACC    |          3.41  | False              | 5-6          | primary support pocket   |                        2.481 |                          2.743 |                0.93  |                  0.667 |            0.631 |              0.449 | context only                  |
-|                6 | Kentucky         | SEC    |          2.757 | False              | 5-6          | primary support pocket   |                        2.481 |                          2.743 |                0.276 |                  0.014 |            0.187 |              0.009 | context only                  |
-|                6 | North Carolina   | ACC    |          0.661 | False              | 5-6          | primary support pocket   |                        2.481 |                          2.743 |               -1.82  |                 -2.082 |           -1.235 |             -1.4   | weak big-man support case     |
-|                7 | Miami FL         | ACC    |          4.253 | True               | 7-8          | primary support pocket   |                        2.484 |                          2.928 |                1.768 |                  1.325 |            1.16  |              0.808 | stronger big-man support case |
-|                7 | Georgia          | SEC    |          2.991 | False              | 7-8          | primary support pocket   |                        2.484 |                          2.928 |                0.506 |                  0.063 |            0.332 |              0.038 | context only                  |
-|                7 | UCLA             | B10    |          2.363 | False              | 7-8          | primary support pocket   |                        2.484 |                          2.928 |               -0.121 |                 -0.565 |           -0.079 |             -0.344 | context only                  |
-|                7 | BYU              | B12    |          2.297 | False              | 7-8          | primary support pocket   |                        2.484 |                          2.928 |               -0.188 |                 -0.631 |           -0.123 |             -0.385 | context only                  |
-|                8 | TCU              | B12    |          3.023 | False              | 7-8          | primary support pocket   |                        2.439 |                          3.018 |                0.585 |                  0.006 |            0.369 |              0.004 | context only                  |
-|                8 | Ohio St.         | B10    |          3.016 | False              | 7-8          | primary support pocket   |                        2.439 |                          3.018 |                0.578 |                 -0.001 |            0.364 |             -0.001 | context only                  |
-|                8 | Saint Mary's     | WCC    |          2.292 | False              | 7-8          | primary support pocket   |                        2.439 |                          3.018 |               -0.147 |                 -0.726 |           -0.092 |             -0.502 | context only                  |
-|                8 | Clemson          | ACC    |          0.139 | False              | 7-8          | primary support pocket   |                        2.439 |                          3.018 |               -2.299 |                 -2.878 |           -1.45  |             -1.992 | weak big-man support case     |
-|                9 | Villanova        | BE     |          4.017 | True               | 9-10         | context only             |                        2.695 |                          3.043 |                1.321 |                  0.974 |            0.895 |              0.654 | context only                  |
-|                9 | Iowa             | B10    |          2.651 | False              | 9-10         | context only             |                        2.695 |                          3.043 |               -0.045 |                 -0.392 |           -0.03  |             -0.263 | context only                  |
-|                9 | Utah St.         | MWC    |          2.132 | False              | 9-10         | context only             |                        2.695 |                          3.043 |               -0.563 |                 -0.911 |           -0.381 |             -0.612 | context only                  |
-|                9 | Texas A&M        | SEC    |          0.628 | False              | 9-10         | context only             |                        2.695 |                          3.043 |               -2.067 |                 -2.415 |           -1.4   |             -1.621 | context only                  |
-|               10 | N.C. State       | ACC    |          4.874 | True               | 9-10         | context only             |                        2.321 |                          2.124 |                2.553 |                  2.75  |            1.772 |              2.033 | context only                  |
-|               10 | Oklahoma         | SEC    |          2.532 | False              | 9-10         | context only             |                        2.321 |                          2.124 |                0.211 |                  0.408 |            0.146 |              0.302 | context only                  |
-|               10 | Saint Louis      | A10    |          1.91  | False              | 9-10         | context only             |                        2.321 |                          2.124 |               -0.411 |                 -0.214 |           -0.285 |             -0.158 | context only                  |
-|               10 | Miami OH         | MAC    |          0.523 | False              | 9-10         | context only             |                        2.321 |                          2.124 |               -1.799 |                 -1.601 |           -1.248 |             -1.184 | context only                  |
-|               11 | South Florida    | Amer   |          3.821 | False              | 11-13        | secondary support pocket |                        2.451 |                          2.636 |                1.37  |                  1.185 |            0.926 |              0.704 | context only                  |
-|               11 | UCF              | B12    |          3.397 | False              | 11-13        | secondary support pocket |                        2.451 |                          2.636 |                0.945 |                  0.76  |            0.639 |              0.452 | context only                  |
-|               11 | VCU              | A10    |          3.373 | False              | 11-13        | secondary support pocket |                        2.451 |                          2.636 |                0.922 |                  0.737 |            0.623 |              0.438 | context only                  |
-|               11 | SMU              | ACC    |          2.882 | False              | 11-13        | secondary support pocket |                        2.451 |                          2.636 |                0.43  |                  0.246 |            0.291 |              0.146 | context only                  |
-|               11 | Santa Clara      | WCC    |          2.569 | False              | 11-13        | secondary support pocket |                        2.451 |                          2.636 |                0.118 |                 -0.067 |            0.08  |             -0.04  | context only                  |
-|               11 | Missouri         | SEC    |          0.971 | False              | 11-13        | secondary support pocket |                        2.451 |                          2.636 |               -1.48  |                 -1.665 |           -1     |             -0.989 | weak big-man support case     |
-|               12 | Yale             | Ivy    |          2.188 | False              | 11-13        | secondary support pocket |                        2.198 |                          2.105 |               -0.011 |                  0.082 |           -0.007 |              0.054 | context only                  |
-|               12 | High Point       | BSth   |          1.711 | False              | 11-13        | secondary support pocket |                        2.198 |                          2.105 |               -0.487 |                 -0.394 |           -0.317 |             -0.259 | context only                  |
-|               12 | McNeese St.      | Slnd   |          1.247 | False              | 11-13        | secondary support pocket |                        2.198 |                          2.105 |               -0.951 |                 -0.858 |           -0.619 |             -0.565 | context only                  |
-|               12 | Akron            | MAC    |          0.501 | False              | 11-13        | secondary support pocket |                        2.198 |                          2.105 |               -1.697 |                 -1.604 |           -1.104 |             -1.055 | weak big-man support case     |
-|               13 | Sam Houston St.  | CUSA   |          2.105 | False              | 11-13        | secondary support pocket |                        2.094 |                          2.02  |                0.011 |                  0.084 |            0.008 |              0.074 | context only                  |
-|               13 | Utah Valley      | WAC    |          2.016 | False              | 11-13        | secondary support pocket |                        2.094 |                          2.02  |               -0.078 |                 -0.005 |           -0.056 |             -0.004 | context only                  |
-|               13 | Hofstra          | CAA    |          0.974 | False              | 11-13        | secondary support pocket |                        2.094 |                          2.02  |               -1.12  |                 -1.046 |           -0.795 |             -0.912 | weak big-man support case     |
-|               13 | Northern Iowa    | MVC    |         -0.044 | False              | 11-13        | secondary support pocket |                        2.094 |                          2.02  |               -2.138 |                 -2.064 |           -1.519 |             -1.8   | weak big-man support case     |
-|               14 | Troy             | SB     |          3.354 | False              | 14-16        | context only             |                        2.052 |                          1.936 |                1.301 |                  1.417 |            0.95  |              1.343 | context only                  |
-|               14 | UC Irvine        | BW     |          2.804 | False              | 14-16        | context only             |                        2.052 |                          1.936 |                0.752 |                  0.868 |            0.549 |              0.823 | context only                  |
-|               14 | Wright St.       | Horz   |          2.408 | False              | 14-16        | context only             |                        2.052 |                          1.936 |                0.355 |                  0.471 |            0.259 |              0.447 | context only                  |
-|               14 | North Dakota St. | Sum    |          1.831 | False              | 14-16        | context only             |                        2.052 |                          1.936 |               -0.221 |                 -0.105 |           -0.162 |             -0.1   | context only                  |
-|               15 | Furman           | SC     |          3.276 | False              | 14-16        | context only             |                        1.498 |                          2.047 |                1.778 |                  1.229 |            1.449 |              1.08  | context only                  |
-|               15 | Siena            | MAAC   |          2.382 | False              | 14-16        | context only             |                        1.498 |                          2.047 |                0.884 |                  0.336 |            0.721 |              0.295 | context only                  |
-|               15 | Idaho            | BSky   |          1.915 | False              | 14-16        | context only             |                        1.498 |                          2.047 |                0.417 |                 -0.132 |            0.34  |             -0.116 | context only                  |
-|               15 | Tennessee St.    | OVC    |          1.453 | False              | 14-16        | context only             |                        1.498 |                          2.047 |               -0.045 |                 -0.593 |           -0.037 |             -0.522 | context only                  |
-|               16 | Lehigh           | Pat    |          2.907 | False              | 14-16        | context only             |                        1.317 |                          1.562 |                1.59  |                  1.345 |            1.36  |              1.274 | context only                  |
-|               16 | Queens           | ASun   |          2.392 | False              | 14-16        | context only             |                        1.317 |                          1.562 |                1.075 |                  0.83  |            0.92  |              0.787 | context only                  |
-|               16 | Southern         | SWAC   |          2.052 | False              | 14-16        | context only             |                        1.317 |                          1.562 |                0.735 |                  0.49  |            0.628 |              0.464 | context only                  |
-|               16 | UMBC             | AE     |          1.239 | False              | 14-16        | context only             |                        1.317 |                          1.562 |               -0.078 |                 -0.323 |           -0.067 |             -0.306 | context only                  |
-|               16 | LIU              | NEC    |          0.567 | False              | 14-16        | context only             |                        1.317 |                          1.562 |               -0.751 |                 -0.996 |           -0.642 |             -0.943 | context only                  |
-|               16 | Howard           | MEAC   |          0.023 | False              | 14-16        | context only             |                        1.317 |                          1.562 |               -1.294 |                 -1.539 |           -1.107 |             -1.459 | context only                  |
+|   projected_seed | team             | conf   |   max_c_porpag | dominant_big_man   | seed_group   |
+|-----------------:|:-----------------|:-------|---------------:|:-------------------|:-------------|
+|                1 | Michigan         | B10    |          4.418 | True               | 1-2          |
+|                1 | Duke             | ACC    |          3.708 | False              | 1-2          |
+|                1 | Florida          | SEC    |          3.679 | False              | 1-2          |
+|                1 | Arizona          | B12    |          3.473 | False              | 1-2          |
+|                2 | Connecticut      | BE     |          3.526 | False              | 1-2          |
+|                2 | Illinois         | B10    |          3.098 | False              | 1-2          |
+|                2 | Iowa St.         | B12    |          2.909 | False              | 1-2          |
+|                2 | Houston          | B12    |          2.703 | False              | 1-2          |
+|                3 | Gonzaga          | WCC    |          5.067 | True               | 3-4          |
+|                3 | Purdue           | B10    |          4.773 | True               | 3-4          |
+|                3 | Michigan St.     | B10    |          3.549 | False              | 3-4          |
+|                3 | Virginia         | ACC    |          2.222 | False              | 3-4          |
+|                4 | Kansas           | B12    |          4.569 | True               | 3-4          |
+|                4 | Alabama          | SEC    |          3.845 | False              | 3-4          |
+|                4 | Vanderbilt       | SEC    |          3.278 | False              | 3-4          |
+|                4 | Nebraska         | B10    |          0.465 | False              | 3-4          |
+|                5 | Arkansas         | SEC    |          2.88  | False              | 5-6          |
+|                5 | Tennessee        | SEC    |          2.64  | False              | 5-6          |
+|                5 | Texas Tech       | B12    |          2.183 | False              | 5-6          |
+|                5 | Wisconsin        | B10    |          0.723 | False              | 5-6          |
+|                6 | St. John's       | BE     |          4.648 | True               | 5-6          |
+|                6 | Louisville       | ACC    |          3.41  | False              | 5-6          |
+|                6 | Kentucky         | SEC    |          2.757 | False              | 5-6          |
+|                6 | North Carolina   | ACC    |          0.661 | False              | 5-6          |
+|                7 | Miami FL         | ACC    |          4.253 | True               | 7-8          |
+|                7 | Georgia          | SEC    |          2.991 | False              | 7-8          |
+|                7 | UCLA             | B10    |          2.363 | False              | 7-8          |
+|                7 | BYU              | B12    |          2.297 | False              | 7-8          |
+|                8 | TCU              | B12    |          3.023 | False              | 7-8          |
+|                8 | Ohio St.         | B10    |          3.016 | False              | 7-8          |
+|                8 | Saint Mary's     | WCC    |          2.292 | False              | 7-8          |
+|                8 | Clemson          | ACC    |          0.139 | False              | 7-8          |
+|                9 | Villanova        | BE     |          4.017 | True               | 9-10         |
+|                9 | Iowa             | B10    |          2.651 | False              | 9-10         |
+|                9 | Utah St.         | MWC    |          2.132 | False              | 9-10         |
+|                9 | Texas A&M        | SEC    |          0.628 | False              | 9-10         |
+|               10 | N.C. State       | ACC    |          4.874 | True               | 9-10         |
+|               10 | Oklahoma         | SEC    |          2.532 | False              | 9-10         |
+|               10 | Saint Louis      | A10    |          1.91  | False              | 9-10         |
+|               10 | Miami OH         | MAC    |          0.523 | False              | 9-10         |
+|               11 | South Florida    | Amer   |          3.821 | False              | 11-13        |
+|               11 | UCF              | B12    |          3.397 | False              | 11-13        |
+|               11 | VCU              | A10    |          3.373 | False              | 11-13        |
+|               11 | SMU              | ACC    |          2.882 | False              | 11-13        |
+|               11 | Santa Clara      | WCC    |          2.569 | False              | 11-13        |
+|               11 | Missouri         | SEC    |          0.971 | False              | 11-13        |
+|               12 | Yale             | Ivy    |          2.188 | False              | 11-13        |
+|               12 | High Point       | BSth   |          1.711 | False              | 11-13        |
+|               12 | McNeese St.      | Slnd   |          1.247 | False              | 11-13        |
+|               12 | Akron            | MAC    |          0.501 | False              | 11-13        |
+|               13 | Sam Houston St.  | CUSA   |          2.105 | False              | 11-13        |
+|               13 | Utah Valley      | WAC    |          2.016 | False              | 11-13        |
+|               13 | Hofstra          | CAA    |          0.974 | False              | 11-13        |
+|               13 | Northern Iowa    | MVC    |         -0.044 | False              | 11-13        |
+|               14 | Troy             | SB     |          3.354 | False              | 14-16        |
+|               14 | UC Irvine        | BW     |          2.804 | False              | 14-16        |
+|               14 | Wright St.       | Horz   |          2.408 | False              | 14-16        |
+|               14 | North Dakota St. | Sum    |          1.831 | False              | 14-16        |
+|               15 | Furman           | SC     |          3.276 | False              | 14-16        |
+|               15 | Siena            | MAAC   |          2.382 | False              | 14-16        |
+|               15 | Idaho            | BSky   |          1.915 | False              | 14-16        |
+|               15 | Tennessee St.    | OVC    |          1.453 | False              | 14-16        |
+|               16 | Lehigh           | Pat    |          2.907 | False              | 14-16        |
+|               16 | Queens           | ASun   |          2.392 | False              | 14-16        |
+|               16 | Southern         | SWAC   |          2.052 | False              | 14-16        |
+|               16 | UMBC             | AE     |          1.239 | False              | 14-16        |
+|               16 | LIU              | NEC    |          0.567 | False              | 14-16        |
+|               16 | Howard           | MEAC   |          0.023 | False              | 14-16        |

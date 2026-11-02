@@ -1,4 +1,4 @@
 metric,label,seed_adjusted_spearman,primary_metric,selection_note
-FT%,Free throw percentage,0.008344,FTR,FTR remains the default Day 10 lead metric unless another metric leads by >= 0.05; observed lead margin = 0.002.
-FTRD,Opponent free throw rate allowed,0.006318,FTR,FTR remains the default Day 10 lead metric unless another metric leads by >= 0.05; observed lead margin = 0.002.
-FTR,Free throw rate,-0.074611,FTR,FTR remains the default Day 10 lead metric unless another metric leads by >= 0.05; observed lead margin = 0.002.
+FT%,Free throw percentage,0.008344,FTR,FTR remains the default lead metric unless another metric leads by >= 0.05; observed lead margin = 0.002.
+FTRD,Opponent free throw rate allowed,0.006318,FTR,FTR remains the default lead metric unless another metric leads by >= 0.05; observed lead margin = 0.002.
+FTR,Free throw rate,-0.074611,FTR,FTR remains the default lead metric unless another metric leads by >= 0.05; observed lead margin = 0.002.

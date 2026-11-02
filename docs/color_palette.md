@@ -37,7 +37,7 @@ Starting palette for CBB reports, charts, and any future app surfaces. The direc
 
 ## Python usage
 
-Shared tokens live in [src/visualization/palette.py](/c:/Users/TrevorWhite/Downloads/CBBData/CBB/src/visualization/palette.py).
+Shared tokens live in [src/visualization/palette.py](../src/visualization/palette.py).
 
 ```python
 from src.visualization.palette import PROJECT_PALETTE, set_project_theme

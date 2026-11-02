@@ -2,7 +2,7 @@
 
 - Best conference vs seed expectation: `Horz` at `+0.420`
 - Worst conference vs seed expectation: `MWC` at `-0.342`
-- Interpretation: conference context carries more usable signal than raw team SOS when the goal is to find seed-relative overperformance.
+- Interpretation: each conference mean is the average finish minus exact-seed expectation of its tournament teams (`team_count`, minimum 5); no significance test or shrinkage is applied.
 
 ## Table
 

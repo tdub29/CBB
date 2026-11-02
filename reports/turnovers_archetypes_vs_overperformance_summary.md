@@ -1,7 +1,8 @@
 # Turnovers Analysis 5: Archetypes
 
 - Best archetype: `clean offense only` at `+0.099` overperformance points.
-- Interpretation: the best Day 4 teams pair clean possessions with enough disruption support to avoid empty-calorie turnover numbers.
+- Archetypes split teams at their exact seed line's average on TOR edge and defensive disruption edge (TORD edge + 0.35 x BLK% edge; the 0.35 weight is ad hoc).
+- These are descriptive group means of finish minus exact-seed expectation; no significance test is applied.
 
 ## Archetypes
 

@@ -7,7 +7,7 @@
 - Exact-seed-controlled BLK% relationship: `+0.002`.
 - Exact-seed-controlled BLKED% relationship: `+0.073`.
 - Champions averaged `16.84` TOR vs `18.12` for R64 exits.
-- Interpretation: the descriptive gradient is real, but the seed-controlled panel is the actual Day 4 bracket read.
+- Interpretation: the unadjusted gradient mixes in seed strength; the seed-controlled panel compares teams within the same seed line.
 
 ## Metric selection
 

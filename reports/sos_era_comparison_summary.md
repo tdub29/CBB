@@ -3,7 +3,7 @@
 - Primary metric: `Elite SOS`
 - Strongest exact-seed-adjusted era: `2022-2025` at `+0.110`
 - Weakest exact-seed-adjusted era: `2008-2011` at `-0.032`
-- Interpretation: the modern era shows more SOS sensitivity than the earliest part of the sample, especially in selective seed pockets.
+- Interpretation: era rhos are descriptive, each on that era's `team_count` teams; no significance test is applied.
 
 ## Table
 

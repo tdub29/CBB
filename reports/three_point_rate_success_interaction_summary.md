@@ -1,7 +1,7 @@
 # Three-Point Analysis 5: Rate and Success Interaction
 
 - Best profile: `high success + high volume` at `+0.029` overperformance points.
-- Interpretation: Day 5 should focus on how volume and success combine, not on either metric in isolation.
+- Profiles split teams at their exact seed line's average on three-point attempt rate and three-point percentage; these are descriptive group means with no significance test.
 - Figure structure: ranked profile view on the left, 3PRATE x 3P% overperformance heatmap on the right.
 
 ## Table

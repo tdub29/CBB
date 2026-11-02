@@ -24,22 +24,12 @@ Thumbs.db
 
 # Project-specific
 *.log
-.claude/
 
 # Raw data staging (recompile fallbacks, merge temps)
 data/raw/_staging/
 
-# Local workspace state is not public project source.
-/.agents/
-/.claude/
-/.codex/
-/.cursor/
-/.impeccable/
+# Local editor/tool state is not public project source.
 /.vscode/
-/.mcp.json
-/skills-lock.json
-**/AGENTS.md
-**/CLAUDE.md
 *.bak
 *.err
 tmp_*

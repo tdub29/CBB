@@ -74,7 +74,7 @@ def plot_context(table: pd.DataFrame, out_path: Path) -> None:
     fig.text(
         0.5,
         0.915,
-        "Field-level tournament averages from 2008-2026 with 2020 excluded. Day 10 context focuses on line reliance and line conversion.",
+        "Field-level tournament averages from 2008-2026 with 2020 excluded: line reliance (free-throw rate) and line conversion (free-throw percentage).",
         ha="center",
         va="center",
         fontsize=10.0,

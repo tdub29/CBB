@@ -1,5 +1,6 @@
 # Size Support: Dominant Big Men Over Time
 
+- Outcome contamination: `max_c_porpag` comes from season player stats that include the team's NCAA tournament games, so any 2008-2025 split of tournament results on it is partly measured on the outcome it is compared with. Read it as outcome-contaminated description, not as a pre-tournament signal.
 - Threshold: `max_c_porpag >= 4.0`.
 - Dominant-big-man teams averaged `+0.059` overperformance across seasons, versus `-0.010` for the rest of the field.
 - Best dominant-big-man season: `2015` at `+0.723`.

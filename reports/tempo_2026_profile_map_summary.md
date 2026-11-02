@@ -1,6 +1,6 @@
 # Tempo Analysis 7: 2026 Profile Map
 
-- The 2026 tempo package now includes four logo maps: AdjT x seed, AdjT x Barthag, AdjT x AdjOE, and AdjT x AdjDE.
+- Four logo maps of the March 2026 projection: AdjT x seed, AdjT x Barthag, AdjT x AdjOE, and AdjT x AdjDE.
 - Gold-backed logos mark former NCAA champions in the projected `2026` field: `Duke` (1) - 2010 (1); 2015 (1), `Florida` (1) - 2025 (1), `UConn` (2) - 2011 (3); 2014 (7); 2023 (4); 2024 (1), `Virginia` (3) - 2019 (1), `Kansas` (4) - 2008 (1); 2022 (1), `Louisville` (6) - 2013 (1), `North Carolina` (6) - 2009 (1); 2017 (1), `Kentucky` (6) - 2012 (1), `Villanova` (9) - 2016 (2); 2018 (1).
 - Rose-backed circles mark historical 1-3 seeds that lost in the first round.
 

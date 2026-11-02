@@ -280,7 +280,7 @@ def plot_analysis_03(table: pd.DataFrame, out_path: Path) -> None:
     axes[-1].set_xticklabels([str(int(year)) for year in years], fontsize=10.0)
     axes[-1].set_xlabel("Season", fontsize=11.0, fontweight="semibold")
     fig.suptitle("Do three-point edges travel year to year?", fontsize=22, fontweight="bold", y=0.97)
-    fig.text(0.5, 0.915, "Each series is measured relative to exact-seed baselines so the chart shows actual bracket usefulness, not just team strength.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
+    fig.text(0.5, 0.915, "Each series is measured relative to exact-seed baselines, so teams are compared within seed lines rather than across team strength.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=220, bbox_inches="tight")
     plt.close(fig)
@@ -337,6 +337,10 @@ def plot_analysis_04(table: pd.DataFrame, over_df: pd.DataFrame, out_path: Path)
         ax.tick_params(axis="x", length=0, pad=6)
         ax.tick_params(axis="y", length=0, pad=7)
         ax.invert_yaxis()
+        # Pad both ends so value labels on the outermost bars stay inside the panel.
+        low, high = min(float(values.min()), 0.0), max(float(values.max()), 0.0)
+        pad = 0.18 * (high - low)
+        ax.set_xlim(low - pad, high + pad)
         for yi, xi in zip(y, values):
             ax.text(
                 xi + (0.006 if xi >= 0 else -0.006),
@@ -363,7 +367,7 @@ def plot_analysis_04(table: pd.DataFrame, over_df: pd.DataFrame, out_path: Path)
                 bbox=styled_box(),
             )
 
-    fig.suptitle("Where three-point edges matter by seed band", fontsize=22, fontweight="bold", y=0.97)
+    fig.suptitle("Three-point metrics vs overperformance, by seed band", fontsize=22, fontweight="bold", y=0.97)
     fig.text(0.5, 0.90, f"Modern-era view only: seed-band bars use tournament teams from {recent_start}+.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=220, bbox_inches="tight")
@@ -388,8 +392,9 @@ def write_summary_03(table: pd.DataFrame, out_path: Path) -> None:
     lines = [
         "# Three-Point Analysis 3: Stability By Year",
         "",
-        "- Looking at the trend directly shows variation and an inconsistent story over time.",
-        "- While it seems 3pt % helps on O and D a little more in the modern era, the trend still varies year to year.",
+        f"- Seasons with a positive seed-adjusted rho: `3PRATE` `{int((table['three_prate_seed_adjusted_rho'] > 0).sum())}/{len(table)}`, "
+        f"`3P%` `{int((table['three_pct_seed_adjusted_rho'] > 0).sum())}/{len(table)}`, `3P%D` `{int((table['three_pct_d_seed_adjusted_rho'] > 0).sum())}/{len(table)}`.",
+        "- The per-season values change size and sign from year to year; each rests on one season's tournament field (`team_count`), and no significance test is applied.",
         "",
         "## Table",
         "",
@@ -405,7 +410,7 @@ def write_summary_04(table: pd.DataFrame, out_path: Path) -> None:
         "3P%D": table.sort_values("three_pct_d_seed_band_rho", ascending=False, kind="stable").iloc[0],
     }
     lines = [
-        "# Three-Point Analysis 4: Where It Matters By Seed Band",
+        "# Three-Point Analysis 4: Three-Point Metrics by Seed Band",
         "",
         f"- Strongest `3PRATE` seed band: `{strongest['3PRATE']['seed_group']}` at `{strongest['3PRATE']['three_prate_seed_band_rho']:+.3f}`.",
         f"- Strongest `3P%` seed band: `{strongest['3P%']['seed_group']}` at `{strongest['3P%']['three_pct_seed_band_rho']:+.3f}`.",

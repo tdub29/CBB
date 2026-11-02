@@ -161,8 +161,9 @@ def get_tempo_base_paths() -> dict[str, Path]:
     return {
         "input_sample": project_root / "data" / "processed" / "tempo_sample.csv",
         "metric_selection": project_root / "reports" / "tempo_metric_selection.csv",
-        "seeds_2026": project_root / "data" / "raw" / "2026_expected_seeds_update.csv",
-        "thread_dir": project_root / "reports" / "figures" / "tempo_thread",
+        # The March 2026 bracketology projection the 2026-field reports describe. ingest_2026.py replaced
+        # data/raw/2026_expected_seeds_update.csv with the official bracket and archived the projection here.
+        "seeds_2026": project_root / "data" / "raw" / "torvik_2026" / "bracketology_archive" / "2026_expected_seeds_update.csv",
     }
 
 
@@ -187,6 +188,9 @@ def load_tempo_data(path: Path) -> pd.DataFrame:
 def load_tournament_data(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     out = out[out["year"] != 2020].copy()
+    # Completed tournaments before the projected field's season only: the team-history cache now also carries
+    # 2026 seeds and finishes, which a rebuilt sample would otherwise pass into the 2008-2025 statistics.
+    out = out[out["year"] < CURRENT_FIELD_YEAR].copy()
     out = out[out["seed"].notna() & out["finish"].notna()].copy()
     out = out[out["finish"] != "R68"].copy()
     out = out[out["finish"].isin(FINISH_ORDER)].copy()
@@ -292,6 +296,6 @@ def choose_primary_metric(over_df: pd.DataFrame) -> pd.DataFrame:
     metric_df = pd.DataFrame(rows).sort_values("seed_adjusted_spearman", ascending=False, kind="stable").reset_index(drop=True)
     metric_df["primary_metric"] = "AdjT"
     metric_df["selection_note"] = (
-        "AdjT is locked as the Day 8 lead metric. AdjOE, AdjDE, and Barthag are support lenses for explaining where tempo helps or fails."
+        "AdjT is the lead metric. AdjOE, AdjDE, and Barthag are context metrics for checking whether tempo is a proxy for team quality."
     )
     return metric_df

@@ -1,7 +1,7 @@
 # Free Throw Analysis 5: Rate x Make% Archetypes
 
 - Best archetype: `low rate + high make%` at `+0.138` overperformance points.
-- Day 10 treats getting to the line and making free throws as separate until the interaction view.
+- Getting to the line and making free throws are analysed separately until the interaction view.
 
 ## Table
 

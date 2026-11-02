@@ -1,7 +1,7 @@
 # Three-Point Analysis 3: Stability By Year
 
-- Looking at the trend directly shows variation and an inconsistent story over time.
-- While it seems 3pt % helps on O and D a little more in the modern era, the trend still varies year to year.
+- Seasons with a positive seed-adjusted rho: `3PRATE` `8/17`, `3P%` `9/17`, `3P%D` `10/17`.
+- The per-season values change size and sign from year to year; each rests on one season's tournament field (`team_count`), and no significance test is applied.
 
 ## Table
 
