@@ -1336,6 +1336,7 @@ def write_summary(
                 bands["p_perm"] < ALPHA,
                 [
                     "topic",
+                    "statistic",
                     "metric",
                     "seed_group",
                     "n",

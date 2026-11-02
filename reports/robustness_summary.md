@@ -105,17 +105,17 @@ Per topic and statistic (`max_abs_rho` uses aligned experience values):
 
 Every cell with nominal p < 0.05:
 
-| topic | metric | seed_group | n | rho | ci_lo | ci_hi | season_ci_lo | season_ci_hi | p_perm | p_perm_seed_season | q_bh | q_bh_within_table |
-|:--|:--|:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
-| sos | Elite SOS | 11-13 | 204 | 0.313 | 0.181 | 0.437 | 0.177 | 0.444 | 0.003 | 0.071 | 0.367 | 0.034 |
-| sos | conf_avg_barthag | 11-13 | 204 | 0.303 | 0.173 | 0.425 | 0.163 | 0.438 | 0.006 | 0.138 | 0.393 | 0.036 |
-| free_throw_rate | FTR | 9-10 | 136 | -0.202 | -0.345 | -0.030 | -0.290 | -0.070 | 0.012 | 0.031 | 0.524 | 0.252 |
-| tempo | AdjT | 7-8 | 136 | -0.173 | -0.346 | -0.008 | -0.338 | -0.007 | 0.032 | 0.346 | 0.580 | 0.151 |
-| tempo | AdjT | 7-8 | 88 | -0.234 | -0.433 | -0.014 | -0.450 | -0.009 | 0.030 | 0.163 | 0.580 | 0.151 |
-| tempo | AdjT | 11-13 | 132 | -0.182 | -0.339 | -0.019 | -0.325 | -0.024 | 0.026 | 0.066 | 0.580 | 0.151 |
-| three_point | 3P% | 11-13 | 204 | -0.137 | -0.271 | 0.003 | -0.265 | -0.000 | 0.035 | 0.164 | 0.580 | 0.605 |
-| turnovers | TOR | 7-8 | 136 | 0.184 | 0.027 | 0.334 | 0.043 | 0.314 | 0.025 | 0.034 | 0.580 | 0.347 |
-| turnovers_blocks | BLKED% | 7-8 | 136 | 0.164 | 0.015 | 0.329 | 0.059 | 0.281 | 0.045 | 0.017 | 0.652 | 0.385 |
+| topic | statistic | metric | seed_group | n | rho | ci_lo | ci_hi | season_ci_lo | season_ci_hi | p_perm | p_perm_seed_season | q_bh | q_bh_within_table |
+|:--|:--|:--|:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| sos | elite_sos_spearman | Elite SOS | 11-13 | 204 | 0.313 | 0.181 | 0.437 | 0.177 | 0.444 | 0.003 | 0.071 | 0.367 | 0.034 |
+| sos | conf_avg_spearman | conf_avg_barthag | 11-13 | 204 | 0.303 | 0.173 | 0.425 | 0.163 | 0.438 | 0.006 | 0.138 | 0.393 | 0.036 |
+| free_throw_rate | ftr_rho | FTR | 9-10 | 136 | -0.202 | -0.345 | -0.030 | -0.290 | -0.070 | 0.012 | 0.031 | 0.524 | 0.252 |
+| tempo | adjt_rho_all | AdjT | 7-8 | 136 | -0.173 | -0.346 | -0.008 | -0.338 | -0.007 | 0.032 | 0.346 | 0.580 | 0.151 |
+| tempo | adjt_rho_since_2014 | AdjT | 7-8 | 88 | -0.234 | -0.433 | -0.014 | -0.450 | -0.009 | 0.030 | 0.163 | 0.580 | 0.151 |
+| tempo | adjt_rho_since_2014 | AdjT | 11-13 | 132 | -0.182 | -0.339 | -0.019 | -0.325 | -0.024 | 0.026 | 0.066 | 0.580 | 0.151 |
+| three_point | three_pct_seed_band_rho | 3P% | 11-13 | 204 | -0.137 | -0.271 | 0.003 | -0.265 | -0.000 | 0.035 | 0.164 | 0.580 | 0.605 |
+| turnovers | tor_seed_band_rho | TOR | 7-8 | 136 | 0.184 | 0.027 | 0.334 | 0.043 | 0.314 | 0.025 | 0.034 | 0.580 | 0.347 |
+| turnovers_blocks | blked_pct_seed_band_rho | BLKED% | 7-8 | 136 | 0.164 | 0.015 | 0.329 | 0.059 | 0.281 | 0.045 | 0.017 | 0.652 | 0.385 |
 
 - **Size, EFFHGT:** seeds 1-2 `+0.108` (n = 136, CI [-0.066, +0.275], p = 0.347, q = 0.891); seeds 7-8 `-0.077` (CI [-0.245, +0.093], p = 0.347, q = 0.891). Both intervals include zero.
 - **Size and SOS band estimators mix seed lines.** They correlate the raw metric with finish inside a band that spans
