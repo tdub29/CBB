@@ -120,7 +120,7 @@ def plot_analysis_02(tournament_df: pd.DataFrame, over_df: pd.DataFrame, summary
     set_project_theme()
     fig, axes = plt.subplots(2, 2, figsize=(18.0, 11.4), constrained_layout=False)
     apply_report_background(fig, axes.flatten())
-    fig.subplots_adjust(top=0.84, bottom=0.11, left=0.06, right=0.97, wspace=0.12, hspace=0.20)
+    fig.subplots_adjust(top=0.84, bottom=0.11, left=0.06, right=0.97, wspace=0.12, hspace=0.34)
 
     y_seed = over_df["overperformance"].to_numpy(dtype=float)
     panel_specs = [
@@ -191,7 +191,7 @@ def plot_analysis_02(tournament_df: pd.DataFrame, over_df: pd.DataFrame, summary
     axes[1, 1].text(
         0.97,
         0.08,
-        "Positive x = better than your seed baseline on that metric",
+        "Positive x = better than the seed-line baseline on that metric",
         transform=axes[1, 1].transAxes,
         ha="right",
         va="bottom",
@@ -415,6 +415,10 @@ def plot_analysis_04(table: pd.DataFrame, out_path: Path) -> None:
         ax.tick_params(axis="x", length=0, pad=6)
         ax.tick_params(axis="y", length=0, pad=7)
         ax.invert_yaxis()
+        # Pad both ends so value labels on the outermost bars stay inside the panel.
+        low, high = min(float(values.min()), 0.0), max(float(values.max()), 0.0)
+        pad = 0.18 * (high - low)
+        ax.set_xlim(low - pad, high + pad)
         for yi, xi in zip(y, values):
             ax.text(
                 xi + (0.006 if xi >= 0 else -0.006),
@@ -428,7 +432,7 @@ def plot_analysis_04(table: pd.DataFrame, out_path: Path) -> None:
             )
 
     fig.suptitle("Turnover-overperformance relationship by seed band", fontsize=22, fontweight="bold", y=0.97)
-    fig.text(0.5, 0.90, "Each bar is the within-seed-band Spearman relationship with overperformance. Positive means the metric helps inside that band.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
+    fig.text(0.5, 0.90, "Each bar is the within-seed-band Spearman relationship with overperformance. Positive means a larger seed-relative edge went with a deeper-than-expected run in that band; no significance test.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=220, bbox_inches="tight")
     plt.close(fig)
@@ -465,6 +469,10 @@ def plot_analysis_04_blocks(table: pd.DataFrame, out_path: Path) -> None:
         ax.tick_params(axis="x", length=0, pad=6)
         ax.tick_params(axis="y", length=0, pad=7)
         ax.invert_yaxis()
+        # Pad both ends so value labels on the outermost bars stay inside the panel.
+        low, high = min(float(values.min()), 0.0), max(float(values.max()), 0.0)
+        pad = 0.18 * (high - low)
+        ax.set_xlim(low - pad, high + pad)
         for yi, xi in zip(y, values):
             ax.text(
                 xi + (0.006 if xi >= 0 else -0.006),
@@ -478,7 +486,7 @@ def plot_analysis_04_blocks(table: pd.DataFrame, out_path: Path) -> None:
             )
 
     fig.suptitle("Block-overperformance relationship by seed band", fontsize=22, fontweight="bold", y=0.97)
-    fig.text(0.5, 0.90, "Each bar is the within-seed-band Spearman relationship with overperformance. Positive means the block metric helps inside that band.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
+    fig.text(0.5, 0.90, "Each bar is the within-seed-band Spearman relationship with overperformance. Positive means a larger seed-relative edge went with a deeper-than-expected run in that band; no significance test.", ha="center", va="center", fontsize=10.0, color=PROJECT_PALETTE["steel"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=220, bbox_inches="tight")
     plt.close(fig)
@@ -528,7 +536,7 @@ def write_summary_04(table: pd.DataFrame, out_path: Path) -> None:
     strongest_tor = table.iloc[table["tor_seed_band_rho"].idxmax()]
     strongest_tord = table.iloc[table["tord_seed_band_rho"].idxmax()]
     lines = [
-        "# Turnovers Analysis 4: Where Turnovers Matter by Seed Band",
+        "# Turnovers Analysis 4: Turnover Metrics by Seed Band",
         "",
         f"- Strongest TOR seed band: `{strongest_tor['seed_group']}` at `{strongest_tor['tor_seed_band_rho']:+.3f}`.",
         f"- Strongest TORD seed band: `{strongest_tord['seed_group']}` at `{strongest_tord['tord_seed_band_rho']:+.3f}`.",
@@ -545,7 +553,7 @@ def write_summary_04_blocks(table: pd.DataFrame, out_path: Path) -> None:
     strongest_blk = table.iloc[table["blk_pct_seed_band_rho"].idxmax()]
     strongest_blked = table.iloc[table["blked_pct_seed_band_rho"].idxmax()]
     lines = [
-        "# Turnovers Analysis 4b: Where Blocks Matter by Seed Band",
+        "# Turnovers Analysis 4b: Block Metrics by Seed Band",
         "",
         f"- Strongest BLK% seed band: `{strongest_blk['seed_group']}` at `{strongest_blk['blk_pct_seed_band_rho']:+.3f}`.",
         f"- Strongest BLKED% seed band: `{strongest_blked['seed_group']}` at `{strongest_blked['blked_pct_seed_band_rho']:+.3f}`.",

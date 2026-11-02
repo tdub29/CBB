@@ -195,6 +195,10 @@ def plot_seed_group(table: pd.DataFrame, out_path: Path) -> None:
         values = table[f"{slug}_rho"].to_numpy(dtype=float)
         bar_colors = [color if value >= 0 else NEGATIVE for value in values]
         ax.bar(x, values, color=bar_colors, width=0.60)
+        # Headroom at both ends keeps the value labels off the panel title and the tick labels.
+        low, high = min(float(values.min()), 0.0), max(float(values.max()), 0.0)
+        pad = 0.25 * (high - low)
+        ax.set_ylim(low - pad, high + pad)
         ax.axhline(0, color=SECONDARY, linestyle=":", linewidth=1.2)
         ax.set_xticks(x)
         ax.set_xticklabels(table["seed_group"].tolist(), fontsize=10.0, fontweight="semibold")
@@ -218,7 +222,7 @@ def plot_seed_group(table: pd.DataFrame, out_path: Path) -> None:
                 bbox=styled_box(),
             )
 
-    fig.suptitle("Where free throw edges matter by seed band", fontsize=22, fontweight="bold", y=0.97)
+    fig.suptitle("Free throw metrics vs overperformance, by seed band", fontsize=22, fontweight="bold", y=0.97)
     fig.text(
         0.5,
         0.905,

@@ -65,7 +65,7 @@ def write_analysis_02_summary(summary_table: pd.DataFrame, primary_metric: str, 
 
 def write_analysis_04_summary(seed_table: pd.DataFrame, primary_metric: str, out_path: Path) -> None:
     rho_column = f"{metric_slug(primary_metric)}_rho"; strongest = seed_table.loc[seed_table[rho_column].idxmax()]; weakest = seed_table.loc[seed_table[rho_column].idxmin()]; positive_groups = seed_table.loc[seed_table[rho_column] > 0, "seed_group"].astype(str).tolist(); positives = ', '.join([f'`{v}`' for v in positive_groups]) if positive_groups else '`none`'
-    lines = ["# Size Analysis 4: Where Size Matters by Seed Band", "", f"- Metric used here: `{primary_metric}` (`{metric_label(primary_metric)}`).", f"- Strongest seed band: `{strongest['seed_group']}` at `{strongest[rho_column]:+.3f}`.", f"- Weakest seed band: `{weakest['seed_group']}` at `{weakest[rho_column]:+.3f}`.", f"- Positive seed bands: {positives}.", f"- Band rhos run from `{weakest[rho_column]:+.3f}` to `{strongest[rho_column]:+.3f}`; these are descriptive with no significance test.", "", "## Table", "", seed_table.round(3).to_markdown(index=False)]
+    lines = ["# Size Analysis 4: Size vs Finish by Seed Band", "", f"- Metric used here: `{primary_metric}` (`{metric_label(primary_metric)}`).", f"- Strongest seed band: `{strongest['seed_group']}` at `{strongest[rho_column]:+.3f}`.", f"- Weakest seed band: `{weakest['seed_group']}` at `{weakest[rho_column]:+.3f}`.", f"- Positive seed bands: {positives}.", f"- Band rhos run from `{weakest[rho_column]:+.3f}` to `{strongest[rho_column]:+.3f}`; these are descriptive with no significance test.", "", "## Table", "", seed_table.round(3).to_markdown(index=False)]
     out_path.write_text("\n".join(lines), encoding="utf-8")
 
 def main() -> int:

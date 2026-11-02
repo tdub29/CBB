@@ -1,4 +1,4 @@
-# Turnovers Analysis 4: Where Turnovers Matter by Seed Band
+# Turnovers Analysis 4: Turnover Metrics by Seed Band
 
 - Strongest TOR seed band: `7-8` at `+0.184`.
 - Strongest TORD seed band: `11-13` at `+0.125`.

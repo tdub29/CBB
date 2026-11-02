@@ -1,4 +1,4 @@
-# Turnovers Analysis 4b: Where Blocks Matter by Seed Band
+# Turnovers Analysis 4b: Block Metrics by Seed Band
 
 - Strongest BLK% seed band: `14-16` at `+0.071`.
 - Strongest BLKED% seed band: `9-10` at `+0.168`.

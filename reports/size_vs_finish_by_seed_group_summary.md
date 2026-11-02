@@ -1,4 +1,4 @@
-# Size Analysis 4: Where Size Matters by Seed Band
+# Size Analysis 4: Size vs Finish by Seed Band
 
 - Metric used here: `EFFHGT` (`Effective height`).
 - Strongest seed band: `1-2` at `+0.108`.
