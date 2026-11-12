@@ -2,7 +2,7 @@
 
 - Field-average `3PRATE` moved from `34.49` in 2008 to `39.49` in 2026.
 - Field-average `3P%` moved from `34.95` in 2008 to `33.85` in 2026.
-- Interpretation: Day 5 needs modern context because three-point volume has drifted over time even before the bracket-specific tests start.
+- Interpretation: field-level context only; three-point volume changed over the sample, while the seed-line baselines in the later analyses pool 2008-2025.
 
 ## Table
 

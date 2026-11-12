@@ -10,10 +10,9 @@ from .bracket import (
 )
 from .simulate import simulate_bracket
 from .win_probability import (
-    build_strength_lookup,
+    bracket_season_rows,
     compute_strength,
     p_win,
-    seed_fallback_strength,
 )
 
 __all__ = [
@@ -24,8 +23,7 @@ __all__ = [
     "load_bracket",
     "validate_bracket",
     "simulate_bracket",
-    "build_strength_lookup",
+    "bracket_season_rows",
     "compute_strength",
     "p_win",
-    "seed_fallback_strength",
 ]

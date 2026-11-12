@@ -6,7 +6,7 @@ from experience_analysis_common import get_experience_base_paths, load_experienc
 
 def main() -> int:
     paths = get_experience_base_paths()
-    sample = load_experience_data(paths["input_raw"])
+    sample = load_experience_data(paths["input_raw"], coach_history_path=paths["coach_history"])
     output_path = paths["input_sample"]
     output_path.parent.mkdir(parents=True, exist_ok=True)
     sample.to_csv(output_path, index=False)

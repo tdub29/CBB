@@ -1,9 +1,10 @@
 # Free Throw Analysis 7: 2026 Profile Map
 
-- This chart uses raw FTR and FT% on the axes so 2026 line reliance and line conversion can be read in one glance.
+- This chart plots raw FTR (line reliance) and FT% (line conversion) for the March 2026 projection.
+- `whistle_profile_score` in the table CSV = 0.45 x FTR edge + 0.35 x FT% edge + 0.20 x FTRD edge, each edge relative to the projected seed line's 2008-2025 tournament average. The weights are ad hoc, not fitted, and FTRD (opponent free throw rate allowed) enters with a plus sign; the score only orders teams in the tables below.
 - Gold-backed logos mark former NCAA champions in the projected `2026` field: `Duke` (1) - 2010 (1); 2015 (1), `Florida` (1) - 2025 (1), `UConn` (2) - 2011 (3); 2014 (7); 2023 (4); 2024 (1), `Virginia` (3) - 2019 (1), `Kansas` (4) - 2008 (1); 2022 (1), `Louisville` (6) - 2013 (1), `North Carolina` (6) - 2009 (1); 2017 (1), `Kentucky` (6) - 2012 (1), `Villanova` (9) - 2016 (2); 2018 (1).
 
-## Best current-field cases
+## Highest whistle_profile_score relative to seed line
 
 | team_display   |   projected_seed |   FTR |   FT% |   FTRD |
 |:---------------|-----------------:|------:|------:|-------:|
@@ -16,7 +17,7 @@
 | Arizona        |                1 |  42.8 |  74   |   28.4 |
 | St. John's     |                6 |  42.5 |  72.8 |   31.5 |
 
-## Weak current-field cases
+## Lowest whistle_profile_score relative to seed line
 
 | team_display     |   projected_seed |   FTR |   FT% |   FTRD |
 |:-----------------|-----------------:|------:|------:|-------:|

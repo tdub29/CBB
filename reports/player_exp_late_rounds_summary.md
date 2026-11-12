@@ -3,7 +3,7 @@
 - `Elite Eight+` teams averaged a season-wide `Exp` rank of `176.7` versus the seeded-field baseline of `157.0`.
 - `Final Four+` teams averaged a season-wide `Exp` rank of `172.1` and a rank edge of `-15.1`.
 - Champions averaged a season-wide `Exp` rank of `188.8` and a rank edge of `-31.8`.
-- Interpretation: this is the direct late-round test. It shows whether roster maturity gets more concentrated the deeper teams get into the bracket.
+- Interpretation: compares the average experience of teams that reached each round with the seeded field; these are descriptive averages with no significance test.
 
 ## Table
 

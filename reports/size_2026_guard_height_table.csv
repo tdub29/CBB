@@ -1,69 +1,69 @@
-projected_seed,team,conf,barthag,guard_height_in,EFFHGT,seed_group,carryover_direction
-1,Florida,SEC,0.9733,77.0,83.084,1-2,positive carryover
-1,Michigan,B10,0.9832,76.67,82.653,1-2,positive carryover
-1,Arizona,B12,0.9772,76.67,81.866,1-2,positive carryover
-1,Duke,ACC,0.981,78.67,81.4605,1-2,positive carryover
-2,Illinois,B10,0.9697,77.67,83.2075,1-2,positive carryover
-2,Iowa St.,B12,0.9545,78.0,81.3795,1-2,positive carryover
-2,Connecticut,BE,0.9612,77.0,81.3615,1-2,positive carryover
-2,Houston,B12,0.9712,75.67,80.7685,1-2,mixed
-3,Purdue,B10,0.9588,74.33,82.185,3-4,positive carryover
-3,Virginia,ACC,0.9371,78.33,82.104,3-4,positive carryover
-3,Michigan St.,B10,0.9474,77.33,81.673,3-4,positive carryover
-3,Gonzaga,WCC,0.9496,77.0,80.589,3-4,cautious negative
-4,Alabama,SEC,0.9389,76.0,81.244,3-4,cautious positive
-4,Kansas,B12,0.9407,77.0,80.783,3-4,mixed
-4,Nebraska,B10,0.9355,75.33,80.681,3-4,mixed
-4,Vanderbilt,SEC,0.9422,76.67,79.927,3-4,cautious negative
-5,Wisconsin,B10,0.9093,78.33,82.5905,5-6,positive carryover
-5,Tennessee,SEC,0.9474,77.0,82.2555,5-6,positive carryover
-5,Arkansas,SEC,0.9326,78.0,81.416,5-6,cautious positive
-5,Texas Tech,B12,0.9456,75.0,79.346,5-6,cautious negative
-6,North Carolina,ACC,0.9111,81.33,82.719,5-6,positive carryover
-6,Kentucky,SEC,0.8891,76.67,81.845,5-6,positive carryover
-6,Louisville,ACC,0.9419,76.67,81.7075,5-6,positive carryover
-6,St. John's,BE,0.9262,77.67,80.4635,5-6,mixed
-7,Georgia,SEC,0.8913,73.67,81.5165,7-8,positive carryover
-7,Miami FL,ACC,0.8846,76.33,81.4845,7-8,positive carryover
-7,UCLA,B10,0.8933,77.0,81.349,7-8,positive carryover
-7,BYU,B12,0.8906,77.0,80.922,7-8,cautious positive
-8,Saint Mary's,WCC,0.9066,78.0,82.3675,7-8,positive carryover
-8,Ohio St.,B10,0.8975,75.0,81.614,7-8,positive carryover
-8,Clemson,ACC,0.8972,76.33,81.572,7-8,positive carryover
-8,TCU,B12,0.823,74.0,79.189,7-8,cautious negative
-9,Utah St.,MWC,0.8874,76.33,80.933,9-10,cautious positive
-9,Iowa,B10,0.9181,77.33,80.794,9-10,mixed
-9,Villanova,BE,0.887,75.0,80.7385,9-10,mixed
-9,Texas A&M,SEC,0.8859,78.0,80.346,9-10,cautious negative
-10,Oklahoma,SEC,0.8352,,81.4505,9-10,positive carryover
-10,Saint Louis,A10,0.8942,78.0,80.1295,9-10,mixed
-10,Miami OH,MAC,0.7345,78.33,80.11,9-10,mixed
-10,N.C. State,ACC,0.888,77.67,79.348,9-10,cautious negative
-11,Missouri,SEC,0.8465,77.33,82.7565,11-13,positive carryover
-11,UCF,B12,0.8269,77.33,82.063,11-13,positive carryover
-11,SMU,ACC,0.8649,75.0,81.978,11-13,positive carryover
-11,Santa Clara,WCC,0.8895,80.33,81.845,11-13,positive carryover
-11,VCU,A10,0.8117,77.0,80.9195,11-13,positive carryover
-11,South Florida,Amer,0.812,76.0,79.713,11-13,cautious negative
-12,McNeese St.,Slnd,0.7474,75.0,79.776,11-13,mixed
-12,Yale,Ivy,0.7109,76.33,79.705,11-13,cautious negative
-12,High Point,BSth,0.7105,73.33,79.616,11-13,cautious negative
-12,Akron,MAC,0.7762,,77.912,11-13,cautious negative
-13,Hofstra,CAA,0.6794,,81.1335,11-13,positive carryover
-13,Utah Valley,WAC,0.7347,77.67,80.187,11-13,cautious positive
-13,Northern Iowa,MVC,0.7409,,79.735,11-13,mixed
-13,Sam Houston St.,CUSA,0.667,,79.653,11-13,mixed
-14,UC Irvine,BW,0.6474,,81.2615,14-16,positive carryover
-14,Troy,SB,0.5391,75.67,80.431,14-16,positive carryover
-14,North Dakota St.,Sum,0.6137,73.67,79.5905,14-16,mixed
-14,Wright St.,Horz,0.5979,,79.5255,14-16,mixed
-15,Furman,SC,0.4279,,81.414,14-16,positive carryover
-15,Idaho,BSky,0.5185,,80.587,14-16,positive carryover
-15,Siena,MAAC,0.4206,,79.8315,14-16,mixed
-15,Tennessee St.,OVC,0.3353,76.0,79.747,14-16,mixed
-16,Queens,ASun,0.4071,,80.7875,14-16,positive carryover
-16,Lehigh,Pat,0.2202,,79.8325,14-16,cautious positive
-16,UMBC,AE,0.3946,75.0,79.5255,14-16,mixed
-16,Southern,SWAC,0.3346,,79.3475,14-16,cautious negative
-16,LIU,NEC,0.3512,77.0,78.684,14-16,cautious negative
-16,Howard,MEAC,0.3969,74.67,78.5985,14-16,cautious negative
+projected_seed,team,conf,barthag,guard_height_in,EFFHGT,seed_group,full_primary_position
+1,Florida,SEC,0.9733,77.0,83.084,1-2,above baseline
+1,Michigan,B10,0.9832,76.67,82.653,1-2,above baseline
+1,Arizona,B12,0.9772,76.67,81.866,1-2,above baseline
+1,Duke,ACC,0.981,78.67,81.4605,1-2,above baseline
+2,Illinois,B10,0.9697,77.67,83.2075,1-2,above baseline
+2,Iowa St.,B12,0.9545,78.0,81.3795,1-2,above baseline
+2,Connecticut,BE,0.9612,77.0,81.3615,1-2,above baseline
+2,Houston,B12,0.9712,75.67,80.7685,1-2,near baseline
+3,Purdue,B10,0.9588,74.33,82.185,3-4,above baseline
+3,Virginia,ACC,0.9371,78.33,82.104,3-4,above baseline
+3,Michigan St.,B10,0.9474,77.33,81.673,3-4,above baseline
+3,Gonzaga,WCC,0.9496,77.0,80.589,3-4,near baseline
+4,Alabama,SEC,0.9389,76.0,81.244,3-4,above baseline
+4,Kansas,B12,0.9407,77.0,80.783,3-4,near baseline
+4,Nebraska,B10,0.9355,75.33,80.681,3-4,near baseline
+4,Vanderbilt,SEC,0.9422,76.67,79.927,3-4,below baseline
+5,Wisconsin,B10,0.9093,78.33,82.5905,5-6,above baseline
+5,Tennessee,SEC,0.9474,77.0,82.2555,5-6,above baseline
+5,Arkansas,SEC,0.9326,78.0,81.416,5-6,above baseline
+5,Texas Tech,B12,0.9456,75.0,79.346,5-6,below baseline
+6,North Carolina,ACC,0.9111,81.33,82.719,5-6,above baseline
+6,Kentucky,SEC,0.8891,76.67,81.845,5-6,above baseline
+6,Louisville,ACC,0.9419,76.67,81.7075,5-6,above baseline
+6,St. John's,BE,0.9262,77.67,80.4635,5-6,near baseline
+7,Georgia,SEC,0.8913,73.67,81.5165,7-8,above baseline
+7,Miami FL,ACC,0.8846,76.33,81.4845,7-8,above baseline
+7,UCLA,B10,0.8933,77.0,81.349,7-8,above baseline
+7,BYU,B12,0.8906,77.0,80.922,7-8,above baseline
+8,Saint Mary's,WCC,0.9066,78.0,82.3675,7-8,above baseline
+8,Ohio St.,B10,0.8975,75.0,81.614,7-8,above baseline
+8,Clemson,ACC,0.8972,76.33,81.572,7-8,above baseline
+8,TCU,B12,0.823,74.0,79.189,7-8,below baseline
+9,Utah St.,MWC,0.8874,76.33,80.933,9-10,above baseline
+9,Iowa,B10,0.9181,77.33,80.794,9-10,near baseline
+9,Villanova,BE,0.887,75.0,80.7385,9-10,near baseline
+9,Texas A&M,SEC,0.8859,78.0,80.346,9-10,near baseline
+10,Oklahoma,SEC,0.8352,,81.4505,9-10,above baseline
+10,Saint Louis,A10,0.8942,78.0,80.1295,9-10,near baseline
+10,Miami OH,MAC,0.7345,78.33,80.11,9-10,near baseline
+10,N.C. State,ACC,0.888,77.67,79.348,9-10,below baseline
+11,Missouri,SEC,0.8465,77.33,82.7565,11-13,above baseline
+11,UCF,B12,0.8269,77.33,82.063,11-13,above baseline
+11,SMU,ACC,0.8649,75.0,81.978,11-13,above baseline
+11,Santa Clara,WCC,0.8895,80.33,81.845,11-13,above baseline
+11,VCU,A10,0.8117,77.0,80.9195,11-13,above baseline
+11,South Florida,Amer,0.812,76.0,79.713,11-13,below baseline
+12,McNeese St.,Slnd,0.7474,75.0,79.776,11-13,near baseline
+12,Yale,Ivy,0.7109,76.33,79.705,11-13,near baseline
+12,High Point,BSth,0.7105,73.33,79.616,11-13,below baseline
+12,Akron,MAC,0.7762,,77.912,11-13,below baseline
+13,Hofstra,CAA,0.6794,,81.1335,11-13,above baseline
+13,Utah Valley,WAC,0.7347,77.67,80.187,11-13,near baseline
+13,Northern Iowa,MVC,0.7409,,79.735,11-13,near baseline
+13,Sam Houston St.,CUSA,0.667,,79.653,11-13,near baseline
+14,UC Irvine,BW,0.6474,,81.2615,14-16,above baseline
+14,Troy,SB,0.5391,75.67,80.431,14-16,above baseline
+14,North Dakota St.,Sum,0.6137,73.67,79.5905,14-16,near baseline
+14,Wright St.,Horz,0.5979,,79.5255,14-16,near baseline
+15,Furman,SC,0.4279,,81.414,14-16,above baseline
+15,Idaho,BSky,0.5185,,80.587,14-16,above baseline
+15,Siena,MAAC,0.4206,,79.8315,14-16,near baseline
+15,Tennessee St.,OVC,0.3353,76.0,79.747,14-16,near baseline
+16,Queens,ASun,0.4071,,80.7875,14-16,above baseline
+16,Lehigh,Pat,0.2202,,79.8325,14-16,above baseline
+16,UMBC,AE,0.3946,75.0,79.5255,14-16,near baseline
+16,Southern,SWAC,0.3346,,79.3475,14-16,near baseline
+16,LIU,NEC,0.3512,77.0,78.684,14-16,below baseline
+16,Howard,MEAC,0.3969,74.67,78.5985,14-16,below baseline

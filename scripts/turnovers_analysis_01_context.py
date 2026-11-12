@@ -109,10 +109,15 @@ def plot_context(context: pd.DataFrame, out_path: Path) -> None:
         color=LABEL_TEXT,
         bbox=styled_box(),
     )
+    # The two series end close together, so spread their end labels apart by a share of the axis span.
+    both = np.r_[tor_values, tord_values]
+    label_gap = max(0.05 * float(np.nanmax(both) - np.nanmin(both)), abs(tor_values[-1] - tord_values[-1]) / 2)
+    label_mid = (tor_values[-1] + tord_values[-1]) / 2
+    tor_sign = 1.0 if tor_values[-1] >= tord_values[-1] else -1.0
     ax_turnover.text(
         years[-1] + 0.35,
-        tor_values[-1] + 0.06,
-        f"{tor_values[-1]:.1f}",
+        label_mid + tor_sign * label_gap,
+        f"{tor_values[-1]:.2f}",
         ha="left",
         va="center",
         fontsize=9.8,
@@ -122,8 +127,8 @@ def plot_context(context: pd.DataFrame, out_path: Path) -> None:
     )
     ax_turnover.text(
         years[-1] + 0.35,
-        tord_values[-1] - 0.08,
-        f"{tord_values[-1]:.1f}",
+        label_mid - tor_sign * label_gap,
+        f"{tord_values[-1]:.2f}",
         ha="left",
         va="center",
         fontsize=9.8,
@@ -180,9 +185,9 @@ def write_summary(context: pd.DataFrame, out_path: Path) -> None:
         "",
         f"- Field-average offensive turnover rate moved from `{first['avg_tor']:.2f}` in 2008 to `{last['avg_tor']:.2f}` in {CURRENT_FIELD_YEAR}.",
         f"- Field-average defensive turnover pressure moved from `{first['avg_tord']:.2f}` to `{last['avg_tord']:.2f}` over the same span.",
-        f"- The field-level gap between those two turnover series is tiny on average (`{(context['avg_tor'] - context['avg_tord']).abs().mean():.2f}`), so they should be shown as one shared environment story rather than two separate headline panels.",
+        f"- The field-level gap between those two turnover series is small on average (`{(context['avg_tor'] - context['avg_tord']).abs().mean():.2f}`), so the chart shows them together.",
         f"- Block pressure context: `BLK%` moved from `{first['avg_blk_pct']:.2f}` to `{last['avg_blk_pct']:.2f}`, while `BLKED%` moved from `{first['avg_blked_pct']:.2f}` to `{last['avg_blked_pct']:.2f}`.",
-        "- Interpretation: the field environment changed enough that turnover edges should be interpreted against modern baselines, not early-sample assumptions.",
+        "- Interpretation: field-level context only; turnover rates changed over the sample, while the seed-line baselines in the later analyses pool 2008-2025.",
         "",
         "## Table",
         "",

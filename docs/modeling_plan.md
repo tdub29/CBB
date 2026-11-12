@@ -2,6 +2,12 @@
 
 Strategic plan for NCAA Men's March Madness prediction models. This covers the current architecture, what's working, what to try next, and how we evaluate progress.
 
+> **Status (2026-10-27).** This is the legacy ridge plan. For prediction it is superseded by the frozen
+> log5 test in [reports/model_vs_seeds_powered.md](../reports/model_vs_seeds_powered.md), whose edge over
+> seed-pair rates is not established. Walk-forward by year (item 5) is built: `scripts/run_bracket_evaluation.py`
+> walks the ridge model forward from 2021 and `scripts/run_powered_comparison.py score` tests on 2021-2026.
+> The roadmap below is kept as written.
+
 ## Objective
 
 Predict how far each tournament team advances (round 0–6) and convert those predictions into game-level win probabilities for bracket simulation.
@@ -174,9 +180,13 @@ python scripts/run_pipeline.py
 # Data only (no modeling)
 python scripts/run_pipeline.py --data-only
 
-# With bracket simulation
-python scripts/run_pipeline.py --bracket data/external/templates/bracket_template.csv --n-sims 20000 --k 1.0
+# With bracket simulation: a Team,Seed,Region CSV with Torvik team names, and the season it belongs to
+python scripts/run_pipeline.py --bracket path/to/bracket.csv --season 2025 --n-sims 20000 --k 1.0
 ```
+
+Each bracket team is scored on its own row for `--season`, with its bracket seed; a team with no row
+for that season stops the run. `data/external/templates/bracket_template.csv` shows the format only:
+its placeholder names match no team.
 
 Model artifacts saved to `models/` (joblib). Reports to `reports/`.
 

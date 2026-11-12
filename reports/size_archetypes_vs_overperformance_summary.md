@@ -3,7 +3,7 @@
 - Metric used here: `EFFHGT` (`Effective height`).
 - Best archetype: `above seed baseline` at `+0.006` mean finish vs exact-seed expectation.
 - Worst archetype: `below seed baseline` at `-0.005` mean finish vs exact-seed expectation.
-- Interpretation: size is most actionable when it shows up as a seed-relative archetype rather than as a raw top-to-bottom ranking.
+- Interpretation: teams are split only by whether the metric sits above or below their exact seed line's average; these are descriptive group means with no significance test.
 
 ## Table
 

@@ -29,6 +29,16 @@ def parse_args() -> argparse.Namespace:
         help="Optional path to bracket CSV (Team,Seed,Region) for round-probability simulation.",
     )
     parser.add_argument(
+        "--season",
+        type=int,
+        default=None,
+        metavar="YEAR",
+        help=(
+            "Season the --bracket belongs to (required with --bracket). Each bracket team is scored on its "
+            "own row for that season with its bracket seed; a team with no row stops the run."
+        ),
+    )
+    parser.add_argument(
         "--n-sims",
         type=int,
         default=None,
@@ -146,6 +156,9 @@ if __name__ == "__main__":
             ["--holdout-year", str(args.holdout), "--report-prefix", "model_optimization"]
         ))
 
+    if args.bracket and args.season is None and not args.data_only:
+        raise SystemExit("--bracket needs --season YEAR, the season the bracket belongs to.")
+
     if args.prep_raw:
         run_raw_data_prep()
 
@@ -172,4 +185,5 @@ if __name__ == "__main__":
         year_end=year_end,
         refresh_team_history=args.refresh_team_history,
         use_trank_only=args.trank_only,
+        bracket_season=args.season,
     )

@@ -7,6 +7,11 @@ Adds four columns derived from the cache's own coach/finish data:
   - coach_tourn_wins_5y / coach_tourn_losses_5y
   - coach_years_with_program
 
+Finish labels map to NCAA tournament wins and losses through FINISH_TO_WL, an exact lookup of every
+label in the cache. An unknown label raises instead of silently counting as no tournament. A First Four
+(or, before 2011, opening-round) loser is labelled R68 and counts as an appearance with one loss. A team
+that won its First Four game carries the label of its later exit, so that play-in win is not counted.
+
 Input:  data/raw/team_history_cache.csv       (from populate_team_history_cache.py)
 Output: data/raw/team_history_cache_enriched.csv
 
@@ -17,7 +22,6 @@ Run order:
 """
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import pandas as pd
@@ -29,28 +33,31 @@ OUT_PATH = RAW_DIR / "team_history_cache_enriched.csv"
 
 EXCLUDE_YEAR = 2020
 
+# Torvik team-history finish label -> (NCAA tournament wins, losses).
 FINISH_TO_WL: dict[str, tuple[int, int]] = {
-    "r64": (0, 1), "64": (0, 1), "first four": (0, 1),
-    "r32": (1, 1), "32": (1, 1),
-    "s16": (2, 1), "sweet 16": (2, 1), "16": (2, 1),
-    "e8": (3, 1), "elite eight": (3, 1), "8": (3, 1),
-    "f4": (4, 1), "final four": (4, 1), "4": (4, 1),
-    "2nd": (5, 1), "runner": (5, 1), "finals": (5, 1),
-    "champion": (6, 0), "champ": (6, 0), "1": (6, 0), "1st": (6, 0),
+    "R68": (0, 1),
+    "R64": (0, 1),
+    "R32": (1, 1),
+    "Sweet Sixteen": (2, 1),
+    "Elite Eight": (3, 1),
+    "Final Four": (4, 1),
+    "Finals": (5, 1),
+    "CHAMPS": (6, 0),
 }
+# Labels of seasons without an NCAA tournament game: "Proj." is Torvik's projected seed for 2020.
+NO_TOURNAMENT_FINISHES = frozenset({"Proj."})
 
 
-def _finish_to_wl(finish: str) -> tuple[int, int]:
-    if not finish or not isinstance(finish, str):
+def _finish_to_wl(finish: object) -> tuple[int, int]:
+    """Exact lookup of a finish label; a blank finish means the team was not in the tournament."""
+    if finish is None or (isinstance(finish, float) and pd.isna(finish)):
         return (0, 0)
-    s = str(finish).strip().lower()
-    for key, wl in FINISH_TO_WL.items():
-        if key in s:
-            return wl
-    if re.search(r"^\d+-\d+$", s):
-        parts = s.split("-")
-        return (int(parts[0]), int(parts[1]))
-    return (0, 0)
+    label = str(finish).strip()
+    if not label or label in NO_TOURNAMENT_FINISHES:
+        return (0, 0)
+    if label not in FINISH_TO_WL:
+        raise ValueError(f"Unknown team-history finish label {label!r}; add it to FINISH_TO_WL.")
+    return FINISH_TO_WL[label]
 
 
 def _years_prior_5(season_year: int) -> list[int]:

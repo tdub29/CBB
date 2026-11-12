@@ -1,3 +1,6 @@
+# Saved third-party HTML captured by scripts/inspect_trank_page.py.
+data/raw/samples/trank_page_sample.html linguist-vendored=true
+
 # Hashed evidence: stored byte for byte so a clone reproduces the sha256 recorded in
 # src/frozen_inputs.py, the game manifests and data/raw/torvik_2026/MANIFEST.md.
 data/processed/cbb_training_clean.csv -text

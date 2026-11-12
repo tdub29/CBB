@@ -1,9 +1,10 @@
 # SOS Analysis 4: Seed Groups and Finish-vs-Expectation Scatter
 
 - Primary metric: `Elite SOS`
-- Headline finding: seed group `11-13` had the strongest within-group Spearman relationship at `+0.313`.
-- Weakest group: `3-4` at `-0.008`.
-- Interpretation: the SOS signal is not uniform across seed bands; the faceted scatter shows where schedule strength actually tracks overperformance.
+- Measured: inside each seed group, the Spearman correlation between raw SOS and finish minus the group's expected finish depth.
+- Largest absolute rho: `11-13` at `+0.313`.
+- Smallest absolute rho: `3-4` at `-0.008`.
+- No significance test here; see `reports/robustness_summary.md`, where none of these band cells survives the pooled multiple-comparison check.
 
 ## Seed Group Summary
 

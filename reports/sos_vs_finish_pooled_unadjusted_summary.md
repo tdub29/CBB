@@ -2,9 +2,10 @@
 
 - Primary metric: `Elite SOS`
 - Metric rule: Elite SOS led by only 0.029 rho, below the 0.05 switch threshold.
-- Headline finding: champions averaged `31.95` Elite SOS versus `19.99` for Round-of-64 exits.
+- Measured: mean and median SOS of the teams that exited in each round, all tournaments pooled, not seed-adjusted.
+- Champions averaged `31.95` Elite SOS versus `19.99` for Round-of-64 exits.
 - Baseline: the field-wide average was `23.96` Elite SOS.
-- Interpretation: stronger schedules mapped to deeper runs overall, but much of this pooled signal is seed structure.
+- Seed drives both SOS and finish depth, so this gradient is mostly seed structure; the seed-centered view is `reports/sos_vs_finish_pooled_summary.md`. No significance test; see `reports/robustness_summary.md`.
 
 ## Pooled Finish Table
 

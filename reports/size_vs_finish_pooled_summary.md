@@ -3,7 +3,7 @@
 - Metric used here: `EFFHGT` (`Effective height`).
 - Raw pooled relationship for `EFFHGT`: `+0.235`.
 - Exact-seed-controlled relationship for `EFFHGT`: `-0.008`.
-- Interpretation: the unadjusted gradient is descriptive, but the exact-seed-controlled panel is the usable bracket read.
+- Interpretation: the unadjusted gradient mixes in seed strength; the exact-seed-controlled panel compares teams within the same seed line.
 
 ## Table
 

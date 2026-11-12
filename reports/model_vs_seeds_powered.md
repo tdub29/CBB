@@ -270,18 +270,18 @@ Expected-wins squared error, 2025 field: trevor_2025 (pred_round) 0.653, frozen 
 
 ## Model card: frozen model
 - Identity: `log5`, version = `reports/model_selection_frozen.json` sha256 `624bcd737db6f3d0`, frozen 2026-09-29T16:22:27+00:00; owner Trevor White; status: evaluated, not approved for betting use.
-- Intended use: pre-tournament game and round probabilities for NCAA men's tournament brackets and analysis posts. Prohibited: wagering decisions, in-tournament updating, women's or other tournaments.
+- Intended use: pre-tournament game and round probabilities for NCAA men's tournament brackets and descriptive analysis. Prohibited: wagering decisions, in-tournament updating, women's or other tournaments.
 - Target and timing: P(better seed wins) for each Round-of-64-onward game, from inputs known at the published bracket; horizon = the whole tournament, no updates.
 - Data: Barthag from the Torvik regular-season table (Section 3); seed-pair history 1985 to Y-1 for the baseline.
 - Baselines: coin, constant, chalk 0.70 and 0.99, seed-pair rates, existing model, madness.py family, T-Rank line.
 - Validation: walk-forward, selection on 2010-2019, one scoring pass on 2021-2026. Result: Brier difference vs seed-pair -0.0059 [-0.0123, +0.0004]; calibration: no bin's 95% Wilson interval excludes its mean forecast (8 occupied bins): no detectable miscalibration at this sample size, which is not proof of calibration.
 - Limits: Section Limits. Monitoring: re-score every new tournament with the frozen spec; retire it if the running Brier over the post-freeze tournaments is worse than seed-pair rates with the year-block CI above zero; any change to the spec is a new version with a new frozen file.
 
-## Deviations from the brief (stricter rule followed)
-- One primary metric locked before fitting (Brier); selection runs on it, log loss is secondary (validation-design, sports-modeling-doctrine).
+## Design choices stricter than the usual defaults
+- One primary metric locked before fitting (Brier); selection runs on it, log loss is secondary.
 - Seed-pair history extended to 1985, so the baseline is not starved in the early walk-forward years; the 2008-onward version is reported as a sensitivity row.
 - The baseline is logged in the selection but cannot be frozen, so the 2021-2026 test always tests a model.
-- Coin-flip and constant baselines added (baseline-models Tier A).
+- Coin-flip and constant baselines added.
 - Round probabilities computed exactly instead of Monte Carlo, so no simulation seed is needed; the bootstrap seed 123 is recorded.
 - No from-scratch Elo: Torvik's AdjOE/AdjDE (opponent-adjusted offense and defense ratings from regular-season games) and Barthag are the rating baselines; an Elo would need every regular-season game 2008-2026 and is the natural next candidate.
 
@@ -304,7 +304,7 @@ Expected-wins squared error, 2025 field: trevor_2025 (pred_round) 0.653, frozen 
 | OneDrive 20260224transfer/CBBData/CBB (older repo copy) | reviewed, skipped | notebooks/ holds only .gitkeep; playground/ is generic playground templates with no CBB work; src and scripts are older copies of this repo's files; its data/external CSVs are cloud-only |
 
 ## Reproduction
-- `python scripts/run_powered_comparison.py select` (charter locked 2026-09-29T16:11:27+00:00, frozen 2026-09-29T16:22:27+00:00), then `python scripts/run_powered_comparison.py score` (run 2026-10-01T02:50:18+00:00); data refresh: `scripts/fetch_tournament_games.py`, `scripts/fetch_seed_history.py`.
+- `select` ran once (charter locked 2026-09-29T16:11:27+00:00, frozen 2026-09-29T16:22:27+00:00) and now refuses to run; reproduce with `python scripts/run_powered_comparison.py score` (run 2026-10-01T02:50:18+00:00); data refresh: `scripts/fetch_tournament_games.py`, `scripts/fetch_seed_history.py`.
 - Frozen selection sha256 `624bcd737db6f3d0`; code at selection `2ce8199 + uncommitted changes`, at scoring `2ce8199 + uncommitted changes`.
 - Inputs (sha256 prefix, identical at selection and scoring): training `data/processed/cbb_training_clean.csv` `a35137c1619032e6`; games `data/raw/tournament_games.csv` `170ba15342239c73`; seed history `data/raw/seed_history_games.csv` `a210e08449f48875`.
 - Deterministic: bootstrap seed `123`, `10,000` year-block resamples; ridge random_state `42`; madness.py KFold seed 42. Per-game and per-round predictions: `data/processed/powered_game_predictions_2010_2026.csv`, `data/processed/powered_round_probabilities_2010_2026.csv`.

@@ -24,7 +24,12 @@ Thumbs.db
 
 # Project-specific
 *.log
-.claude/
 
 # Raw data staging (recompile fallbacks, merge temps)
 data/raw/_staging/
+
+# Local editor/tool state is not public project source.
+/.vscode/
+*.bak
+*.err
+tmp_*
