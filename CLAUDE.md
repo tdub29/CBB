@@ -71,6 +71,7 @@ NCAA men's tournament win probabilities on Bart Torvik team stats, tested agains
 - `cbb_training_clean.csv` cannot be rebuilt from live Torvik (`data/raw/torvik_2026/MANIFEST.md`). Treat it as source data.
 - `score` rewrites `reports/model_vs_seeds_powered.md`, `data/processed/powered_*_2010_2026.csv` and `reports/figures/frozen_model_calibration_2021_2026.png`. Run it to reproduce, then confirm only the timestamps changed.
 - Label timing honestly. `powered_round_probabilities_2010_2026.csv` is **post-First-Four** (the 64-team field after the play-in games). Retrospective scores are not prospective evidence.
+- Model changes follow `../.agents/rules/predictive-modeling-process.md`; the registry and claim register are `../.agents/model-records/cbb/MODEL-REGISTRY.md`. An audit that finds a frozen or generated report's wording wrong adds a dated entry to `reports/ERRATA.md` naming the file and line; the report and its numbers stay untouched (`score` regenerates `reports/model_vs_seeds_powered.md`, and `reports/model_selection_frozen.json` is hash-frozen).
 
 ## Setup and Run Commands
 

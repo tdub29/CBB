@@ -1,0 +1,287 @@
+{
+  "skills": {
+    "analytics-twitter-threads": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/analytics-twitter-threads/SKILL.md",
+      "computedHash": "02b1570bfe503152623d8c774235824a9079a0171018a1a431c355167062bcbc"
+    },
+    "anti-slop-analytics": {
+      "computedHash": "c81eaa999472813406c9494172315f6f854d676ba7335babdcf573f4ca09f43d",
+      "skillPath": ".agents/skills/anti-slop-analytics/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "baseline-models": {
+      "computedHash": "4f65243b40e076f6b2ddaf5f8e8d43d43e38d1d1f153c6f27cce528b29ce5872",
+      "skillPath": ".agents/skills/baseline-models/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "calibration-check": {
+      "computedHash": "8441d0c79d7907733d7f3de86b40626548b72220e708cee53ea9fe0908706ac3",
+      "skillPath": ".agents/skills/calibration-check/SKILL.md",
+      "source": "local/self (fork of walrusquant/sports-analytic-skills)",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "local"
+    },
+    "canvas-design": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/canvas-design/SKILL.md",
+      "computedHash": "7bebc4a2cf108c55c1e52bb96b1050dc1ab2f9492e9c2d43f1fe57f826728f4d"
+    },
+    "copywriting": {
+      "computedHash": "0faf09b825abac8ab6454f8833a010dc515daf09b0895369963bc6826ccb6261",
+      "skillPath": ".agents/skills/copywriting/SKILL.md",
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github"
+    },
+    "data-analysis-profiling": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/data-analysis-profiling/SKILL.md",
+      "computedHash": "982d1f22bc53cabe4f10200ecc43d62749a267019adf426ce095dafdb91c3d70"
+    },
+    "data-prep-optimization": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/data-prep-optimization/SKILL.md",
+      "computedHash": "3e12284a70d7715f74cb2bce8ea9770b38624a99119d95fb8390170c65ddcb36"
+    },
+    "data-sources": {
+      "computedHash": "b7a4a2815d16e377e9b8dc71b3ab08d43ce0be2399ea73c7d15ba67d903d5fd9",
+      "skillPath": ".agents/skills/data-sources/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "data-storytelling": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/data-storytelling/SKILL.md",
+      "computedHash": "0d5bfacd9a7ff1e57002f1bd80f3a1f1443c8b1d40eb559278b2adf70b45bf8a"
+    },
+    "data-visualization": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/data-visualization/SKILL.md",
+      "computedHash": "4475f9c4c862eca2dd7a84c31143a4fa8a790ae37318765a80639c5aceb04aaa"
+    },
+    "eda-sports": {
+      "computedHash": "12ce04461ba56c20854fbd88bee99bfc231902b5514d56b83d1613d6c73b24c8",
+      "skillPath": ".agents/skills/eda-sports/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "environment-setup": {
+      "computedHash": "97431d477ced1503a468d9140cedab53008f1e68ce64250b56ed5091a469a216",
+      "skillPath": ".agents/skills/environment-setup/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "experiment-log": {
+      "computedHash": "3297b29697a0c2701c33b5a186c3b50a19450ac3cc431941f0cc8096c0e0f1e8",
+      "skillPath": ".agents/skills/experiment-log/SKILL.md",
+      "source": "local/self (fork of walrusquant/sports-analytic-skills)",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "local"
+    },
+    "feature-rules": {
+      "computedHash": "cc52ccec0cf123e43fadae2a8685989577c2b3e0b7aabb98053f7ab4d4719a72",
+      "skillPath": ".agents/skills/feature-rules/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "fixing-accessibility": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/fixing-accessibility/SKILL.md",
+      "computedHash": "6f2541a80bcddd6af2b72d0b432c80583a3fd8b7f07117c9b22a2c145168beec"
+    },
+    "frontend-design": {
+      "computedHash": "8a925c15c8217334a0a7a4c940c01759953285357be26289f4c0a2489fb67ea9",
+      "source": "MengTo/Skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/frontend-design/SKILL.md"
+    },
+    "leakage-audit": {
+      "computedHash": "49613c1982e7a718751df5ccce78430de3f5eb55d28d8e9bd91eecb6c197353a",
+      "skillPath": ".agents/skills/leakage-audit/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "machine-learning-engineer": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/machine-learning-engineer/SKILL.md",
+      "computedHash": "c9d570fe7fce0f5acec37225a2c0f10fe85fe74f004484e50bbdc0d44ff85b24"
+    },
+    "model-card": {
+      "computedHash": "224c422b852100e5da416f7c0b1b3eb34eb2152e3940e9c2ab744766392e848e",
+      "skillPath": ".agents/skills/model-card/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "model-interpretation": {
+      "computedHash": "70a608e778f8983dfe7f4808aa5915ebf5e60753472daaad07194a9084df3087",
+      "skillPath": ".agents/skills/model-interpretation/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "muse-todos": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/muse-todos/SKILL.md",
+      "computedHash": "8af2705b8055fef1af3c577bdde78fac517923f003ada8626b80b54aeb22d990"
+    },
+    "nflreadpy": {
+      "computedHash": "603a4a2118303e7c27f894dba5c955a5a7671b365054cc9df644194b2d5e98d2",
+      "skillPath": ".agents/skills/nflreadpy/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "playground": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/playground/SKILL.md",
+      "computedHash": "940fe4e8992fb905ee5e1beeb5bd140efd76a4348e3d36f7f6c2b1cc9b2c4c18"
+    },
+    "pybaseball": {
+      "computedHash": "589a4bac644523170c2185ee7de8b13e18a99a3e41fc933958e38ecefcf3e4b8",
+      "skillPath": ".agents/skills/pybaseball/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "ratings-strength-models": {
+      "computedHash": "2d8259a17c3a067ecb3ba8fc243c76d408008c51ce710e21019faa3e0fd818ab",
+      "skillPath": ".agents/skills/ratings-strength-models/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "react-pdf": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/react-pdf/SKILL.md",
+      "computedHash": "f4f1ece309f6833659b4ae0b3d87b1bd3b3b1ccd7a2ce456f3e2ff510597e750"
+    },
+    "results-reporting": {
+      "computedHash": "ba74c70e6109e6791a82bcaeaef833bfc76c5494660fc6f9fc7e85c759dd31ca",
+      "skillPath": ".agents/skills/results-reporting/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "senior-data-engineer": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/senior-data-engineer/SKILL.md",
+      "computedHash": "7a7f72de36666b182bdce0387c2cbc3f0f6dcfa5de3bd1b76b2e348a9fc2a37b"
+    },
+    "senior-data-scientist": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/senior-data-scientist/SKILL.md",
+      "computedHash": "227cca0221dc91d4028e2ddcb99bb19e9d519afd73a45350818e7a75fb2006e2"
+    },
+    "simulation-sports": {
+      "computedHash": "472ba1e61a33012bd324e8ef00674cce87d6a69a3a0016eacce10ca32a5ff609",
+      "skillPath": ".agents/skills/simulation-sports/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "skill-vetter": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/skill-vetter/SKILL.md",
+      "computedHash": "e8eb7583355c2ae78a79187dca6a1ec448d9c8360e91652871392179f7ffb8bf"
+    },
+    "sports-ds-bridge": {
+      "computedHash": "fb9439d6016fcaafa9ee662c5b619dceb0623f0ce9664bef281512fe3fe6aa65",
+      "skillPath": ".agents/skills/sports-ds-bridge/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "sports-modeling-doctrine": {
+      "computedHash": "fdc38b876a61361fbbc684be8f1bd83ab2b02388ffbbb446bb29e26ae7981392",
+      "skillPath": ".agents/skills/sports-modeling-doctrine/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "sports-predictive-modeling": {
+      "computedHash": "526ca93b50321e5aa67c223decf03be4137580e5100a4e4cc39f016df8e27af5",
+      "note": "renamed on install from upstream 'predictive-modeling' to 'sports-predictive-modeling' to avoid colliding with the workspace's own predictive-modeling router skill; only the directory name and the SKILL.md name: field were changed",
+      "skillPath": ".agents/skills/sports-predictive-modeling/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "sports-visualization": {
+      "computedHash": "463578c13fd7a233c2f36a164e8217b1905345ebda3abbeed486da46533bf4da",
+      "skillPath": ".agents/skills/sports-visualization/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "sportsdataverse-py": {
+      "computedHash": "c7300d32091677996e31d66489ba19ee7796655dd0a1e194421fbe7007d27951",
+      "skillPath": ".agents/skills/sportsdataverse-py/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "statistical-modeling": {
+      "computedHash": "c7bf79090473726c0ecb16a8ac676f7689c61ce1863dd421771e757896a8b620",
+      "skillPath": ".agents/skills/statistical-modeling/SKILL.md",
+      "source": "local/self (fork of walrusquant/sports-analytic-skills)",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "local"
+    },
+    "test-audit": {
+      "computedHash": "e7fdd5cdd713046395c05deb005831e01a4d752b44bd2a06b4865a178c4e4220",
+      "source": "openclaw/openclaw",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/test-audit/SKILL.md"
+    },
+    "time-series-sports": {
+      "computedHash": "c6fa95388cc9fab815522e55b35f045e0e490694b0a8276f589f70bbf699b491",
+      "skillPath": ".agents/skills/time-series-sports/SKILL.md",
+      "source": "walrusquant/sports-analytic-skills",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "github"
+    },
+    "validation-design": {
+      "computedHash": "84f59ac52f6f102f24cb1b31d37c00dfd46f5afc0b1e72bba72185871461d3f5",
+      "skillPath": ".agents/skills/validation-design/SKILL.md",
+      "source": "local/self (fork of walrusquant/sports-analytic-skills)",
+      "sourceCommit": "0f90d2463b7d4c793821cce71fc82d06fcb06a3c",
+      "sourceType": "local"
+    },
+    "wcag-audit-patterns": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/wcag-audit-patterns/SKILL.md",
+      "computedHash": "27915c654b4bf3e48e91408c70cd0dc49fc76bc5f6c8c1992b9ace253cc3e02a"
+    },
+    "web-design-guidelines": {
+      "source": "local/self",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/web-design-guidelines/SKILL.md",
+      "computedHash": "17e48da905f83a19c174079b50760a98c069527ba50079239b3c187236627c29"
+    }
+  }
+}
